@@ -15,80 +15,120 @@
 #include <list>
 #include <string.h>
 #include <vector>
+#include <fstream>
+#include <string>
+#include<sstream>
+
 using namespace std;
 
-unordered_map<string, int> symbolTable; // global symbol table
-
-/**
- * @brief Initialize the symbol table with the reserverd words
- *
- * @param symbolTable
- * @return unordered_map<string, int>
- */
-void fillSymbolTable()
+class SymbolTable
 {
-    // reserved words to L language
-    vector<string> reservedWords = {"const", "int", "char", "while", "if", "float", "else", "&&", "||", "!", ":=", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div", "string", "write", "writeln", "mod", "[", "]", "true", "false", "boolean"};
+    //TODO: Alterar a hash para não precisar de iteração
+    private:
+        // reserved words to L language
+        vector<string> reservedWords = {"const", "int", "char", "while", "if", "float", "else", "&&", "||", "!", ":=", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div", "string", "write", "writeln", "mod", "[", "]", "true", "false", "boolean"};
+        // Symbol hash table 
+        unordered_map<string, int> symbolTable;
 
-    // fill reserved words list using a iterator to use like position for each word
-    for (int i = 0; i < reservedWords.size(); i++)
-    {
-        symbolTable[reservedWords[i]] = i;
-    }
-}
-
-bool isReservedWord(string s)
-{
-    unordered_map<string, int>::const_iterator got = symbolTable.find(s);
-    if (got == symbolTable.end()){
-        cout << "not found";
-        return false;
-    }
-    else cout << got->first << " is " << got->second;
-
-    cout << endl;
-    return true;
-    
-}
-
-bool isDelimiter(char c){
-
-    // bool isDelimiter = ' '||'='||'<'||'>'||'('||')'||'"'||''
-    return false;
-}
-
-/**
- * @brief 
- * 
- * @param srcProgram 
- */
-void lexicalAnalyzer(int linha, string srcProgram){
-
-    int l_cursor = 0, r_cursor = 0;
-    int program_lenght = srcProgram.length();
-
-    // do the parser while the program isn't the end of the source program      int x 19;
-    while (r_cursor <= program_lenght && l_cursor <= r_cursor) {
-        // if it isn't a delimiter, it means that the program is reading a lexeme yet
-        if(!isDelimiter(srcProgram[r_cursor])){
-            cout << srcProgram[r_cursor];
-            r_cursor++;
+    public:
+        // Constructor
+        SymbolTable(){
+            // numbering tokens
+            fillHash();
         }
-    }
+
+        // Fill hash symbol table with reserved words 
+        void fillHash()
+        {
+            // fill reserved words list using a iterator to use like position for each word
+            for (int i = 0; i < reservedWords.size(); i++)
+            {
+                symbolTable[reservedWords[i]] = i;
+            }
+        }
+
+};
+
+// Global Symbol Table
+SymbolTable* symbolTable = new SymbolTable();
+
+// Global cursos
+int cursor;
+// Global program length
+int eof;
+// Global program string
+string program;
+
+
+bool validateChar(char c)
+{
+    //TODO: Validar char 
+    return true;
+
 }
 
+string lexicalAnalyzer(){
+    char c; // read character
+    int state = 0;
+    string token = "";
+
+    // While state != final state
+    while(state != -1)
+    {
+        if(cursor == eof)
+        {
+            c = program[cursor];
+
+            if(validateChar(c))
+            {
+                //TODO: Erro
+            }
+        } 
+        else
+        {
+            // Flag EOF
+            token = "";
+        }
+        
+        switch(state) {
+            case 1:
+
+                break;
+            case 2:
+
+                break;
+            default:
+                break;
+        }
+        
+    }
+    return token;
+}
 
 int main()
 {
-    // symbol table implemented with hash table cpp standard
-    fillSymbolTable();
-
     string srcProgram;
     int line = 1;
+    cursor = 0;
 
-    while(getline(cin, srcProgram)){
-        lexicalAnalyzer(line, srcProgram);
-        line++;
+    std::ifstream programFile ("program.txt");
+    // if file is valid
+    if(programFile) 
+    {
+        // Read the complete program file
+        ostringstream stream;
+        stream << programFile.rdbuf(); // reading data
+        program = stream.str();
+    }
+
+    // Setting the global variable to control eof
+    eof = program.length();
+    string token;
+
+    // Calling lexical analyzer while eof is not reached
+    while(token != "")
+    {
+        token = lexicalAnalyzer();
     }
 
     return 0;
