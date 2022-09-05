@@ -21,6 +21,7 @@
 
 using namespace std;
 
+#define finalState -1
 class SymbolTable
 {
     //TODO: Alterar a hash para não precisar de iteração
@@ -32,7 +33,8 @@ class SymbolTable
 
     public:
         // Constructor
-        SymbolTable(){
+        SymbolTable()
+        {
             // numbering tokens
             fillHash();
         }
@@ -48,6 +50,13 @@ class SymbolTable
         }
 
 };
+
+
+struct TransitionReturn
+{             
+  int nextState;         
+  string tokenConcat;  
+}; 
 
 // Global Symbol Table
 SymbolTable* symbolTable = new SymbolTable();
@@ -67,17 +76,125 @@ bool validateChar(char c)
 
 }
 
-string lexicalAnalyzer(){
+/* Execute state 0 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateZeroTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if(c == ' ' || c == '\n' || c == '\t')
+    {
+        transitionReturn.nextState = 0;
+        transitionReturn.tokenConcat = "";
+    } else if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') // Variables and reserved words
+    {
+        transitionReturn.nextState = 1;
+        transitionReturn.tokenConcat = token + c;
+    } else if((c >= '0' && c <= '9')) { // Numeric constants
+        
+        transitionReturn.nextState = 2;
+        transitionReturn.tokenConcat = token + c;
+    } else if(c >= '-') { // Numeric constants
+        
+        transitionReturn.nextState = 3;
+        transitionReturn.tokenConcat = token + c;
+    }
+
+    return transitionReturn;
+}
+
+
+
+/* Execute state 1 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateOneTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '1' && c <= '2')  || c == '_') // Variables and reserved words
+    {
+        transitionReturn.nextState = 1;
+        transitionReturn.tokenConcat = token + c;
+    } else // End of variables and reserved words lexical analysis
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--; 
+        transitionReturn.nextState = finalState; 
+        transitionReturn.tokenConcat = token; // Discarting invalid char
+    }  
+
+    return transitionReturn;
+}
+
+
+/* Execute state 2 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateTwoTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if((c >= '0' && c <= '9')) // Numeric Constant
+    {
+        transitionReturn.nextState = 2;
+        transitionReturn.tokenConcat = token + c;
+    } else // End of Numeric Constants lexical analysis
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--; 
+        transitionReturn.nextState = finalState; 
+        transitionReturn.tokenConcat = token; // Discarting invalid char
+    }  
+
+    return transitionReturn;
+}
+
+
+/* Execute state 3 transition actions
+ * @param string token, char read toke
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateThreeTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if((c >= '0' && c <= '9')) // Numeric Constant analysis
+    {
+        transitionReturn.nextState = 2;
+        transitionReturn.tokenConcat = token + c;
+    } else // Subtraction signal
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--; 
+        transitionReturn.nextState = finalState; 
+        transitionReturn.tokenConcat = token; // Discarting invalid char
+    }  
+
+    return transitionReturn;
+}
+
+
+
+/* Lexical analyzer method
+ * @return recognized token 
+ */
+string lexicalAnalyzer()
+{
+   
     char c; // read character
     int state = 0;
     string token = "";
 
-    // While state != final state
-    while(state != -1)
+    while(state != finalState)
     {
-        if(cursor == eof)
+        if(cursor != eof)
         {
-            c = program[cursor];
+            c = program[cursor++];
 
             if(validateChar(c))
             {
@@ -87,19 +204,31 @@ string lexicalAnalyzer(){
         else
         {
             // Flag EOF
-            token = "";
+            return token;
         }
-        
-        switch(state) {
-            case 1:
 
+        TransitionReturn tr;
+
+        switch(state) 
+        {   
+            case 0:
+                tr = stateZeroTransition(token, c);
+                break;
+            case 1:
+                tr = stateOneTransition(token, c);     
                 break;
             case 2:
-
+                tr = stateTwoTransition(token, c);
                 break;
+            case 3:
+                tr = stateThreeTransition(token, c);
+                break;
+
             default:
                 break;
         }
+        token = tr.tokenConcat;
+        state = tr.nextState; 
         
     }
     return token;
@@ -123,12 +252,18 @@ int main()
 
     // Setting the global variable to control eof
     eof = program.length();
-    string token;
+    // Initalizing token with a char != of eof flag
+    string token = " "; 
 
     // Calling lexical analyzer while eof is not reached
     while(token != "")
     {
         token = lexicalAnalyzer();
+
+        if(token != "")
+        {
+            cout << "Token: " << token <<  endl;
+        }
     }
 
     return 0;
