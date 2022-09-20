@@ -40,7 +40,9 @@ public:
         fillHash();
     }
 
-    // Fill hash symbol table with reserved words
+    /**
+     * @brief Fill Symbol Table (only called at the begin of the program
+     */
     void fillHash()
     {
         // fill reserved words list using a iterator to use like position for each word
@@ -50,6 +52,12 @@ public:
         }
     }
 
+    /**
+     * @brief Search for the lexical form in the Symbol Table
+     * 
+     * @param lex the lexical form that you want to get position
+     * @return int position of the lexical form
+     */
     int search(string lex)
     {
         unordered_map<string, int>::const_iterator got = this->symbolTable.find(lex);
@@ -61,12 +69,21 @@ public:
             return got->second;
     }
 
+    /**
+     * @brief Insert a new lexical form at the symbol table
+     * 
+     * @param lex lexical form to insert
+     * @return int position of insertion
+     */
     int insert(string lex)
     {
         this->symbolTable[lex] = this->symbolTable.size();
         return this->search(lex);
     }
 
+    /**
+     * @brief print Symbol Table content (only used for tests)
+     */
     void print()
     {
         for (auto const &pair : this->symbolTable)
@@ -260,9 +277,6 @@ string lexicalAnalyzer()
 int main()
 {
     string srcProgram;
-    symbolTable->insert("teste");
-    symbolTable->print();
-    throw "error";
     int line = 1;
     cursor = 0;
 
