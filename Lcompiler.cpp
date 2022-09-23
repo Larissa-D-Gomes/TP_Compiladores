@@ -65,7 +65,7 @@ public:
         unordered_map<string, int>::const_iterator got = this->symbolTable.find(lex);
         if (got == this->symbolTable.end())
         {
-            return -1;
+            return null;
         }
         else
             return got->second;
@@ -146,7 +146,24 @@ bool isNumber(char c)
  */
 bool isHexa(char c)
 {
-    return isNumber(c) || (toupper(c) >= 'A' && tolower(c) <= 'F');
+    return isNumber(c) || (toupper(c) >= 'A' && toupper(c) <= 'F');
+}
+
+void throwException(char c, string lex, string type)
+{
+    if (type == "lex")
+    {
+        string exception = "";
+
+        if (cursor == eof)
+        {
+            exception = "ERRO na linha " + to_string(line) + ": Fim de arquivo nao esperado";
+            throw invalid_argument(exception);
+        }
+
+        exception = "ERRO LEXICO na linha " + to_string(line) + ": caractere '" + c + "' lido invalido neste estado" + "\nLexema " + lex + "nao identificado";
+        throw invalid_argument(exception);
+    }
 }
 
 bool validateChar(char c)
@@ -196,7 +213,7 @@ TransitionReturn stateZeroTransition(string token, char c)
         transitionReturn.nextState = 7;
         transitionReturn.tokenConcat = token + c;
     }
-    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-')
+    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']')
     {
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
@@ -230,12 +247,10 @@ TransitionReturn stateZeroTransition(string token, char c)
     {
         transitionReturn.nextState = 9;
         transitionReturn.tokenConcat = token + c;
-    } else {
-        string exception = "ERRO LEXICO na linha ";
-        exception += to_string(line) + ": caractere '";
-        exception += c;
-        exception += "' lido invalido neste estado";
-        throw invalid_argument(exception);
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
     }
 
     return transitionReturn;
@@ -269,7 +284,7 @@ TransitionReturn stateOneTransition(string token, char c)
 
         // Returning a cursor position to avoid discarding valid characters for the next token analysis
         cursor--;
-    }
+    } 
 
     return transitionReturn;
 }
@@ -313,7 +328,7 @@ TransitionReturn stateThreeTransition(string token, char c)
 
     if (isNumber(c)) // Numeric Constant analysis
     {
-        transitionReturn.nextState = 2;
+        transitionReturn.nextState = 3;
         transitionReturn.tokenConcat = token + c;
     }
     else // Subtraction signal
@@ -350,6 +365,10 @@ TransitionReturn stateFourTransition(string token, char c)
         transitionReturn.nextState = 5;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
 
     return transitionReturn;
 }
@@ -367,6 +386,11 @@ TransitionReturn stateFiveTransition(string token, char c)
         transitionReturn.nextState = 6;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
     return transitionReturn;
 }
 
@@ -383,6 +407,11 @@ TransitionReturn stateSixTransition(string token, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
     return transitionReturn;
 }
 
@@ -399,6 +428,11 @@ TransitionReturn stateSevenTransition(string token, char c)
         transitionReturn.nextState = 8;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
     return transitionReturn;
 }
 
@@ -415,6 +449,11 @@ TransitionReturn stateEightTransition(string token, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
     return transitionReturn;
 }
 
@@ -426,8 +465,8 @@ TransitionReturn stateNineTransition(string token, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c != '\"' || c != '\n') // String analysis
-    {
+    if (c != '\"' && c != '\n') // String analysis
+    {   
         transitionReturn.nextState = 9;
         transitionReturn.tokenConcat = token + c;
     }
@@ -435,6 +474,10 @@ TransitionReturn stateNineTransition(string token, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
     }
 
     return transitionReturn;
@@ -480,6 +523,7 @@ TransitionReturn stateElevenTransition(string token, char c)
     {
         transitionReturn.nextState = 12;
     }
+
     return transitionReturn;
 }
 
@@ -520,12 +564,17 @@ TransitionReturn stateThirteenTransition(string token, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
     return transitionReturn;
 }
 
-/* Execute state 13 transition actions
+/* Execute state 14 transition actions
  * @param string token, char read token
- * @return TransitionReturn -> final  or next state
+ * @return TransitionReturn -> final  or next state and token or token + c
  */
 TransitionReturn stateFourteenTransition(string token, char c)
 {
@@ -543,6 +592,10 @@ TransitionReturn stateFourteenTransition(string token, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token; // Discarting invalid char
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
 
     return transitionReturn;
 }
@@ -556,6 +609,10 @@ TransitionReturn stateFifteenTransition(string token, char c)
         transitionReturn.nextState = 15;
         transitionReturn.tokenConcat = token + c;
     }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
 
     return transitionReturn;
 }
@@ -568,6 +625,10 @@ TransitionReturn stateSixteenTransition(string token, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
     }
 
     return transitionReturn;
@@ -704,7 +765,8 @@ int main()
         }
     }
 
-    symbolTable->print();
+    //symbolTable->print();
+    cout << line << " linhas compiladas";
 
     return 0;
 }
