@@ -22,6 +22,7 @@
 using namespace std;
 
 #define finalState -1
+#define null -1
 
 class SymbolTable
 {
@@ -29,6 +30,7 @@ class SymbolTable
 private:
     // reserved words to L language
     vector<string> reservedWords = {"const", "int", "char", "while", "if", "float", "else", "&&", "||", "!", ":=", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div", "string", "write", "writeln", "mod", "[", "]", "true", "false", "boolean"};
+
     // Symbol hash table
     unordered_map<string, int> symbolTable;
 
@@ -41,7 +43,7 @@ public:
     }
 
     /**
-     * @brief Fill Symbol Table (only called at the begin of the program
+     * @brief Fill Symbol Table (only called at the begin of the program)
      */
     void fillHash()
     {
@@ -54,7 +56,7 @@ public:
 
     /**
      * @brief Search for the lexical form in the Symbol Table
-     * 
+     *
      * @param lex the lexical form that you want to get position
      * @return int position of the lexical form
      */
@@ -63,7 +65,7 @@ public:
         unordered_map<string, int>::const_iterator got = this->symbolTable.find(lex);
         if (got == this->symbolTable.end())
         {
-            return -1;
+            return null;
         }
         else
             return got->second;
@@ -71,7 +73,7 @@ public:
 
     /**
      * @brief Insert a new lexical form at the symbol table
-     * 
+     *
      * @param lex lexical form to insert
      * @return int position of insertion
      */
@@ -88,7 +90,7 @@ public:
     {
         for (auto const &pair : this->symbolTable)
         {
-            std::cout << "{ " << pair.second << " : " << pair.first << " }\n";
+            cout << "{ " << pair.second << " : " << pair.first << " }\n";
         }
     }
 };
@@ -108,6 +110,62 @@ int cursor;
 int eof;
 // Global program string
 string program;
+// Lines of the program
+int line;
+
+/**
+ * @brief Verify if a character is a character
+ *
+ * @param c character to verify
+ * @return true - If is number
+ * @return false - If is not number
+ */
+bool isCharacter(char c)
+{
+    return (tolower(c) >= 'a' && tolower(c) <= 'z');
+}
+
+/**
+ * @brief Verify if a character is a number
+ *
+ * @param c character to verify
+ * @return true - If is number
+ * @return false - If is not number
+ */
+bool isNumber(char c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+/**
+ * @brief Verify if a character is a hexadecimal valid value
+ *
+ * @param c character to verify
+ * @return true - If is hexa
+ * @return false - If is not hexa
+ */
+bool isHexa(char c)
+{
+    return isNumber(c) || (toupper(c) >= 'A' && toupper(c) <= 'F');
+}
+
+void throwException(char c, string lex, string type)
+{
+    if (type == "lex")
+    {
+        string exception = "";
+
+
+        if (cursor == eof)
+        {
+            exception = "ERRO na linha " + to_string(line) + ": Fim de arquivo nao esperado";
+            throw invalid_argument(exception);
+        }
+
+        exception = "ERRO LEXICO na linha " + to_string(line) + ": caractere '" + c + "' lido invalido neste estado" + "\nLexema " + lex + "nao identificado";
+        throw invalid_argument(exception);
+    }
+}
 
 bool validateChar(char c)
 {
@@ -121,29 +179,79 @@ bool validateChar(char c)
  */
 TransitionReturn stateZeroTransition(string token, char c)
 {
+
     TransitionReturn transitionReturn;
 
     if (c == ' ' || c == '\n' || c == '\t')
     {
         transitionReturn.nextState = 0;
         transitionReturn.tokenConcat = "";
+
+        // increment line count on line break read
+        if (c == '\n')
+            line++;
     }
-    else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') // Variables and reserved words
+    else if (isCharacter(c) || c == '_') // Variables and reserved words
     {
         transitionReturn.nextState = 1;
         transitionReturn.tokenConcat = token + c;
     }
-    else if ((c >= '0' && c <= '9'))
+    else if (isNumber(c) && c != '0')
     { // Numeric constants
 
         transitionReturn.nextState = 2;
         transitionReturn.tokenConcat = token + c;
     }
-    else if (c >= '-')
+    else if (c == '0')
     { // Numeric constants
 
-        transitionReturn.nextState = 3;
+        transitionReturn.nextState = 4;
         transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '\'')
+    {
+
+        transitionReturn.nextState = 7;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']')
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '<' || c == '>' || c == '!')
+    {
+        transitionReturn.nextState = 14;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == ':')
+    {
+        transitionReturn.nextState = 15;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '&')
+    {
+        transitionReturn.nextState = 16;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '|')
+    {
+        transitionReturn.nextState = 13;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '/')
+    {
+        transitionReturn.nextState = 10;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '\"')
+    {
+        transitionReturn.nextState = 9;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
     }
 
     return transitionReturn;
@@ -157,18 +265,27 @@ TransitionReturn stateOneTransition(string token, char c)
 {
     TransitionReturn transitionReturn;
 
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '1' && c <= '2') || c == '_') // Variables and reserved words
+    if (isCharacter(c) || isNumber(c) || c == '_') // Variables and reserved words
     {
         transitionReturn.nextState = 1;
         transitionReturn.tokenConcat = token + c;
     }
     else // End of variables and reserved words lexical analysis
     {
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
-        cursor--;
+        int pos = symbolTable->search(token);
+
+        // token not found in the symbol Table
+        if (pos == null)
+        {
+            pos = symbolTable->insert(token);
+        }
+
         transitionReturn.nextState = finalState;
         transitionReturn.tokenConcat = token; // Discarting invalid char
-    }
+
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--;
+    } 
 
     return transitionReturn;
 }
@@ -181,9 +298,14 @@ TransitionReturn stateTwoTransition(string token, char c)
 {
     TransitionReturn transitionReturn;
 
-    if ((c >= '0' && c <= '9')) // Numeric Constant
+    if (isNumber(c)) // Numeric Constant
     {
         transitionReturn.nextState = 2;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '.') // Real number
+    {
+        transitionReturn.nextState = 3;
         transitionReturn.tokenConcat = token + c;
     }
     else // End of Numeric Constants lexical analysis
@@ -198,16 +320,16 @@ TransitionReturn stateTwoTransition(string token, char c)
 }
 
 /* Execute state 3 transition actions
- * @param string token, char read toke
+ * @param string token, char read token
  * @return TransitionReturn -> next state and (token + c)
  */
 TransitionReturn stateThreeTransition(string token, char c)
 {
     TransitionReturn transitionReturn;
 
-    if ((c >= '0' && c <= '9')) // Numeric Constant analysis
+    if (isNumber(c)) // Numeric Constant analysis
     {
-        transitionReturn.nextState = 2;
+        transitionReturn.nextState = 3;
         transitionReturn.tokenConcat = token + c;
     }
     else // Subtraction signal
@@ -221,12 +343,303 @@ TransitionReturn stateThreeTransition(string token, char c)
     return transitionReturn;
 }
 
+/* Execute state 4 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateFourTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if ((c == '.')) // Real number, initializing with 0
+    {
+        transitionReturn.nextState = 3;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (isNumber(c)) // Numeric Constant analysis
+    {
+        transitionReturn.nextState = 2;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == 'x') // Hexa Number analysis
+    {
+        transitionReturn.nextState = 5;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 5 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateFiveTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (isHexa(c)) // Hexa Number analysis
+    {
+        transitionReturn.nextState = 6;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 6 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final state and (token + c)
+ */
+TransitionReturn stateSixTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (isHexa(c)) // End of Hexa Number analysis
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 7 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state and (token + c)
+ */
+TransitionReturn stateSevenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (isCharacter(c)) // Character analysis
+    {
+        transitionReturn.nextState = 8;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 8 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final state and (token + c)
+ */
+TransitionReturn stateEightTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '\'') // Character analysis
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 9 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final state and (token + c)
+ */
+TransitionReturn stateNineTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c != '\"' && c != '\n') // String analysis
+    {   
+        transitionReturn.nextState = 9;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c == '\"')
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 10 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final state and final token
+ */
+TransitionReturn stateTenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '*') // comments analysis
+    {
+        transitionReturn.nextState = 11;
+        transitionReturn.tokenConcat = "";
+    }
+    else if (c != '*') // it´s a division symbol
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token; // Discarting invalid char
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 11 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> next state
+ */
+TransitionReturn stateElevenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c != '*')
+    {
+        transitionReturn.nextState = 11;
+    }
+    else if (c == '*')
+    {
+        transitionReturn.nextState = 12;
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 12 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final  or next state
+ */
+TransitionReturn stateTwelveTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '/')
+    {
+        transitionReturn.nextState = finalState;
+    }
+    else if (c == '*')
+    {
+        transitionReturn.nextState = 12;
+    }
+    else if (c != '*' || c != '/')
+    {
+        transitionReturn.nextState = 11;
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 13 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final  or next state and (token + c)
+ */
+TransitionReturn stateThirteenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '|') // it´s a operator OU
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+/* Execute state 14 transition actions
+ * @param string token, char read token
+ * @return TransitionReturn -> final  or next state and token or token + c
+ */
+TransitionReturn stateFourteenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '=')
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else if (c != '=')
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token; // Discarting invalid char
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+TransitionReturn stateFifteenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '=')
+    {
+        transitionReturn.nextState = 15;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
+TransitionReturn stateSixteenTransition(string token, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (c == '&')
+    {
+        transitionReturn.nextState = finalState;
+        transitionReturn.tokenConcat = token + c;
+    }
+    else
+    {
+        throwException(c, transitionReturn.tokenConcat, "lex");
+    }
+
+    return transitionReturn;
+}
+
 /* Lexical analyzer method
  * @return recognized token
  */
 string lexicalAnalyzer()
 {
-
     char c; // read character
     int state = 0;
     string token = "";
@@ -236,7 +649,6 @@ string lexicalAnalyzer()
         if (cursor != eof)
         {
             c = program[cursor++];
-
             if (validateChar(c))
             {
                 // TODO: Erro
@@ -264,6 +676,45 @@ string lexicalAnalyzer()
         case 3:
             tr = stateThreeTransition(token, c);
             break;
+        case 4:
+            tr = stateFourTransition(token, c);
+            break;
+        case 5:
+            tr = stateFiveTransition(token, c);
+            break;
+        case 6:
+            tr = stateSixTransition(token, c);
+            break;
+        case 7:
+            tr = stateSevenTransition(token, c);
+            break;
+        case 8:
+            tr = stateEightTransition(token, c);
+            break;
+        case 9:
+            tr = stateNineTransition(token, c);
+            break;
+        case 10:
+            tr = stateTenTransition(token, c);
+            break;
+        case 11:
+            tr = stateElevenTransition(token, c);
+            break;
+        case 12:
+            tr = stateTwelveTransition(token, c);
+            break;
+        case 13:
+            tr = stateThirteenTransition(token, c);
+            break;
+        case 14:
+            tr = stateFourteenTransition(token, c);
+            break;
+        case 15:
+            tr = stateFifteenTransition(token, c);
+            break;
+        case 16:
+            tr = stateSixteenTransition(token, c);
+            break;
 
         default:
             break;
@@ -276,27 +727,36 @@ string lexicalAnalyzer()
 
 int main()
 {
-    string srcProgram;
-    int line = 1;
+    program = "";
+    string str;
+    line = 1;
     cursor = 0;
 
-    ifstream programFile("program.txt");
-    // if file is valid
-    if (programFile)
+    // ifstream programFile("program.txt");
+
+    // // if file is valid
+    // if (programFile)
+    // {
+    //     // Read the complete program file
+    //     ostringstream stream;
+    //     stream << programFile.rdbuf(); // reading data
+    //     program = stream.str();
+    // }
+
+    while (getline(cin, str))
     {
-        // Read the complete program file
-        ostringstream stream;
-        stream << programFile.rdbuf(); // reading data
-        program = stream.str();
+        program += str;
+        program.push_back('\n');
     }
 
     // Setting the global variable to control eof
     eof = program.length();
-    // Initalizing token with a char != of eof flag
-    string token = " ";
+
+    // Initializing token with a char != of eof flag
+    string token = "";
 
     // Calling lexical analyzer while eof is not reached
-    while (token != "")
+    while (cursor != eof)
     {
         token = lexicalAnalyzer();
 
@@ -305,6 +765,9 @@ int main()
             cout << "Token: " << token << endl;
         }
     }
+
+    //symbolTable->print();
+    cout << line << " linhas compiladas";
 
     return 0;
 }
