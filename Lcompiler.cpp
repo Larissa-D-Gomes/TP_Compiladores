@@ -782,7 +782,7 @@ int main()
         // }
     }
 
-    symbolTable->print();
+    // symbolTable->print();
     line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
 
     return 0;
