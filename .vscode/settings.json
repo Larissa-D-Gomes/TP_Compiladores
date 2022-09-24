@@ -67,6 +67,7 @@
         "functional": "cpp",
         "iterator": "cpp",
         "utility": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "xstring": "cpp"
     }
 }
