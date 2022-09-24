@@ -67,9 +67,19 @@ class Alphabet{
         static const int FALSE        = 36; // (F | f)(A | a)(L | l)(S |s)(E | e)
         static const int BOOLEAN      = 37; // (B | b)(O | o)(O | o)(L | l)(E | e)(A | a)(N| n)
         static const int ID           = 40; // (l | _) (l | d | _) -> l = letra; d = dígito 
-        static const int CONSTANT     = 41; // ('c') | ("(n)*") | (d+) | (d*.d+) 
+        static const int CONSTANT     = 41; // (('c') | ("(n)*") | (d+) | (d*.d+)) 
                                             // c -> valid and printable char
                                             // n -> valid char != /n
+};
+
+
+class ConstType{
+    public:
+        static const int INT          =  0;
+        static const int CHAR         =  1; 
+        static const int FLOAT        =  2; 
+        static const int BOOLEAN      =  3; 
+        static const int NOT_CONSTANT = -1; 
 };
 
 class SymbolTable
@@ -154,7 +164,8 @@ struct LexicalRegister{
 struct TransitionReturn
 {
     int nextState;
-    string tokenConcat;
+    string lexemeConcat;
+    LexicalRegister lexicalReg;
 };
 
 // Global Symbol Table
@@ -229,19 +240,72 @@ bool isValidChar(char c)
     return ((c >= ' ' && c <= '"') || (c >= 'A' && c <= ']') || c == '/' || c == '_' || (c >= 'a' && c <= '}') || (c >= '%' && c <= '?')) || (c == '@') || c == '\n' || c == '\r' || c == '\t';
 }
 
+/**
+ * @brief Return the token of a lexeme that contains a single char
+ *        Transition: Initial state - Final state (Reserved words)
+ * @param char c
+ * @return int token 
+ */
+int getStateZeroToken(char c){
+    switch (c)
+    {
+        case '(':
+            return Alphabet::OPENPAR;
+        case ')':
+            return Alphabet::CLOSEPAR;
+        case ',':
+            return Alphabet::COMMA;
+        case '+':
+            return Alphabet::PLUS;
+        case '-':
+            return Alphabet::MINNUS;
+        case '*':
+            return Alphabet::TIMES;
+        case '/':
+            return Alphabet::DIVIDE;
+        case '{':
+            return Alphabet::OPENBRACE;
+        case '}':
+            return Alphabet::CLOSEBRACE;
+        case '[':
+            return Alphabet::OPENBRACKET;
+        case ']':
+            return Alphabet::CLOSEBRACKET;
+        case ';':
+            return Alphabet::SEMICOLON;
+        default:
+            return -1;
+            break;
+    }
+}
+
+/** @brief Return the token of a lexeme that contains a single char
+ *         Transition: Initial state - Final state (Reserved words)
+ * @param char c
+ * @return int token 
+ */
+LexicalRegister getLexicalRegister(string lexeme, int token, int symbolTabPos, int constType) {
+    LexicalRegister l;
+    l.lexeme = lexeme;
+    l.token = token;
+    l.symbolTabPos = symbolTabPos;
+    l.constType = constType;
+    return l;
+}
+
 /* Execute state 0 transition actions
  * @param string token, char read token
  * @return TransitionReturn -> next state and (token + c)
  */
-TransitionReturn stateZeroTransition(string token, char c)
+TransitionReturn stateZeroTransition(string lexeme, char c)
 {
 
     TransitionReturn transitionReturn;
 
-    if (c == ' ' || c == '\n' || c == '\t')
+    if (c == ' ' || c == '\n' || c == '\t') // Ignore insignificant char
     {
         transitionReturn.nextState = 0;
-        transitionReturn.tokenConcat = "";
+        transitionReturn.lexemeConcat = "";
 
         // increment line count on line break read
         if (c == '\n')
@@ -250,92 +314,95 @@ TransitionReturn stateZeroTransition(string token, char c)
     else if (isCharacter(c) || c == '_') // Variables and reserved words
     {
         transitionReturn.nextState = 1;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (isNumber(c) && c != '0')
     { // Numeric constants
 
         transitionReturn.nextState = 2;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '0')
     { // Numeric constants
 
         transitionReturn.nextState = 4;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '\'')
     {
 
         transitionReturn.nextState = 7;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']')
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
+
+        // Setting lexical register
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, getStateZeroToken(c), symbolTable->search(lexeme), ConstType::NOT_CONSTANT);
     }
     else if (c == '<' || c == '>' || c == '!')
     {
         transitionReturn.nextState = 14;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == ':')
     {
         transitionReturn.nextState = 15;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '&')
     {
         transitionReturn.nextState = 16;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '|')
     {
         transitionReturn.nextState = 13;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '/')
     {
         transitionReturn.nextState = 10;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '\"')
     {
         transitionReturn.nextState = 9;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
 
     return transitionReturn;
 }
 
 /* Execute state 1 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateOneTransition(string token, char c)
+TransitionReturn stateOneTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isCharacter(c) || isNumber(c) || c == '_') // Variables and reserved words
     {
         transitionReturn.nextState = 1;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else // End of variables and reserved words lexical analysis
     {
-        int pos = symbolTable->search(token);
+        int pos = symbolTable->search(lexeme);
 
-        // token not found in the symbol Table
+        // lexeme not found in the symbol Table
         if (pos == null)
         {
-            pos = symbolTable->insert(token);
+            pos = symbolTable->insert(lexeme);
         }
 
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token; // Discarting invalid char
+        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
 
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
     }
 
@@ -343,245 +410,245 @@ TransitionReturn stateOneTransition(string token, char c)
 }
 
 /* Execute state 2 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateTwoTransition(string token, char c)
+TransitionReturn stateTwoTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isNumber(c)) // Numeric Constant
     {
         transitionReturn.nextState = 2;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '.') // Real number
     {
         transitionReturn.nextState = 3;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else // End of Numeric Constants lexical analysis
     {
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token; // Discarting invalid char
+        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
     }
 
     return transitionReturn;
 }
 
 /* Execute state 3 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateThreeTransition(string token, char c)
+TransitionReturn stateThreeTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isNumber(c)) // Numeric Constant analysis
     {
         transitionReturn.nextState = 3;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else // Subtraction signal
     {
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token; // Discarting invalid char
+        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
     }
 
     return transitionReturn;
 }
 
 /* Execute state 4 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateFourTransition(string token, char c)
+TransitionReturn stateFourTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
     if ((c == '.')) // Real number, initializing with 0
     {
         transitionReturn.nextState = 3;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (isNumber(c)) // Numeric Constant analysis
     {
         transitionReturn.nextState = 2;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == 'x') // Hexa Number analysis
     {
         transitionReturn.nextState = 5;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 5 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateFiveTransition(string token, char c)
+TransitionReturn stateFiveTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isHexa(c)) // Hexa Number analysis
     {
         transitionReturn.nextState = 6;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 6 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final state and (lexeme + c)
  */
-TransitionReturn stateSixTransition(string token, char c)
+TransitionReturn stateSixTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isHexa(c)) // End of Hexa Number analysis
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 7 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> next state and (lexeme + c)
  */
-TransitionReturn stateSevenTransition(string token, char c)
+TransitionReturn stateSevenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (isCharacter(c)) // Character analysis
     {
         transitionReturn.nextState = 8;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 8 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final state and (lexeme + c)
  */
-TransitionReturn stateEightTransition(string token, char c)
+TransitionReturn stateEightTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '\'') // Character analysis
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 9 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final state and (lexeme + c)
  */
-TransitionReturn stateNineTransition(string token, char c)
+TransitionReturn stateNineTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c != '\"' && c != '\n') // String analysis
     {
         transitionReturn.nextState = 9;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c == '\"')
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 10 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final state and final token
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final state and final lexeme
  */
-TransitionReturn stateTenTransition(string token, char c)
+TransitionReturn stateTenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '*') // comments analysis
     {
         transitionReturn.nextState = 11;
-        transitionReturn.tokenConcat = "";
+        transitionReturn.lexemeConcat = "";
     }
     else if (c != '*') // it´s a division symbol
     {
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token; // Discarting invalid char
+        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
     }
 
     return transitionReturn;
 }
 
 /* Execute state 11 transition actions
- * @param string token, char read token
+ * @param string lexeme, char read lexeme
  * @return TransitionReturn -> next state
  */
-TransitionReturn stateElevenTransition(string token, char c)
+TransitionReturn stateElevenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
@@ -598,10 +665,10 @@ TransitionReturn stateElevenTransition(string token, char c)
 }
 
 /* Execute state 12 transition actions
- * @param string token, char read token
+ * @param string lexeme, char read lexeme
  * @return TransitionReturn -> final  or next state
  */
-TransitionReturn stateTwelveTransition(string token, char c)
+TransitionReturn stateTwelveTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
@@ -622,109 +689,109 @@ TransitionReturn stateTwelveTransition(string token, char c)
 }
 
 /* Execute state 13 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final  or next state and (token + c)
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final  or next state and (lexeme + c)
  */
-TransitionReturn stateThirteenTransition(string token, char c)
+TransitionReturn stateThirteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '|') // it´s a operator OU
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 14 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final  or next state and token or token + c
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final  or next state and lexeme or lexeme + c
  */
-TransitionReturn stateFourteenTransition(string token, char c)
+TransitionReturn stateFourteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '=')
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else if (c != '=')
     {
-        // Returning a cursor position to avoid discarding valid characters for the next token analysis
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token; // Discarting invalid char
+        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
     }
 
     return transitionReturn;
 }
 
 /* Execute state 15 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final  or next state and token or token + c
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final  or next state and lexeme or lexeme + c
  */
-TransitionReturn stateFifteenTransition(string token, char c)
+TransitionReturn stateFifteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '=')
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Execute state 16 transition actions
- * @param string token, char read token
- * @return TransitionReturn -> final  or next state and token or token + c
+ * @param string lexeme, char read lexeme
+ * @return TransitionReturn -> final  or next state and lexeme or lexeme + c
  */
-TransitionReturn stateSixteenTransition(string token, char c)
+TransitionReturn stateSixteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
     if (c == '&')
     {
         transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
     else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(token + c);
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
 }
 
 /* Lexical analyzer method
- * @return recognized token
+ * @return recognized lexeme
  */
 string lexicalAnalyzer()
 {
     char c; // read character
     int state = 0;
-    string token = "";
+    string lexeme = "";
 
     while (state != finalState)
     {
@@ -739,72 +806,73 @@ string lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return token;
+            return lexeme;
         }
 
         TransitionReturn tr;
 
         switch (state)
         {
-        case 0:
-            tr = stateZeroTransition(token, c);
-            break;
-        case 1:
-            tr = stateOneTransition(token, c);
-            break;
-        case 2:
-            tr = stateTwoTransition(token, c);
-            break;
-        case 3:
-            tr = stateThreeTransition(token, c);
-            break;
-        case 4:
-            tr = stateFourTransition(token, c);
-            break;
-        case 5:
-            tr = stateFiveTransition(token, c);
-            break;
-        case 6:
-            tr = stateSixTransition(token, c);
-            break;
-        case 7:
-            tr = stateSevenTransition(token, c);
-            break;
-        case 8:
-            tr = stateEightTransition(token, c);
-            break;
-        case 9:
-            tr = stateNineTransition(token, c);
-            break;
-        case 10:
-            tr = stateTenTransition(token, c);
-            break;
-        case 11:
-            tr = stateElevenTransition(token, c);
-            break;
-        case 12:
-            tr = stateTwelveTransition(token, c);
-            break;
-        case 13:
-            tr = stateThirteenTransition(token, c);
-            break;
-        case 14:
-            tr = stateFourteenTransition(token, c);
-            break;
-        case 15:
-            tr = stateFifteenTransition(token, c);
-            break;
-        case 16:
-            tr = stateSixteenTransition(token, c);
-            break;
+            case 0:
+                tr = stateZeroTransition(lexeme, c);
+                break;
+            case 1:
+                tr = stateOneTransition(lexeme, c);
+                break;
+            case 2:
+                tr = stateTwoTransition(lexeme, c);
+                break;
+            case 3:
+                tr = stateThreeTransition(lexeme, c);
+                break;
+            case 4:
+                tr = stateFourTransition(lexeme, c);
+                break;
+            case 5:
+                tr = stateFiveTransition(lexeme, c);
+                break;
+            case 6:
+                tr = stateSixTransition(lexeme, c);
+                break;
+            case 7:
+                tr = stateSevenTransition(lexeme, c);
+                break;
+            case 8:
+                tr = stateEightTransition(lexeme, c);
+                break;
+            case 9:
+                tr = stateNineTransition(lexeme, c);
+                break;
+            case 10:
+                tr = stateTenTransition(lexeme, c);
+                break;
+            case 11:
+                tr = stateElevenTransition(lexeme, c);
+                break;
+            case 12:
+                tr = stateTwelveTransition(lexeme, c);
+                break;
+            case 13:
+                tr = stateThirteenTransition(lexeme, c);
+                break;
+            case 14:
+                tr = stateFourteenTransition(lexeme, c);
+                break;
+            case 15:
+                tr = stateFifteenTransition(lexeme, c);
+                break;
+            case 16:
+                tr = stateSixteenTransition(lexeme, c);
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
-        token = tr.tokenConcat;
+        lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-    return token;
+
+    return lexeme;
 }
 
 int main()
@@ -823,13 +891,13 @@ int main()
     // Setting the global variable to control eof
     eof = program.length();
 
-    // Initializing token with a char != of eof flag
-    string token = "";
+    // Initializing lexeme with a char != of eof flag
+    string lexeme = "";
 
     // Calling lexical analyzer while eof is not reached
     while (cursor != eof)
     {
-        token = lexicalAnalyzer();
+        lexeme = lexicalAnalyzer();
 
         // if (token != "")
         // {
