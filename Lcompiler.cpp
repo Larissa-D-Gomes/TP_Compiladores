@@ -1,6 +1,7 @@
 /**
  * @file Lcompiler.cpp
  *
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS 
  * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
  * @brief A compiler for the L language, created for the compiler course of computation science at PUC Minas MG - BR
  * @version 0.1
@@ -781,7 +782,7 @@ int main()
         // }
     }
 
-    // symbolTable->print();
+    symbolTable->print();
     line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
 
     return 0;
