@@ -39,7 +39,7 @@ class Alphabet{
         static const int OR           = 8;  // ||
         static const int NOT          = 9;  // !
         static const int ATRIB        = 10; // :=
-        static const int EQUAL        = 11; // ==
+        static const int EQUAL        = 11; // =
         static const int OPENPAR      = 12; // (
         static const int CLOSEPAR     = 13; // )
         static const int LESSTHAN     = 14; // <
@@ -79,6 +79,7 @@ class ConstType{
         static const int CHAR         =  1; 
         static const int FLOAT        =  2; 
         static const int BOOLEAN      =  3; 
+        static const int STRING       =  4; 
         static const int NOT_CONSTANT = -1; 
 };
 
@@ -121,12 +122,16 @@ class SymbolTable
         int search(string lex)
         {
             unordered_map<string, int>::const_iterator got = this->symbolTable.find(lex);
+            //cout << got->second << endl;
             if (got == this->symbolTable.end())
             {
+               // std::cout << "not found: " << lex<< endl;
                 return null;
             }
-            else
+            else{
+                //std::cout << got->first << " is " << got->second<< endl;
                 return got->second;
+            }
         }
 
         /**
@@ -273,11 +278,97 @@ int getStateZeroToken(char c){
             return Alphabet::CLOSEBRACKET;
         case ';':
             return Alphabet::SEMICOLON;
+        case '=':
+            return Alphabet::EQUAL;
         default:
             return -1;
             break;
     }
-}
+}   
+
+/**
+ * @brief Return the token of a lexeme that is reserved word
+ *        Transition: Initial state - 1 - Final state (Reserved words)
+ * @param string lexeme
+ * @return int token 
+ */
+int getStateOneReservedWordToken(string lexeme) {
+    if(lexeme == "const") {
+        return Alphabet::CONST;
+    } else if(lexeme == "int") {
+        return Alphabet::INT;
+    } else if(lexeme == "char") {
+        return Alphabet::CHAR;
+    } else if(lexeme == "while") {
+        return Alphabet::WHILE;
+    } else if(lexeme == "if") {
+        return Alphabet::IF;
+    } else if(lexeme == "float") {
+        return Alphabet::FLOAT;
+    } else if(lexeme == "else") {
+        return Alphabet::ELSE;
+    } else if(lexeme == "readln") {
+        return Alphabet::READLN;
+    } else if(lexeme == "div") {
+        return Alphabet::DIV;
+    } else if(lexeme == "string") {
+        return Alphabet::STRING;
+    } else if(lexeme == "write") {
+        return Alphabet::WRITE;
+    } else if(lexeme == "writeln") {
+        return Alphabet::WRITELN;
+    } else if(lexeme == "writeln") {
+        return Alphabet::WRITELN;
+    } else if(lexeme == "mod") {
+        return Alphabet::MOD;
+    } else if(lexeme == "boolean") {
+        return Alphabet::BOOLEAN;
+    } else {
+        return Alphabet::ID;
+    }
+}   
+
+
+/**
+ * @brief Return the token of a lexeme that contains a single char
+ *        Transition: Initial state - State 14 - Final state (Reserved words)
+ * @param char c
+ * @return int token 
+ */
+int getStateFourteenSingleCharToken(char c) {
+    switch (c)
+    {
+        case '<':
+            return Alphabet::LESSTHAN;
+        case '>':
+            return Alphabet::GREATERTHAN;
+        case '!':
+            return Alphabet::NOT;
+        default:
+            return -1;
+            break;
+    }
+}  
+
+/**
+ * @brief Return the token of a lexeme that is reserved word
+ *        Transition: Initial state - 14 - Final state (Reserved words)
+ * @param string lexeme
+ * @return int token 
+ */
+int getStateFourteenToken(string lexeme) {
+
+    if(lexeme == "<=") {
+        return Alphabet::LESSEQUAL;
+    } else if(lexeme == ">=") {
+        return Alphabet::GREATERTHAN;
+    } else if(lexeme == "!=") {
+        return Alphabet::NOTEQUAL;
+    } else {
+        return -1;
+    }
+}   
+
 
 /** @brief Return the token of a lexeme that contains a single char
  *         Transition: Initial state - Final state (Reserved words)
@@ -340,7 +431,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Setting lexical register
-        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, getStateZeroToken(c), symbolTable->search(lexeme), ConstType::NOT_CONSTANT);
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, getStateZeroToken(c), symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
     }
     else if (c == '<' || c == '>' || c == '!')
     {
@@ -391,17 +482,27 @@ TransitionReturn stateOneTransition(string lexeme, char c)
     }
     else // End of variables and reserved words lexical analysis
     {
+        transitionReturn.nextState = finalState;
+        transitionReturn.lexemeConcat = lexeme; // Discarting last read char
+
         int pos = symbolTable->search(lexeme);
 
         // lexeme not found in the symbol Table
         if (pos == null)
         {
             pos = symbolTable->insert(lexeme);
+            transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::ID, pos, ConstType::NOT_CONSTANT);
+        } else {
+            // Get token and insert if lexeme is an id
+            int token = getStateOneReservedWordToken(transitionReturn.lexemeConcat);
+
+            if(token == Alphabet::TRUE || token == Alphabet::FALSE) { // Reserved word constant
+                transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::BOOLEAN);
+            } else {
+                transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::NOT_CONSTANT);
+            }
         }
-
-        transitionReturn.nextState = finalState;
-        transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
-
+        
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
     }
@@ -433,6 +534,8 @@ TransitionReturn stateTwoTransition(string lexeme, char c)
         cursor--;
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
+
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::INT);
     }
 
     return transitionReturn;
@@ -457,6 +560,7 @@ TransitionReturn stateThreeTransition(string lexeme, char c)
         cursor--;
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::FLOAT);
     }
 
     return transitionReturn;
@@ -531,6 +635,8 @@ TransitionReturn stateSixTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::CHAR);
     }
     else
     {
@@ -579,6 +685,7 @@ TransitionReturn stateEightTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::CHAR);
     }
     else
     {
@@ -608,6 +715,8 @@ TransitionReturn stateNineTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+         transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::STRING);
+        
     }
     else
     {
@@ -639,6 +748,7 @@ TransitionReturn stateTenTransition(string lexeme, char c)
         cursor--;
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::DIVIDE, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
     }
 
     return transitionReturn;
@@ -674,7 +784,7 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
 
     if (c == '/')
     {
-        transitionReturn.nextState = finalState;
+        transitionReturn.nextState = 0;
     }
     else if (c == '*')
     {
@@ -700,6 +810,9 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::OR, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+
     }
     else
     {
@@ -724,6 +837,10 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+
+        int token = getStateFourteenToken(lexeme);
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, token, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+
     }
     else if (c != '=')
     {
@@ -731,6 +848,9 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         cursor--;
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarting invalid char
+        int token = getStateFourteenSingleCharToken(c);
+
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, token, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
     }
 
     return transitionReturn;
@@ -748,6 +868,7 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::ATRIB, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
     }
     else
     {
@@ -772,6 +893,7 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
+        transitionReturn.lexicalReg = getLexicalRegister(transitionReturn.lexemeConcat, Alphabet::AND, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
     }
     else
     {
@@ -793,11 +915,13 @@ string lexicalAnalyzer()
     int state = 0;
     string lexeme = "";
 
+    TransitionReturn tr;
+
     while (state != finalState)
     {
         if (cursor != eof)
         {
-            c = program[cursor++];
+            c = tolower(program[cursor++]);
             if (!isValidChar(c))
             {
                 throwInvalidCharacterException();
@@ -808,8 +932,6 @@ string lexicalAnalyzer()
             // Flag EOF
             return lexeme;
         }
-
-        TransitionReturn tr;
 
         switch (state)
         {
@@ -871,7 +993,9 @@ string lexicalAnalyzer()
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-
+    
+    //cout << tr.lexicalReg.lexeme << " " << tr.lexicalReg.token << " " 
+      //  << tr.lexicalReg.symbolTabPos << " " << tr.lexicalReg.constType << endl;
     return lexeme;
 }
 
@@ -898,11 +1022,6 @@ int main()
     while (cursor != eof)
     {
         lexeme = lexicalAnalyzer();
-
-        // if (token != "")
-        // {
-        //     cout << "Token: " << token << endl;
-        // }
     }
 
     // symbolTable->print();
