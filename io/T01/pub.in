@@ -1,4 +1,4 @@
-/* Exemplo de Programa na linguagem L */
+/* Exêmplo de Programa na linguagem L */
 
 int n:=1;
 string nome;
@@ -13,3 +13,4 @@ While (n<=MAXITER) {
   writeln(percentual,": Ola' ",nome);
   n:=n+1;
 }
+
