@@ -32,4 +32,5 @@
 *.out
 *.app
 
-/io
+io/
+.DS_Store
