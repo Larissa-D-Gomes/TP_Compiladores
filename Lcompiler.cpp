@@ -1047,8 +1047,9 @@ int main()
         program += str + '\n';
     }
 
-    // remove last \n
-    program.pop_back();
+    // TODO? Quando acabar as entregas do TP1 e TP2 descomentar essa parte - para apresentação 
+    // // remove last \n
+    // program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();
