@@ -1044,9 +1044,11 @@ int main()
     // Read source program
     while (getline(cin, str))
     {
-        program += str;
-        program.push_back('\n');
+        program += str + '\n';
     }
+
+    // remove last \n
+    program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();
