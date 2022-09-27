@@ -765,6 +765,12 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
     if (c != '*')
     {
         transitionReturn.nextState = 11;
+
+        if (c == '\n')
+            line++;
+
+        if (cursor == eof)
+            throwUnexpectedEOFException();
     }
     else if (c == '*')
     {
@@ -789,10 +795,13 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
     else if (c == '*')
     {
         transitionReturn.nextState = 12;
+        if (cursor == eof)
+            throwUnexpectedEOFException();
     }
-    else if (c != '*' || c != '/')
+    else if (c != '*' && c != '/')
     {
         transitionReturn.nextState = 11;
+
     }
 
     return transitionReturn;
