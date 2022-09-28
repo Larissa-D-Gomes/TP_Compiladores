@@ -378,51 +378,6 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else if (c == '\'')
-    {
-
-        transitionReturn.nextState = 7;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']')
-    {
-        transitionReturn.nextState = finalState;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '<' || c == '>' || c == '!')
-    {
-        transitionReturn.nextState = 14;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == ':')
-    {
-        transitionReturn.nextState = 15;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '&')
-    {
-        transitionReturn.nextState = 16;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '|')
-    {
-        transitionReturn.nextState = 13;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '/')
-    {
-        transitionReturn.nextState = 10;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else if (c == '\"')
-    {
-        transitionReturn.nextState = 9;
-        transitionReturn.tokenConcat = token + c;
-    }
-    else
-    {
-        throwException(c, transitionReturn.tokenConcat, "lex");
-    }
 
     return transitionReturn;
 }
@@ -1046,45 +1001,6 @@ LexicalRegister lexicalAnalyzer()
         case 16:
             tr = stateSixteenTransition(lexeme, c);
             break;
-        case 4:
-            tr = stateFourTransition(token, c);
-            break;
-        case 5:
-            tr = stateFiveTransition(token, c);
-            break;
-        case 6:
-            tr = stateSixTransition(token, c);
-            break;
-        case 7:
-            tr = stateSevenTransition(token, c);
-            break;
-        case 8:
-            tr = stateEightTransition(token, c);
-            break;
-        case 9:
-            tr = stateNineTransition(token, c);
-            break;
-        case 10:
-            tr = stateTenTransition(token, c);
-            break;
-        case 11:
-            tr = stateElevenTransition(token, c);
-            break;
-        case 12:
-            tr = stateTwelveTransition(token, c);
-            break;
-        case 13:
-            tr = stateThirteenTransition(token, c);
-            break;
-        case 14:
-            tr = stateFourteenTransition(token, c);
-            break;
-        case 15:
-            tr = stateFifteenTransition(token, c);
-            break;
-        case 16:
-            tr = stateSixteenTransition(token, c);
-            break;
 
         default:
             break;
@@ -1127,9 +1043,8 @@ int main()
         lexeme = lexicalAnalyzer();
     }
 
-<<<<<<< HEAD
-    //symbolTable->print();
-    cout << line << " linhas compiladas";
-=======
     // Print line count and success compilation
+    line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
+
+    return 0;
 }
