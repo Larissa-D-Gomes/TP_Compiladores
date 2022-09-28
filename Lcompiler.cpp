@@ -91,7 +91,7 @@ private:
     vector<string> reservedWords = {"const", "int", "char", "while", "if", "float", "else", "&&", "||", "!", ":=", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div", "string", "write", "writeln", "mod", "[", "]", "true", "false", "boolean"};
 
     // Symbol hash table
-    unordered_map<string, int> symbolTable;
+    unordered_map<string, uint8_t> symbolTable;
 
 public:
     // Constructor
@@ -106,11 +106,14 @@ public:
      */
     void fillHash()
     {
-        // fill reserved words list using a iterator to use like position for each word
-        for (int i = 0; i < reservedWords.size(); i++)
+
+        // fill reserved words list using a iterator 
+        // list position = alphabet byte value
+        for (uint8_t i = 0; i < reservedWords.size(); i++)
         {
             symbolTable[reservedWords[i]] = i;
         }
+        
     }
 
     /**
@@ -121,17 +124,34 @@ public:
      */
     int search(string lex)
     {
-        unordered_map<string, int>::const_iterator got = this->symbolTable.find(lex);
-
-        if (got == this->symbolTable.end())
-        {
+        // If map does not contain lex
+        if (this->symbolTable.find(lex) == this->symbolTable.end())
             return null;
-        }
-        else
-        {
-            return got->second;
-        }
+
+        // Return token of lex
+        return this->symbolTable.at(lex);
     }
+
+    /**
+     * @brief Find for the lexical form in the Symbol Table
+     *
+     * @param lex the lexical form that you want to get position
+     * @return int index of the lexical form on the hash table
+     */
+    int find(string lex)
+    {
+        int position = 0;
+
+        for (auto const &pair : this->symbolTable)
+        {
+            if(lex == pair.first)
+                return position;
+            position++;
+        }
+
+        return null;
+    }
+
 
     /**
      * @brief Insert a new lexical form at the symbol table
@@ -141,8 +161,9 @@ public:
      */
     int insert(string lex)
     {
-        this->symbolTable[lex] = this->symbolTable.size();
+        this->symbolTable[lex] = Alphabet::ID;
         return this->search(lex);
+
     }
 
     /**
@@ -276,151 +297,6 @@ void throwUndefinedLex(string lex)
     exit(1);
 }
 
-/**
- * @brief Return the reserved work token of a lexeme
- * @param string lexeme
- * @return int token
- */
-int getReservedWordToken(string lexeme)
-{
-    if (lexeme == "const")
-    {
-        return Alphabet::CONST;
-    }
-    else if (lexeme == "int")
-    {
-        return Alphabet::INT;
-    }
-    else if (lexeme == "char")
-    {
-        return Alphabet::CHAR;
-    }
-    else if (lexeme == "while")
-    {
-        return Alphabet::WHILE;
-    }
-    else if (lexeme == "if")
-    {
-        return Alphabet::IF;
-    }
-    else if (lexeme == "float")
-    {
-        return Alphabet::FLOAT;
-    }
-    else if (lexeme == "else")
-    {
-        return Alphabet::ELSE;
-    }
-    else if (lexeme == "readln")
-    {
-        return Alphabet::READLN;
-    }
-    else if (lexeme == "div")
-    {
-        return Alphabet::DIV;
-    }
-    else if (lexeme == "string")
-    {
-        return Alphabet::STRING;
-    }
-    else if (lexeme == "write")
-    {
-        return Alphabet::WRITE;
-    }
-    else if (lexeme == "writeln")
-    {
-        return Alphabet::WRITELN;
-    }
-    else if (lexeme == "writeln")
-    {
-        return Alphabet::WRITELN;
-    }
-    else if (lexeme == "mod")
-    {
-        return Alphabet::MOD;
-    }
-    else if (lexeme == "boolean")
-    {
-        return Alphabet::BOOLEAN;
-    }
-    else
-    {
-        return Alphabet::ID;
-    }
-}
-
-/**
- * @brief Return the simple operator token of a lexeme
- * @param char c
- * @return int token
- */
-int getSimpleOperatorToken(char c)
-{
-    switch (c)
-    {
-    case '(':
-        return Alphabet::OPENPAR;
-    case ')':
-        return Alphabet::CLOSEPAR;
-    case ',':
-        return Alphabet::COMMA;
-    case '+':
-        return Alphabet::PLUS;
-    case '-':
-        return Alphabet::MINNUS;
-    case '*':
-        return Alphabet::TIMES;
-    case '/':
-        return Alphabet::DIVIDE;
-    case '{':
-        return Alphabet::OPENBRACE;
-    case '}':
-        return Alphabet::CLOSEBRACE;
-    case '[':
-        return Alphabet::OPENBRACKET;
-    case ']':
-        return Alphabet::CLOSEBRACKET;
-    case ';':
-        return Alphabet::SEMICOLON;
-    case '=':
-        return Alphabet::EQUAL;
-    case '<':
-        return Alphabet::LESSTHAN;
-    case '>':
-        return Alphabet::GREATERTHAN;
-    case '!':
-        return Alphabet::NOT;
-    default:
-        return -1;
-        break;
-    }
-}
-
-/**
- * @brief Return the compost operator token of a lexeme that is reserved word
- * @param string lexeme
- * @return int token
- */
-int getCompostOperatorToken(string lexeme)
-{
-
-    if (lexeme == "<=")
-    {
-        return Alphabet::LESSEQUAL;
-    }
-    else if (lexeme == ">=")
-    {
-        return Alphabet::GREATERTHAN;
-    }
-    else if (lexeme == "!=")
-    {
-        return Alphabet::NOTEQUAL;
-    }
-    else
-    {
-        return -1;
-    }
-}
 
 /**
  * @brief Execute state 0 transition actions
@@ -499,7 +375,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         //  Create lexical register to SIMPLE OPERATOR SYMBOLS
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, getSimpleOperatorToken(c), symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
 
@@ -527,12 +403,13 @@ TransitionReturn stateOneTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding last read char
 
-        int pos = symbolTable->search(lexeme);
+        int pos = symbolTable->find(lexeme);
 
         // Lexeme not found in the symbol Table
         if (pos == null)
         {
-            pos = symbolTable->insert(lexeme);
+            symbolTable->insert(lexeme);
+            pos = symbolTable->find(lexeme);
 
             // Create lexical register to IDENTIFIER
             LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::ID, pos, ConstType::NOT_CONSTANT);
@@ -541,7 +418,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
         else
         {
             // Get token and insert if lexeme is an id
-            int token = getReservedWordToken(transitionReturn.lexemeConcat);
+            int token =  symbolTable->search(transitionReturn.lexemeConcat);
 
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
             { 
@@ -712,7 +589,7 @@ TransitionReturn stateSixTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to HEXA NUMBER CONSTANT
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::CHAR);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::CHAR);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else // Throw exception when Hexa Number was not identified
@@ -806,7 +683,7 @@ TransitionReturn stateNineTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to STRING CONSTANT
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::STRING);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::STRING);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else // Throw exception when string was not identified
@@ -844,7 +721,7 @@ TransitionReturn stateTenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
         // Create lexical register to DIVIDE
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::DIVIDE, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
 
@@ -930,7 +807,7 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // create lexical register to OR LOGIC
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::OR, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else // Throw exception when logical operator (OR - ||) was not identified
@@ -960,10 +837,8 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
-        int token = getCompostOperatorToken(lexeme);
-
         // Create lexical register to COMPOST LOGICAL OPERATORS
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else if (c != '=') // End of Simple logical operators lexical analysis
@@ -973,10 +848,9 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
-        int token = getSimpleOperatorToken(c);
 
         // Create lexical register to SIMPLE LOGICAL OPERATORS
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
 
@@ -999,7 +873,7 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::ATRIB, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else // Throw exception when assignment command was not identified
@@ -1030,7 +904,7 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to AND LOGIC
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::AND, symbolTable->search(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     else // Throw exception when logical operator (AND - &&) was not identified
@@ -1049,7 +923,7 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
  *
  * @return string - recognized token
  */
-string lexicalAnalyzer()
+LexicalRegister lexicalAnalyzer()
 {
     char c; // read character
     int state = 0;
@@ -1071,7 +945,7 @@ string lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return lexeme;
+            return  LexicalRegister("", null, null, null);
         }
 
         switch (state)
@@ -1131,11 +1005,13 @@ string lexicalAnalyzer()
         default:
             break;
         }
+        
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
+    //cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
 
-    return lexeme;
+    return tr.lexicalReg;
 }
 
 int main()
@@ -1159,7 +1035,7 @@ int main()
     eof = program.length();
 
     // Initializing lexeme with a char != of eof flag
-    string lexeme = "";
+    LexicalRegister lexeme = LexicalRegister("", null, null, null);
 
     // Calling lexical analyzer while eof is not reached
     while (cursor != eof)
