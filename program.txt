@@ -1,1 +1,6 @@
-"B90852187&"
+int a = 10;
+int b = 5;
+
+float green = 10;
+
+float soma = a + b;

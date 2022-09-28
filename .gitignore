@@ -32,4 +32,6 @@
 *.out
 *.app
 
-/io
+io/
+.vscode/
+.DS_Store
