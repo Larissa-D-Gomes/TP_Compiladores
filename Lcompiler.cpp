@@ -923,7 +923,7 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
  *
  * @return string - recognized token
  */
-string lexicalAnalyzer()
+LexicalRegister lexicalAnalyzer()
 {
     char c; // read character
     int state = 0;
@@ -945,7 +945,7 @@ string lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return lexeme;
+            return  LexicalRegister("", null, null, null);
         }
 
         switch (state)
@@ -1011,7 +1011,7 @@ string lexicalAnalyzer()
     }
     //cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
 
-    return lexeme;
+    return tr.lexicalReg;
 }
 
 int main()
@@ -1035,7 +1035,7 @@ int main()
     eof = program.length();
 
     // Initializing lexeme with a char != of eof flag
-    string lexeme = "";
+    LexicalRegister lexeme = LexicalRegister("", null, null, null);
 
     // Calling lexical analyzer while eof is not reached
     while (cursor != eof)
