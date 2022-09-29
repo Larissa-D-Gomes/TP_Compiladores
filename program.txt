@@ -1,6 +1,32 @@
+<<<<<<< HEAD
+int main(){
+    while(x>10){
+        int a = 0xBB;
+        a += 10 + 5.69;
+        float c = a[i];
+    }
+
+    if(a>10){
+        a = b * c (a / 43)
+    }
+
+    while(42 >= 65 && 22 <= 5 || 43 == 12){
+        writeIn("bom dia")
+    }
+
+    while(i < 10){
+        i /= 10;
+        x*=10;
+        x+=10;
+        x-=10;
+    }
+    
+}
+=======
 int a = 10;
 int b = 5;
 
 float green = 10;
 
 float soma = a + b;
+>>>>>>> master
