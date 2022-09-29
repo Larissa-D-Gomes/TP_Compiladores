@@ -107,13 +107,12 @@ public:
     void fillHash()
     {
 
-        // fill reserved words list using a iterator 
+        // fill reserved words list using a iterator
         // list position = alphabet byte value
         for (uint8_t i = 0; i < reservedWords.size(); i++)
         {
             symbolTable[reservedWords[i]] = i;
         }
-        
     }
 
     /**
@@ -144,14 +143,13 @@ public:
 
         for (auto const &pair : this->symbolTable)
         {
-            if(lex == pair.first)
+            if (lex == pair.first)
                 return position;
             position++;
         }
 
         return null;
     }
-
 
     /**
      * @brief Insert a new lexical form at the symbol table
@@ -163,7 +161,6 @@ public:
     {
         this->symbolTable[lex] = Alphabet::ID;
         return this->search(lex);
-
     }
 
     /**
@@ -178,22 +175,23 @@ public:
     }
 };
 
-class LexicalRegister{
-    public:
-        string lexeme;
-        int token;
-        int symbolTabPos;
-        int constType;
+class LexicalRegister
+{
+public:
+    string lexeme;
+    int token;
+    int symbolTabPos;
+    int constType;
 
-        LexicalRegister(){}
-        
-        LexicalRegister(string lexeme, int token, int symbolTabPos, int constType){
-            this->lexeme = lexeme;
-            this->token = token;
-            this->symbolTabPos = symbolTabPos;
-            this->constType = constType;
-        }
+    LexicalRegister() {}
 
+    LexicalRegister(string lexeme, int token, int symbolTabPos, int constType)
+    {
+        this->lexeme = lexeme;
+        this->token = token;
+        this->symbolTabPos = symbolTabPos;
+        this->constType = constType;
+    }
 };
 
 /**
@@ -297,13 +295,22 @@ void throwUndefinedLex(string lex)
     exit(1);
 }
 
+/**
+ * @brief Print a error message when program finds a unexpected token
+ *
+ */
+void throwUnexpectedToken(string lex)
+{
+    cout << line << "\ntoken nao esperado [" << lex << "].";
+    exit(1);
+}
 
 /**
  * @brief Execute state 0 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateZeroTransition(string lexeme, char c)
 {
@@ -384,10 +391,10 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 1 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateOneTransition(string lexeme, char c)
 {
@@ -418,10 +425,10 @@ TransitionReturn stateOneTransition(string lexeme, char c)
         else
         {
             // Get token and insert if lexeme is an id
-            int token =  symbolTable->search(transitionReturn.lexemeConcat);
+            int token = symbolTable->search(transitionReturn.lexemeConcat);
 
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
-            { 
+            {
                 // Create lexical register to TRUE and FALSE
                 LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::BOOLEAN);
                 transitionReturn.lexicalReg = lexicalRegister;
@@ -443,10 +450,10 @@ TransitionReturn stateOneTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 2 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTwoTransition(string lexeme, char c)
 {
@@ -479,10 +486,10 @@ TransitionReturn stateTwoTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 3 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateThreeTransition(string lexeme, char c)
 {
@@ -510,10 +517,10 @@ TransitionReturn stateThreeTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 4 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFourTransition(string lexeme, char c)
 {
@@ -547,10 +554,10 @@ TransitionReturn stateFourTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 5 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFiveTransition(string lexeme, char c)
 {
@@ -574,16 +581,16 @@ TransitionReturn stateFiveTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 6 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSixTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isHexa(c)) // End of Hexa Number analysis 
+    if (isHexa(c)) // End of Hexa Number analysis
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
@@ -605,10 +612,10 @@ TransitionReturn stateSixTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 7 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSevenTransition(string lexeme, char c)
 {
@@ -632,10 +639,10 @@ TransitionReturn stateSevenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 8 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateEightTransition(string lexeme, char c)
 {
@@ -663,10 +670,10 @@ TransitionReturn stateEightTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 9 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateNineTransition(string lexeme, char c)
 {
@@ -699,10 +706,10 @@ TransitionReturn stateNineTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 10 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTenTransition(string lexeme, char c)
 {
@@ -730,10 +737,10 @@ TransitionReturn stateTenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 11 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateElevenTransition(string lexeme, char c)
 {
@@ -748,7 +755,7 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
             line++;
 
         // If we have a unexpected eof
-        if (cursor == eof) 
+        if (cursor == eof)
             throwUnexpectedEOFException();
     }
     else if (c == '*') // Comment analysis
@@ -761,10 +768,10 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 12 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTwelveTransition(string lexeme, char c)
 {
@@ -777,8 +784,8 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
     else if (c == '*') // Stay in comment loop
     {
         transitionReturn.nextState = 12;
-        
-        //If we have a unexpected eof
+
+        // If we have a unexpected eof
         if (cursor == eof)
             throwUnexpectedEOFException();
     }
@@ -792,10 +799,10 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 13 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateThirteenTransition(string lexeme, char c)
 {
@@ -823,10 +830,10 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 14 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFourteenTransition(string lexeme, char c)
 {
@@ -848,7 +855,6 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
-
         // Create lexical register to SIMPLE LOGICAL OPERATORS
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
@@ -859,10 +865,10 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 15 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFifteenTransition(string lexeme, char c)
 {
@@ -889,10 +895,10 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 16 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSixteenTransition(string lexeme, char c)
 {
@@ -945,7 +951,7 @@ LexicalRegister lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return  LexicalRegister("", null, null, null);
+            return LexicalRegister("", null, null, null);
         }
 
         switch (state)
@@ -1005,14 +1011,169 @@ LexicalRegister lexicalAnalyzer()
         default:
             break;
         }
-        
+
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-    //cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
+    // cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
 
     return tr.lexicalReg;
 }
+
+class SyntaxAnalyzer
+{
+
+private:
+    LexicalRegister tokenFromLexical;
+    int token;
+
+public:
+    string checkFirstDEC()
+    {
+        if( this->token == Alphabet::INT ||
+            this->token == Alphabet::FLOAT ||
+            this->token == Alphabet::STRING ||
+            this->token == Alphabet::BOOLEAN ||
+            this->token == Alphabet::CHAR){
+
+        }
+               this->token == Alphabet::CONST ||
+               this->token == Alphabet::ID;
+    }
+
+    bool checkFirstCMD()
+    {
+        return this->token == Alphabet::WHILE ||
+               this->token == Alphabet::IF ||
+               this->token == Alphabet::SEMICOLON ||
+               this->token == Alphabet::READLN ||
+               this->token == Alphabet::WRITE ||
+               this->token == Alphabet::WRITELN;
+    }
+
+    bool checkFirstBLOCK()
+    {
+        return checkFirstCMD() ||
+               this->token == Alphabet::OPENBRACKET;
+    }
+
+    bool checkFirstT()
+    {
+        return this->token == Alphabet::PLUS ||
+               this->token == Alphabet::MINNUS;
+    }
+
+    bool checkFirstM()
+    {
+        return this->token == Alphabet::NOT ||
+               this->token == Alphabet::ID ||
+               this->token == Alphabet::INT ||
+               this->token == Alphabet::FLOAT ||
+               this->token == Alphabet::CONST ||
+               this->token == Alphabet::OPENPAR;
+    }
+
+    void S()
+    {
+
+        if (checkFirstDEC())
+        {
+
+            while (checkFirstDEC())
+            {
+                DEC();
+                matchToken(Alphabet::SEMICOLON);
+            }
+        }
+        else if (checkFirstCMD())
+        {
+
+            while (checkFirstCMD())
+            {
+                CMD();
+                matchToken(Alphabet::SEMICOLON);
+            }
+        }
+    }
+
+    void DEC()
+    {
+        if (this->token == Alphabet::INT ||
+            this->token == Alphabet::FLOAT ||
+            this->token == Alphabet::STRING ||
+            this->token == Alphabet::BOOLEAN ||
+            this->token == Alphabet::CHAR)
+        {
+            if (this->token == Alphabet::INT)
+            {
+                matchToken(Alphabet::INT);
+            }
+            else if (this->token == Alphabet::FLOAT)
+            {
+                matchToken(Alphabet::FLOAT);
+            }
+            else if (this->token == Alphabet::STRING)
+            {
+                matchToken(Alphabet::STRING);
+            }
+            else if (this->token == Alphabet::BOOLEAN)
+            {
+                matchToken(Alphabet::BOOLEAN);
+            }
+            else if (this->token == Alphabet::CHAR)
+            {
+                matchToken(Alphabet::CHAR);
+            }
+
+            matchToken(Alphabet::ID);
+
+            if (this->token == Alphabet::ATRIB)
+            {
+                matchToken(Alphabet::ATRIB);
+                DECONST();
+            }
+        }
+    }
+
+    void CMD()
+    {
+    }
+
+    void DECONST() {}
+
+    SyntaxAnalyzer()
+    {
+        // Initializing lexeme with a char != of eof flag
+        this->tokenFromLexical = LexicalRegister("", null, null, null);
+    }
+
+    void matchToken(int expectedToken)
+    {
+
+        if (this->token == expectedToken)
+        {
+            this->tokenFromLexical = lexicalAnalyzer();
+        }
+        else
+        {
+            throwUnexpectedToken(this->tokenFromLexical.lexeme);
+        }
+    }
+
+    void parser()
+    {
+
+        this->tokenFromLexical = lexicalAnalyzer();
+        this->token = this->tokenFromLexical.token;
+
+        S();
+
+        if (cursor != eof)
+        {
+            cout << "erro: not eof" << endl;
+        }
+    }
+};
 
 int main()
 {
@@ -1034,14 +1195,8 @@ int main()
     // Setting the global variable to control eof
     eof = program.length();
 
-    // Initializing lexeme with a char != of eof flag
-    LexicalRegister lexeme = LexicalRegister("", null, null, null);
-
-    // Calling lexical analyzer while eof is not reached
-    while (cursor != eof)
-    {
-        lexeme = lexicalAnalyzer();
-    }
+    SyntaxAnalyzer syntaxAnalyzer;
+    syntaxAnalyzer.parser();
 
     // Print line count and success compilation
     line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
