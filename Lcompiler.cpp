@@ -24,6 +24,49 @@ using namespace std;
 #define finalState -1
 #define null -1
 
+string testLexem(int n){
+    if(n == 0) return "const";
+    else if(n == 1) return "int";
+    else if(n == 2) return "char";
+    else if(n == 3) return "while";
+    else if(n == 4) return "if";
+    else if(n == 5) return "float";
+    else if(n == 6) return "else";
+    else if(n == 7) return "&&";
+    else if(n == 8) return "||";
+    else if(n == 9) return "!";
+    else if(n == 10) return ":=";
+    else if(n == 11) return "=";
+    else if(n == 12) return "(";
+    else if(n == 13) return ")";
+    else if(n == 14) return "<";
+    else if(n == 15) return ">";
+    else if(n == 16) return "!=";
+    else if(n == 17) return ">=";
+    else if(n == 18) return "<=";
+    else if(n == 19) return ",";
+    else if(n == 20) return "+";
+    else if(n == 21) return "-";
+    else if(n == 22) return "*";
+    else if(n == 23) return "/";
+    else if(n == 24) return ";";
+    else if(n == 25) return "{";
+    else if(n == 26) return "}";
+    else if(n == 27) return "readl";
+    else if(n == 28) return "div";
+    else if(n == 29) return "string";
+    else if(n == 30) return "write";
+    else if(n == 31) return "writeln";
+    else if(n == 32) return "mod";
+    else if(n == 33) return "[";
+    else if(n == 34) return "]";
+    else if(n == 35) return "true";
+    else if(n == 36) return "false";
+    else if(n == 37) return "boolean";
+    else if(n == 40) return "id";
+    else if(n == 41) return "constant";
+}
+
 class Alphabet
 {
 public:
@@ -290,7 +333,7 @@ void throwUnexpectedEOFException()
  */
 void throwUndefinedLex(string lex)
 {
-    lex.pop_back();
+    if (lex.at(lex.length() - 1) == '\n') lex.pop_back();
     cout << line << "\nlexema nao identificado [" << lex << "].";
     exit(1);
 }
@@ -384,6 +427,13 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         //  Create lexical register to SIMPLE OPERATOR SYMBOLS
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
+    }
+    else if (c == '.')
+    {
+        if (cursor == eof)
+            throwUnexpectedEOFException();
+        else
+            throwUndefinedLex(lexeme + c);
     }
 
     return transitionReturn;
@@ -1028,7 +1078,6 @@ private:
     int token;
 
 public:
-
     SyntaxAnalyzer()
     {
         // Initializing lexeme with a char != of eof flag
@@ -1038,25 +1087,31 @@ public:
     void matchToken(int expectedToken)
     {
 
+        // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+
         if (this->token == expectedToken)
         {
             this->tokenFromLexical = lexicalAnalyzer();
+            this->token = this->tokenFromLexical.token;
         }
         else
         {
-            throwUnexpectedToken(this->tokenFromLexical.lexeme);
+            if (cursor == eof)
+                throwUnexpectedEOFException();
+            else
+                throwUnexpectedToken(this->tokenFromLexical.lexeme);
         }
     }
 
     bool checkFirstDEC()
     {
-        return  this->token == Alphabet::INT ||
-                this->token == Alphabet::FLOAT ||
-                this->token == Alphabet::STRING ||
-                this->token == Alphabet::BOOLEAN ||
-                this->token == Alphabet::CHAR || 
-                this->token == Alphabet::CONST || 
-                this->token == Alphabet::ID;
+        return this->token == Alphabet::INT ||
+               this->token == Alphabet::FLOAT ||
+               this->token == Alphabet::STRING ||
+               this->token == Alphabet::BOOLEAN ||
+               this->token == Alphabet::CHAR ||
+               this->token == Alphabet::CONST ||
+               this->token == Alphabet::ID;
     }
 
     bool checkFirstCMD()
@@ -1069,14 +1124,9 @@ public:
                this->token == Alphabet::WRITELN;
     }
 
-    bool checkFirstM()
+    bool checkFirstT()
     {
-        return  this->token == Alphabet::NOT || 
-                this->token == Alphabet::INT || 
-                this->token == Alphabet::FLOAT || 
-                this->token == Alphabet::ID || 
-                this->token == Alphabet::CONSTANT || 
-                this->token == Alphabet::OPENPAR;
+        checkFirstR();
     }
 
     bool checkFirstR()
@@ -1084,68 +1134,28 @@ public:
         return checkFirstM();
     }
 
-    bool checkFirstT()
+    bool checkFirstM()
     {
-        return  this->token == Alphabet::PLUS || 
-                this->token == Alphabet::MINNUS || 
-                checkFirstR();
-    }
-
-    bool isLogicalOperator(){
-        return  this->token == Alphabet::EQUAL ||
-                this->token == Alphabet::NOTEQUAL ||
-                this->token == Alphabet::LESSTHAN ||
-                this->token == Alphabet::GREATERTHAN ||
-                this->token == Alphabet::LESSEQUAL ||
-                this->token == Alphabet::GREATEREQUAL;
-    }
-
-    bool isMathOperator(){
-        return  this->token == Alphabet::TIMES ||
-                this->token == Alphabet::DIV ||
-                this->token == Alphabet::DIVIDE ||
-                this->token == Alphabet::AND ||
-                this->token == Alphabet::MOD;
-    }
-
-    void DEC_VAR()
-    {
-        matchToken(Alphabet::ID);
-                
-        if (this->token == Alphabet::ATRIB)
-        {
-            matchToken(Alphabet::ATRIB);
-            DECONST();
-        }
-        if(this->token == Alphabet::COMMA){
-            do 
-            {
-                matchToken(Alphabet::COMMA);
-                matchToken(Alphabet::ID);
-                if (this->token == Alphabet::ATRIB)
-                {
-                    matchToken(Alphabet::ATRIB);
-                    DECONST();
-                }    
-            }
-            while (this->token == Alphabet::COMMA);   
-        }   
+        return this->token == Alphabet::NOT ||
+               this->token == Alphabet::INT ||
+               this->token == Alphabet::FLOAT ||
+               this->token == Alphabet::ID ||
+               this->token == Alphabet::CONSTANT ||
+               this->token == Alphabet::OPENPAR;
     }
 
     void S()
     {
-        while (checkFirstCMD() || checkFirstDEC())
+        while (checkFirstDEC() || checkFirstCMD())
         {
             if (checkFirstDEC())
             {
                 DEC();
                 matchToken(Alphabet::SEMICOLON);
-                
             }
             else if (checkFirstCMD())
             {
                 CMD();
-                matchToken(Alphabet::SEMICOLON);
             }
         }
     }
@@ -1161,75 +1171,104 @@ public:
             if (this->token == Alphabet::INT) // INT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
             {
                 matchToken(Alphabet::INT);
-                DEC_VAR();
             }
             else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
             {
                 matchToken(Alphabet::FLOAT);
-                DEC_VAR();
             }
             else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
             {
                 matchToken(Alphabet::STRING);
-                DEC_VAR();
             }
             else if (this->token == Alphabet::BOOLEAN) // BOOLEAN ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
             {
                 matchToken(Alphabet::BOOLEAN);
-                DEC_VAR();
             }
             else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
             {
                 matchToken(Alphabet::CHAR);
-                DEC_VAR();
             }
-        } 
-        else if (this-token == Alphabet::CONST) //CONST ID = [-]CONSTANT
+
+            matchToken(Alphabet::ID);
+
+            if (this->token == Alphabet::ATRIB)
+            {
+                matchToken(Alphabet::ATRIB);
+                DECONST();
+            }
+
+            while (this->token == Alphabet::COMMA)
+            {
+                matchToken(Alphabet::COMMA);
+                matchToken(Alphabet::ID);
+                if (this->token == Alphabet::ATRIB)
+                {
+                    matchToken(Alphabet::ATRIB);
+                    DECONST();
+                }
+            }
+        }
+        else if (this->token == Alphabet::CONST) // CONST ID = [-]CONSTANT
         {
             matchToken(Alphabet::CONST);
             matchToken(Alphabet::ID);
             matchToken(Alphabet::EQUAL);
             DECONST();
         }
-        else if(this->token == Alphabet::ID) // ID[EXP]:=EXP
+        else if (this->token == Alphabet::ID) // ID[EXP]:=EXP
         {
             matchToken(Alphabet::ID);
-            matchToken(Alphabet::OPENBRACKET);
-            EXP();
-            matchToken(Alphabet::CLOSEBRACKET);
+
+            if (this->token == Alphabet::OPENBRACKET)
+            {
+                matchToken(Alphabet::OPENBRACKET);
+                EXP();
+                matchToken(Alphabet::CLOSEBRACKET);
+            }
+
             matchToken(Alphabet::ATRIB);
             EXP();
         }
     }
 
-    void CMD()
+    void DECONST()
     {
-        if (this->token == Alphabet::WHILE) //WHILE(){}
+        if (this->token == Alphabet::MINNUS) // - CONSTANT
+        {
+            matchToken(Alphabet::MINNUS);
+        }
+        matchToken(Alphabet::CONSTANT); // CONSTANT
+    }
+
+    void CMD() // Language commands
+    {
+        if (this->token == Alphabet::WHILE) // WHILE(){}
         {
             matchToken(Alphabet::WHILE);
             PAR();
             BLOCK();
         }
-        else if (this->token == Alphabet::IF) //IF() [ELSE]
+        else if (this->token == Alphabet::IF) // IF() [ELSE]
         {
             matchToken(Alphabet::IF);
             PAR();
             BLOCK();
-            if(this->token == Alphabet::ELSE){
+            if (this->token == Alphabet::ELSE)
+            {
                 matchToken(Alphabet::ELSE);
                 BLOCK();
             }
         }
-        else if (this->token == Alphabet::SEMICOLON)// ;
+        else if (this->token == Alphabet::SEMICOLON) // ;
         {
             matchToken(Alphabet::SEMICOLON);
         }
-        else if (this->token == Alphabet::READLN) //READLN(ID)
+        else if (this->token == Alphabet::READLN) // READLN(ID)
         {
             matchToken(Alphabet::READLN);
             matchToken(Alphabet::OPENPAR);
             matchToken(Alphabet::ID);
-            matchToken(Alphabet::CLOSEPAR);        
+            matchToken(Alphabet::CLOSEPAR);
         }
         else if (this->token == Alphabet::WRITE || this->token == Alphabet::WRITELN) // (WRITE | WRITELN)(EXP {, EXP}*)
         {
@@ -1244,31 +1283,15 @@ public:
 
             matchToken(Alphabet::OPENPAR);
             EXP();
-            if (this->token == Alphabet::COMMA)
-            {
-                do{
-                    matchToken(Alphabet::COMMA);
-                    EXP();
-                }
-                while (Alphabet::COMMA);
-            }
-            matchToken(Alphabet::CLOSEPAR);            
-        }
-        
-    }
 
-    void DECONST() 
-    {
-        if (this->token == Alphabet::MINNUS) // - CONSTANT
-        {
-            matchToken(Alphabet::MINNUS);
-            matchToken(Alphabet::CONSTANT);
+            while (this->token == Alphabet::COMMA)
+            {
+                matchToken(Alphabet::COMMA);
+                EXP();
+            };
+
+            matchToken(Alphabet::CLOSEPAR);
         }
-        else
-        {
-            matchToken(Alphabet::CONSTANT);// CONSTANT
-        }
-        
     }
 
     void PAR()
@@ -1283,32 +1306,41 @@ public:
         if (checkFirstCMD())
         {
             CMD();
+            matchToken(Alphabet::SEMICOLON);
         }
-        else if (this->token == Alphabet::OPENBRACKET)
+        else if (checkFirstDEC())
         {
-            matchToken(Alphabet::OPENBRACKET);
-            if (checkFirstCMD())
+            DEC();
+            matchToken(Alphabet::SEMICOLON);
+        }
+        else if (this->token == Alphabet::OPENBRACE)
+        {
+            matchToken(Alphabet::OPENBRACE);
+
+            while (checkFirstCMD() || checkFirstDEC())
             {
-                do
-                {
+                if (checkFirstCMD())
                     CMD();
-                    matchToken(Alphabet::SEMICOLON);
-                } 
-                while(checkFirstCMD());
-            }
-            matchToken(Alphabet::CLOSEBRACKET);
+                else if (checkFirstDEC())
+                    DEC();
+                matchToken(Alphabet::SEMICOLON);
+            };
+
+            matchToken(Alphabet::CLOSEBRACE);
         }
     }
 
     void EXP()
     {
-        if(checkFirstT())
+        if (checkFirstT())
         {
             T();
-        }
-        if(isLogicalOperator())
-        {
-            do
+            while (this->token == Alphabet::EQUAL ||
+                   this->token == Alphabet::NOTEQUAL ||
+                   this->token == Alphabet::LESSTHAN ||
+                   this->token == Alphabet::GREATERTHAN ||
+                   this->token == Alphabet::LESSEQUAL ||
+                   this->token == Alphabet::GREATEREQUAL)
             {
                 if (this->token == Alphabet::EQUAL)
                 {
@@ -1335,16 +1367,27 @@ public:
                     matchToken(Alphabet::GREATEREQUAL);
                 }
                 T();
-            } 
-            while(isLogicalOperator());   
+            }
         }
     }
 
     void T()
     {
-        if(checkFirstT())
+
+        if (this->token == Alphabet::PLUS)
         {
-            if(this->token == Alphabet::PLUS)
+            matchToken(Alphabet::PLUS);
+        }
+        else if (this->token == Alphabet::MINNUS)
+        {
+            matchToken(Alphabet::MINNUS);
+        }
+
+        R();
+
+        while (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
+        {
+            if (this->token == Alphabet::PLUS)
             {
                 matchToken(Alphabet::PLUS);
             }
@@ -1352,63 +1395,49 @@ public:
             {
                 matchToken(Alphabet::MINNUS);
             }
-            R();
-        }
-        if (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
-        {
-            do
+            else if (this->token == Alphabet::OR)
             {
-                if(this->token == Alphabet::PLUS)
-                {
-                    matchToken(Alphabet::PLUS);
-                }
-                else if (this->token == Alphabet::MINNUS)
-                {
-                    matchToken(Alphabet::MINNUS);
-                }
-                else if (this->token == Alphabet::OR)
-                {
-                    matchToken(Alphabet::OR);
-                }
-                R();
-            } while(this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR);
+                matchToken(Alphabet::OR);
+            }
+            R();
         }
     }
 
     void R()
     {
-        if(checkFirstR())
+        if (checkFirstM())
         {
             M();
         }
-        if (isMathOperator())
+
+        while (this->token == Alphabet::TIMES ||
+               this->token == Alphabet::DIV ||
+               this->token == Alphabet::DIVIDE ||
+               this->token == Alphabet::AND ||
+               this->token == Alphabet::MOD)
         {
-            do
+            if (this->token == Alphabet::TIMES)
             {
-                if(this->token == Alphabet::TIMES)
-                {
-                    matchToken(Alphabet::TIMES);
-                }
-                else if(this->token == Alphabet::DIV)
-                {
-                    matchToken(Alphabet::DIV);
-                }
-                else if(this->token == Alphabet::DIVIDE)
-                {
-                    matchToken(Alphabet::DIVIDE);
-                }
-                else if(this->token == Alphabet::AND)
-                {
-                    matchToken(Alphabet::AND);
-                }
-                else if(this->token == Alphabet::MOD)
-                {
-                    matchToken(Alphabet::MOD);
-                }
-                M();
-            } while(isMathOperator());
-        }
-        
+                matchToken(Alphabet::TIMES);
+            }
+            else if (this->token == Alphabet::DIV)
+            {
+                matchToken(Alphabet::DIV);
+            }
+            else if (this->token == Alphabet::DIVIDE)
+            {
+                matchToken(Alphabet::DIVIDE);
+            }
+            else if (this->token == Alphabet::AND)
+            {
+                matchToken(Alphabet::AND);
+            }
+            else if (this->token == Alphabet::MOD)
+            {
+                matchToken(Alphabet::MOD);
+            }
+            M();
+        };
     }
 
     void M()
@@ -1435,9 +1464,12 @@ public:
         else if (this->token == Alphabet::ID)
         {
             matchToken(Alphabet::ID);
-            matchToken(Alphabet::OPENBRACKET);
-            EXP();
-            matchToken(Alphabet::CLOSEBRACKET);
+            if (this->token == Alphabet::OPENBRACKET)
+            {
+                matchToken(Alphabet::OPENBRACKET);
+                EXP();
+                matchToken(Alphabet::CLOSEBRACKET);
+            }
         }
         else if (this->token == Alphabet::CONSTANT)
         {
@@ -1449,7 +1481,6 @@ public:
             EXP();
             matchToken(Alphabet::CLOSEPAR);
         }
-        
     }
 
     void parser()
@@ -1460,10 +1491,6 @@ public:
 
         S();
 
-        if (cursor != eof)
-        {
-            cout << "erro: not eof" << endl;
-        }
     }
 };
 
