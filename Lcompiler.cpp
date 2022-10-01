@@ -258,6 +258,8 @@ int eof;
 string program;
 // Lines of the program
 int line;
+// Flag last read token is \n 
+bool lastTokenBreakLine = false;
 
 /**
  * @brief Verify if a character is a character
@@ -313,7 +315,7 @@ bool isValidChar(char c)
  */
 void throwInvalidCharacterException()
 {
-    cout << line << "\ncaractere invalido.";
+    cout << line << "\ncaractere invalido."  << endl;
     exit(1);
 }
 
@@ -323,6 +325,11 @@ void throwInvalidCharacterException()
  */
 void throwUnexpectedEOFException()
 {
+    if(lastTokenBreakLine)
+    {
+        cout << lastTokenBreakLine << endl;
+        line--;
+    }
     cout << line << "\nfim de arquivo nao esperado.";
     exit(1);
 }
@@ -360,14 +367,15 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
 
     TransitionReturn transitionReturn;
 
-    if (c == ' ' || c == '\n' || c == '\t') // Ignore insignificant char
+    if (c == ' ' || c == '\n' || c == '\t' || c == '\r') // Ignore insignificant char
     {
         transitionReturn.nextState = 0;
         transitionReturn.lexemeConcat = "";
 
         // Increment line count on line break read
-        if (c == '\n')
+        if (c == '\n'){
             line++;
+        }
     }
     else if (isCharacter(c) || c == '_') // Variables and reserved words
     {
@@ -430,10 +438,8 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
     }
     else if (c == '.')
     {
-        if (cursor == eof)
-            throwUnexpectedEOFException();
-        else
-            throwUndefinedLex(lexeme + c);
+        transitionReturn.nextState = 17;
+        transitionReturn.lexemeConcat = lexeme + c;
     }
 
     return transitionReturn;
@@ -593,10 +599,14 @@ TransitionReturn stateFourTransition(string lexeme, char c)
     }
     else // Throw exception when Hexa Number was not identified
     {
-        if (cursor == eof)
-            throwUnexpectedEOFException();
-        else
-            throwUndefinedLex(lexeme + c);
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
+
+        // Create lexical register to INT CONSTANT
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::INT);
+        transitionReturn.lexicalReg = lexicalRegister;
     }
 
     return transitionReturn;
@@ -937,7 +947,7 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(lexeme + c);
+            throwUndefinedLex(lexeme);
     }
 
     return transitionReturn;
@@ -975,24 +985,80 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
 }
 
 /**
+ * @brief Execute state 17 transition actions
+ *
+ * @param lexeme - lexeme in creation
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
+ */
+TransitionReturn stateSeventeenTransition(string lexeme, char c)
+{
+    TransitionReturn transitionReturn;
+    if (isNumber(c)) // Float number that begins with '.'
+    {
+        transitionReturn.nextState = 18;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
+    else // Throw exception when logical operator (AND - &&) was not identified
+    {
+        if (cursor == eof)
+            throwUnexpectedEOFException();
+        else
+            throwUndefinedLex(lexeme);
+    }
+
+    return transitionReturn;
+}
+
+/**
+ * @brief Execute state 18 transition actions
+ *
+ * @param lexeme - lexeme in creation
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
+ */
+TransitionReturn stateEighteenTransition(string lexeme, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (isNumber(c)) // Float number that begins with '.'
+    {
+        transitionReturn.nextState = 18;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
+    else
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
+
+        // Create lexical register to DIVIDE
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::FLOAT);
+        transitionReturn.lexicalReg = lexicalRegister;
+    }
+
+    return transitionReturn;
+}
+
+/**
  * @brief Lexical analyzer method
  *
  * @return string - recognized token
  */
 LexicalRegister lexicalAnalyzer()
 {
-    char c; // read character
+    char c = ' '; // read character
     int state = 0;
     string lexeme = "";
 
     TransitionReturn tr;
-
     while (state != finalState)
     {
         if (cursor != eof)
         {
             c = tolower(program[cursor++]);
-
+         
             if (!isValidChar(c))
             {
                 throwInvalidCharacterException();
@@ -1057,6 +1123,12 @@ LexicalRegister lexicalAnalyzer()
         case 16:
             tr = stateSixteenTransition(lexeme, c);
             break;
+        case 17:
+            tr = stateSeventeenTransition(lexeme, c);
+            break;
+        case 18:
+            tr = stateEighteenTransition(lexeme, c);
+            break;
 
         default:
             break;
@@ -1065,8 +1137,7 @@ LexicalRegister lexicalAnalyzer()
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-    // cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
-
+    //cout << tr.lexicalReg.lexeme << endl;
     return tr.lexicalReg;
 }
 
@@ -1087,7 +1158,7 @@ public:
     void matchToken(int expectedToken)
     {
 
-        // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+       // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
 
         if (this->token == expectedToken)
         {
@@ -1097,7 +1168,10 @@ public:
         else
         {
             if (cursor == eof)
+            {
+                line--;
                 throwUnexpectedEOFException();
+            }
             else
                 throwUnexpectedToken(this->tokenFromLexical.lexeme);
         }
@@ -1126,7 +1200,7 @@ public:
 
     bool checkFirstT()
     {
-        checkFirstR();
+        return checkFirstR();
     }
 
     bool checkFirstR()
@@ -1141,7 +1215,9 @@ public:
                this->token == Alphabet::FLOAT ||
                this->token == Alphabet::ID ||
                this->token == Alphabet::CONSTANT ||
-               this->token == Alphabet::OPENPAR;
+               this->token == Alphabet::OPENPAR || 
+               this->token == Alphabet::TRUE ||
+               this->token == Alphabet::FALSE;
     }
 
     void S()
@@ -1215,20 +1291,24 @@ public:
             matchToken(Alphabet::EQUAL);
             DECONST();
         }
-        else if (this->token == Alphabet::ID) // ID[EXP]:=EXP
+        else 
         {
-            matchToken(Alphabet::ID);
-
-            if (this->token == Alphabet::OPENBRACKET)
-            {
-                matchToken(Alphabet::OPENBRACKET);
-                EXP();
-                matchToken(Alphabet::CLOSEBRACKET);
-            }
-
-            matchToken(Alphabet::ATRIB);
-            EXP();
+            ATR();
         }
+    }
+
+    void ATR(){
+        matchToken(Alphabet::ID);
+
+        if (this->token == Alphabet::OPENBRACKET)
+        {
+            matchToken(Alphabet::OPENBRACKET);
+            EXP();
+            matchToken(Alphabet::CLOSEBRACKET);
+        }
+
+        matchToken(Alphabet::ATRIB);
+        EXP();
     }
 
     void DECONST()
@@ -1237,7 +1317,18 @@ public:
         {
             matchToken(Alphabet::MINNUS);
         }
-        matchToken(Alphabet::CONSTANT); // CONSTANT
+        if(this->token == Alphabet::CONSTANT)
+        {
+            matchToken(Alphabet::CONSTANT); // CONSTANT
+        } 
+        else if(this->token == Alphabet::TRUE)
+        {
+            matchToken(Alphabet::TRUE); // CONSTANT
+        } 
+        else 
+        {
+            matchToken(Alphabet::FALSE); // CONSTANT
+        }
     }
 
     void CMD() // Language commands
@@ -1307,23 +1398,28 @@ public:
         {
             CMD();
             matchToken(Alphabet::SEMICOLON);
-        }
-        else if (checkFirstDEC())
+        } 
+        else if(this->token == Alphabet::ID) 
         {
-            DEC();
+            ATR();
             matchToken(Alphabet::SEMICOLON);
-        }
+        } 
         else if (this->token == Alphabet::OPENBRACE)
         {
             matchToken(Alphabet::OPENBRACE);
 
-            while (checkFirstCMD() || checkFirstDEC())
+            while (checkFirstCMD() || this->token == Alphabet::ID)
             {
                 if (checkFirstCMD())
+                {
                     CMD();
-                else if (checkFirstDEC())
-                    DEC();
-                matchToken(Alphabet::SEMICOLON);
+                    matchToken(Alphabet::SEMICOLON);
+                } 
+                else if(this->token == Alphabet::ID) 
+                {
+                    ATR();
+                    matchToken(Alphabet::SEMICOLON);
+                } 
             };
 
             matchToken(Alphabet::CLOSEBRACE);
@@ -1332,8 +1428,8 @@ public:
 
     void EXP()
     {
-        if (checkFirstT())
-        {
+       // if (checkFirstT())
+        //{
             T();
             while (this->token == Alphabet::EQUAL ||
                    this->token == Alphabet::NOTEQUAL ||
@@ -1368,7 +1464,7 @@ public:
                 }
                 T();
             }
-        }
+        //}
     }
 
     void T()
@@ -1405,10 +1501,7 @@ public:
 
     void R()
     {
-        if (checkFirstM())
-        {
-            M();
-        }
+        M();
 
         while (this->token == Alphabet::TIMES ||
                this->token == Alphabet::DIV ||
@@ -1437,7 +1530,7 @@ public:
                 matchToken(Alphabet::MOD);
             }
             M();
-        };
+        }
     }
 
     void M()
@@ -1475,7 +1568,15 @@ public:
         {
             matchToken(Alphabet::CONSTANT);
         }
-        else if (this->token == Alphabet::OPENPAR)
+        else if (this->token == Alphabet::TRUE)
+        {
+            matchToken(Alphabet::TRUE);
+        } 
+        else if (this->token == Alphabet::FALSE)
+        {
+            matchToken(Alphabet::FALSE);
+        }
+        else 
         {
             matchToken(Alphabet::OPENPAR);
             EXP();
@@ -1506,10 +1607,11 @@ int main()
     {
         program += str + '\n';
     }
+    //cout << program << endl;
 
     // TODO? Quando acabar as entregas do TP1 e TP2 descomentar essa parte - para apresentação
     // // remove last \n
-    // program.pop_back();
+    //program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();
@@ -1518,7 +1620,7 @@ int main()
     syntaxAnalyzer.parser();
 
     // Print line count and success compilation
-    line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
+    line == 1 ? (cout << "1 linha compilada." << endl) : (cout << line << " linhas compiladas."  << endl);
 
     return 0;
 }
