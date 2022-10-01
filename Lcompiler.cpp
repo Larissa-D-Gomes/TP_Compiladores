@@ -24,6 +24,49 @@ using namespace std;
 #define finalState -1
 #define null -1
 
+string testLexem(int n){
+    if(n == 0) return "const";
+    else if(n == 1) return "int";
+    else if(n == 2) return "char";
+    else if(n == 3) return "while";
+    else if(n == 4) return "if";
+    else if(n == 5) return "float";
+    else if(n == 6) return "else";
+    else if(n == 7) return "&&";
+    else if(n == 8) return "||";
+    else if(n == 9) return "!";
+    else if(n == 10) return ":=";
+    else if(n == 11) return "=";
+    else if(n == 12) return "(";
+    else if(n == 13) return ")";
+    else if(n == 14) return "<";
+    else if(n == 15) return ">";
+    else if(n == 16) return "!=";
+    else if(n == 17) return ">=";
+    else if(n == 18) return "<=";
+    else if(n == 19) return ",";
+    else if(n == 20) return "+";
+    else if(n == 21) return "-";
+    else if(n == 22) return "*";
+    else if(n == 23) return "/";
+    else if(n == 24) return ";";
+    else if(n == 25) return "{";
+    else if(n == 26) return "}";
+    else if(n == 27) return "readl";
+    else if(n == 28) return "div";
+    else if(n == 29) return "string";
+    else if(n == 30) return "write";
+    else if(n == 31) return "writeln";
+    else if(n == 32) return "mod";
+    else if(n == 33) return "[";
+    else if(n == 34) return "]";
+    else if(n == 35) return "true";
+    else if(n == 36) return "false";
+    else if(n == 37) return "boolean";
+    else if(n == 40) return "id";
+    else if(n == 41) return "constant";
+}
+
 class Alphabet
 {
 public:
@@ -107,13 +150,12 @@ public:
     void fillHash()
     {
 
-        // fill reserved words list using a iterator 
+        // fill reserved words list using a iterator
         // list position = alphabet byte value
         for (uint8_t i = 0; i < reservedWords.size(); i++)
         {
             symbolTable[reservedWords[i]] = i;
         }
-        
     }
 
     /**
@@ -144,14 +186,13 @@ public:
 
         for (auto const &pair : this->symbolTable)
         {
-            if(lex == pair.first)
+            if (lex == pair.first)
                 return position;
             position++;
         }
 
         return null;
     }
-
 
     /**
      * @brief Insert a new lexical form at the symbol table
@@ -163,7 +204,6 @@ public:
     {
         this->symbolTable[lex] = Alphabet::ID;
         return this->search(lex);
-
     }
 
     /**
@@ -178,22 +218,23 @@ public:
     }
 };
 
-class LexicalRegister{
-    public:
-        string lexeme;
-        int token;
-        int symbolTabPos;
-        int constType;
+class LexicalRegister
+{
+public:
+    string lexeme;
+    int token;
+    int symbolTabPos;
+    int constType;
 
-        LexicalRegister(){}
-        
-        LexicalRegister(string lexeme, int token, int symbolTabPos, int constType){
-            this->lexeme = lexeme;
-            this->token = token;
-            this->symbolTabPos = symbolTabPos;
-            this->constType = constType;
-        }
+    LexicalRegister() {}
 
+    LexicalRegister(string lexeme, int token, int symbolTabPos, int constType)
+    {
+        this->lexeme = lexeme;
+        this->token = token;
+        this->symbolTabPos = symbolTabPos;
+        this->constType = constType;
+    }
 };
 
 /**
@@ -217,6 +258,8 @@ int eof;
 string program;
 // Lines of the program
 int line;
+// Flag last read token is \n 
+bool lastTokenBreakLine = false;
 
 /**
  * @brief Verify if a character is a character
@@ -272,7 +315,7 @@ bool isValidChar(char c)
  */
 void throwInvalidCharacterException()
 {
-    cout << line << "\ncaractere invalido.";
+    cout << line << "\ncaractere invalido."  << endl;
     exit(1);
 }
 
@@ -282,6 +325,11 @@ void throwInvalidCharacterException()
  */
 void throwUnexpectedEOFException()
 {
+    if(lastTokenBreakLine)
+    {
+        cout << lastTokenBreakLine << endl;
+        line--;
+    }
     cout << line << "\nfim de arquivo nao esperado.";
     exit(1);
 }
@@ -292,32 +340,42 @@ void throwUnexpectedEOFException()
  */
 void throwUndefinedLex(string lex)
 {
-    lex.pop_back();
+    if (lex.at(lex.length() - 1) == '\n') lex.pop_back();
     cout << line << "\nlexema nao identificado [" << lex << "].";
     exit(1);
 }
 
+/**
+ * @brief Print a error message when program finds a unexpected token
+ *
+ */
+void throwUnexpectedToken(string lex)
+{
+    cout << line << "\ntoken nao esperado [" << lex << "].";
+    exit(1);
+}
 
 /**
  * @brief Execute state 0 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateZeroTransition(string lexeme, char c)
 {
 
     TransitionReturn transitionReturn;
 
-    if (c == ' ' || c == '\n' || c == '\t') // Ignore insignificant char
+    if (c == ' ' || c == '\n' || c == '\t' || c == '\r') // Ignore insignificant char
     {
         transitionReturn.nextState = 0;
         transitionReturn.lexemeConcat = "";
 
         // Increment line count on line break read
-        if (c == '\n')
+        if (c == '\n'){
             line++;
+        }
     }
     else if (isCharacter(c) || c == '_') // Variables and reserved words
     {
@@ -378,16 +436,21 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
+    else if (c == '.')
+    {
+        transitionReturn.nextState = 17;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
 
     return transitionReturn;
 }
 
 /**
  * @brief Execute state 1 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateOneTransition(string lexeme, char c)
 {
@@ -418,10 +481,10 @@ TransitionReturn stateOneTransition(string lexeme, char c)
         else
         {
             // Get token and insert if lexeme is an id
-            int token =  symbolTable->search(transitionReturn.lexemeConcat);
+            int token = symbolTable->search(transitionReturn.lexemeConcat);
 
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
-            { 
+            {
                 // Create lexical register to TRUE and FALSE
                 LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::BOOLEAN);
                 transitionReturn.lexicalReg = lexicalRegister;
@@ -443,10 +506,10 @@ TransitionReturn stateOneTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 2 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTwoTransition(string lexeme, char c)
 {
@@ -479,10 +542,10 @@ TransitionReturn stateTwoTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 3 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateThreeTransition(string lexeme, char c)
 {
@@ -510,10 +573,10 @@ TransitionReturn stateThreeTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 4 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFourTransition(string lexeme, char c)
 {
@@ -536,10 +599,14 @@ TransitionReturn stateFourTransition(string lexeme, char c)
     }
     else // Throw exception when Hexa Number was not identified
     {
-        if (cursor == eof)
-            throwUnexpectedEOFException();
-        else
-            throwUndefinedLex(lexeme + c);
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
+
+        // Create lexical register to INT CONSTANT
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::INT);
+        transitionReturn.lexicalReg = lexicalRegister;
     }
 
     return transitionReturn;
@@ -547,10 +614,10 @@ TransitionReturn stateFourTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 5 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFiveTransition(string lexeme, char c)
 {
@@ -574,16 +641,16 @@ TransitionReturn stateFiveTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 6 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSixTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isHexa(c)) // End of Hexa Number analysis 
+    if (isHexa(c)) // End of Hexa Number analysis
     {
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
@@ -605,10 +672,10 @@ TransitionReturn stateSixTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 7 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSevenTransition(string lexeme, char c)
 {
@@ -632,10 +699,10 @@ TransitionReturn stateSevenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 8 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateEightTransition(string lexeme, char c)
 {
@@ -663,10 +730,10 @@ TransitionReturn stateEightTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 9 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateNineTransition(string lexeme, char c)
 {
@@ -699,10 +766,10 @@ TransitionReturn stateNineTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 10 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTenTransition(string lexeme, char c)
 {
@@ -730,10 +797,10 @@ TransitionReturn stateTenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 11 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateElevenTransition(string lexeme, char c)
 {
@@ -748,7 +815,7 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
             line++;
 
         // If we have a unexpected eof
-        if (cursor == eof) 
+        if (cursor == eof)
             throwUnexpectedEOFException();
     }
     else if (c == '*') // Comment analysis
@@ -761,10 +828,10 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 12 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateTwelveTransition(string lexeme, char c)
 {
@@ -777,8 +844,8 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
     else if (c == '*') // Stay in comment loop
     {
         transitionReturn.nextState = 12;
-        
-        //If we have a unexpected eof
+
+        // If we have a unexpected eof
         if (cursor == eof)
             throwUnexpectedEOFException();
     }
@@ -792,10 +859,10 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 13 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateThirteenTransition(string lexeme, char c)
 {
@@ -823,10 +890,10 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 14 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFourteenTransition(string lexeme, char c)
 {
@@ -848,7 +915,6 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
-
         // Create lexical register to SIMPLE LOGICAL OPERATORS
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
@@ -859,10 +925,10 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 15 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateFifteenTransition(string lexeme, char c)
 {
@@ -881,7 +947,7 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
         if (cursor == eof)
             throwUnexpectedEOFException();
         else
-            throwUndefinedLex(lexeme + c);
+            throwUndefinedLex(lexeme);
     }
 
     return transitionReturn;
@@ -889,10 +955,10 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
 
 /**
  * @brief Execute state 16 transition actions
- * 
+ *
  * @param lexeme - lexeme in creation
- * @param c - character read 
- * @return TransitionReturn - next state and (token + c) 
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
  */
 TransitionReturn stateSixteenTransition(string lexeme, char c)
 {
@@ -919,24 +985,80 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
 }
 
 /**
+ * @brief Execute state 17 transition actions
+ *
+ * @param lexeme - lexeme in creation
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
+ */
+TransitionReturn stateSeventeenTransition(string lexeme, char c)
+{
+    TransitionReturn transitionReturn;
+    if (isNumber(c)) // Float number that begins with '.'
+    {
+        transitionReturn.nextState = 18;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
+    else // Throw exception when logical operator (AND - &&) was not identified
+    {
+        if (cursor == eof)
+            throwUnexpectedEOFException();
+        else
+            throwUndefinedLex(lexeme);
+    }
+
+    return transitionReturn;
+}
+
+/**
+ * @brief Execute state 18 transition actions
+ *
+ * @param lexeme - lexeme in creation
+ * @param c - character read
+ * @return TransitionReturn - next state and (token + c)
+ */
+TransitionReturn stateEighteenTransition(string lexeme, char c)
+{
+    TransitionReturn transitionReturn;
+
+    if (isNumber(c)) // Float number that begins with '.'
+    {
+        transitionReturn.nextState = 18;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
+    else
+    {
+        // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
+        cursor--;
+        transitionReturn.nextState = finalState;
+        transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
+
+        // Create lexical register to DIVIDE
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::FLOAT);
+        transitionReturn.lexicalReg = lexicalRegister;
+    }
+
+    return transitionReturn;
+}
+
+/**
  * @brief Lexical analyzer method
  *
  * @return string - recognized token
  */
 LexicalRegister lexicalAnalyzer()
 {
-    char c; // read character
+    char c = ' '; // read character
     int state = 0;
     string lexeme = "";
 
     TransitionReturn tr;
-
     while (state != finalState)
     {
         if (cursor != eof)
         {
             c = tolower(program[cursor++]);
-
+         
             if (!isValidChar(c))
             {
                 throwInvalidCharacterException();
@@ -945,7 +1067,7 @@ LexicalRegister lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return  LexicalRegister("", null, null, null);
+            return LexicalRegister("", null, null, null);
         }
 
         switch (state)
@@ -1001,18 +1123,477 @@ LexicalRegister lexicalAnalyzer()
         case 16:
             tr = stateSixteenTransition(lexeme, c);
             break;
+        case 17:
+            tr = stateSeventeenTransition(lexeme, c);
+            break;
+        case 18:
+            tr = stateEighteenTransition(lexeme, c);
+            break;
 
         default:
             break;
         }
-        
+
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-    //cout << tr.lexicalReg.token << "\t" << tr.lexicalReg.symbolTabPos << "\t" << tr.lexicalReg.constType << "\t" << tr.lexicalReg.lexeme << endl;
-
+    //cout << tr.lexicalReg.lexeme << endl;
     return tr.lexicalReg;
 }
+
+class SyntaxAnalyzer
+{
+
+private:
+    LexicalRegister tokenFromLexical;
+    int token;
+
+public:
+    SyntaxAnalyzer()
+    {
+        // Initializing lexeme with a char != of eof flag
+        this->tokenFromLexical = LexicalRegister("", null, null, null);
+    }
+
+    void matchToken(int expectedToken)
+    {
+
+       // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+
+        if (this->token == expectedToken)
+        {
+            this->tokenFromLexical = lexicalAnalyzer();
+            this->token = this->tokenFromLexical.token;
+        }
+        else
+        {
+            if (cursor == eof)
+            {
+                line--;
+                throwUnexpectedEOFException();
+            }
+            else
+                throwUnexpectedToken(this->tokenFromLexical.lexeme);
+        }
+    }
+
+    bool checkFirstDEC()
+    {
+        return this->token == Alphabet::INT ||
+               this->token == Alphabet::FLOAT ||
+               this->token == Alphabet::STRING ||
+               this->token == Alphabet::BOOLEAN ||
+               this->token == Alphabet::CHAR ||
+               this->token == Alphabet::CONST ||
+               this->token == Alphabet::ID;
+    }
+
+    bool checkFirstCMD()
+    {
+        return this->token == Alphabet::WHILE ||
+               this->token == Alphabet::IF ||
+               this->token == Alphabet::SEMICOLON ||
+               this->token == Alphabet::READLN ||
+               this->token == Alphabet::WRITE ||
+               this->token == Alphabet::WRITELN;
+    }
+
+    bool checkFirstT()
+    {
+        return checkFirstR();
+    }
+
+    bool checkFirstR()
+    {
+        return checkFirstM();
+    }
+
+    bool checkFirstM()
+    {
+        return this->token == Alphabet::NOT ||
+               this->token == Alphabet::INT ||
+               this->token == Alphabet::FLOAT ||
+               this->token == Alphabet::ID ||
+               this->token == Alphabet::CONSTANT ||
+               this->token == Alphabet::OPENPAR || 
+               this->token == Alphabet::TRUE ||
+               this->token == Alphabet::FALSE;
+    }
+
+    void S()
+    {
+        while (checkFirstDEC() || checkFirstCMD())
+        {
+            if (checkFirstDEC())
+            {
+                DEC();
+                matchToken(Alphabet::SEMICOLON);
+            }
+            else if (checkFirstCMD())
+            {
+                CMD();
+            }
+        }
+    }
+
+    void DEC()
+    {
+        if (this->token == Alphabet::INT ||
+            this->token == Alphabet::FLOAT ||
+            this->token == Alphabet::STRING ||
+            this->token == Alphabet::BOOLEAN ||
+            this->token == Alphabet::CHAR)
+        {
+            if (this->token == Alphabet::INT) // INT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
+            {
+                matchToken(Alphabet::INT);
+            }
+            else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
+            {
+                matchToken(Alphabet::FLOAT);
+            }
+            else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
+            {
+                matchToken(Alphabet::STRING);
+            }
+            else if (this->token == Alphabet::BOOLEAN) // BOOLEAN ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
+            {
+                matchToken(Alphabet::BOOLEAN);
+            }
+            else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
+            {
+                matchToken(Alphabet::CHAR);
+            }
+
+            matchToken(Alphabet::ID);
+
+            if (this->token == Alphabet::ATRIB)
+            {
+                matchToken(Alphabet::ATRIB);
+                DECONST();
+            }
+
+            while (this->token == Alphabet::COMMA)
+            {
+                matchToken(Alphabet::COMMA);
+                matchToken(Alphabet::ID);
+                if (this->token == Alphabet::ATRIB)
+                {
+                    matchToken(Alphabet::ATRIB);
+                    DECONST();
+                }
+            }
+        }
+        else if (this->token == Alphabet::CONST) // CONST ID = [-]CONSTANT
+        {
+            matchToken(Alphabet::CONST);
+            matchToken(Alphabet::ID);
+            matchToken(Alphabet::EQUAL);
+            DECONST();
+        }
+        else 
+        {
+            ATR();
+        }
+    }
+
+    void ATR(){
+        matchToken(Alphabet::ID);
+
+        if (this->token == Alphabet::OPENBRACKET)
+        {
+            matchToken(Alphabet::OPENBRACKET);
+            EXP();
+            matchToken(Alphabet::CLOSEBRACKET);
+        }
+
+        matchToken(Alphabet::ATRIB);
+        EXP();
+    }
+
+    void DECONST()
+    {
+        if (this->token == Alphabet::MINNUS) // - CONSTANT
+        {
+            matchToken(Alphabet::MINNUS);
+        }
+        if(this->token == Alphabet::CONSTANT)
+        {
+            matchToken(Alphabet::CONSTANT); // CONSTANT
+        } 
+        else if(this->token == Alphabet::TRUE)
+        {
+            matchToken(Alphabet::TRUE); // CONSTANT
+        } 
+        else 
+        {
+            matchToken(Alphabet::FALSE); // CONSTANT
+        }
+    }
+
+    void CMD() // Language commands
+    {
+        if (this->token == Alphabet::WHILE) // WHILE(){}
+        {
+            matchToken(Alphabet::WHILE);
+            PAR();
+            BLOCK();
+        }
+        else if (this->token == Alphabet::IF) // IF() [ELSE]
+        {
+            matchToken(Alphabet::IF);
+            PAR();
+            BLOCK();
+            if (this->token == Alphabet::ELSE)
+            {
+                matchToken(Alphabet::ELSE);
+                BLOCK();
+            }
+        }
+        else if (this->token == Alphabet::SEMICOLON) // ;
+        {
+            matchToken(Alphabet::SEMICOLON);
+        }
+        else if (this->token == Alphabet::READLN) // READLN(ID)
+        {
+            matchToken(Alphabet::READLN);
+            matchToken(Alphabet::OPENPAR);
+            matchToken(Alphabet::ID);
+            matchToken(Alphabet::CLOSEPAR);
+        }
+        else if (this->token == Alphabet::WRITE || this->token == Alphabet::WRITELN) // (WRITE | WRITELN)(EXP {, EXP}*)
+        {
+            if (this->token == Alphabet::WRITE) // WRITE(EXP {, EXP}*)
+            {
+                matchToken(Alphabet::WRITE);
+            }
+            else if (this->token == Alphabet::WRITELN) // WRITELN(EXP {, EXP}*)
+            {
+                matchToken(Alphabet::WRITELN);
+            }
+
+            matchToken(Alphabet::OPENPAR);
+            EXP();
+
+            while (this->token == Alphabet::COMMA)
+            {
+                matchToken(Alphabet::COMMA);
+                EXP();
+            };
+
+            matchToken(Alphabet::CLOSEPAR);
+        }
+    }
+
+    void PAR()
+    {
+        matchToken(Alphabet::OPENPAR);
+        EXP();
+        matchToken(Alphabet::CLOSEPAR);
+    }
+
+    void BLOCK()
+    {
+        if (checkFirstCMD())
+        {
+            CMD();
+            matchToken(Alphabet::SEMICOLON);
+        } 
+        else if(this->token == Alphabet::ID) 
+        {
+            ATR();
+            matchToken(Alphabet::SEMICOLON);
+        } 
+        else if (this->token == Alphabet::OPENBRACE)
+        {
+            matchToken(Alphabet::OPENBRACE);
+
+            while (checkFirstCMD() || this->token == Alphabet::ID)
+            {
+                if (checkFirstCMD())
+                {
+                    CMD();
+                    matchToken(Alphabet::SEMICOLON);
+                } 
+                else if(this->token == Alphabet::ID) 
+                {
+                    ATR();
+                    matchToken(Alphabet::SEMICOLON);
+                } 
+            };
+
+            matchToken(Alphabet::CLOSEBRACE);
+        }
+    }
+
+    void EXP()
+    {
+       // if (checkFirstT())
+        //{
+            T();
+            while (this->token == Alphabet::EQUAL ||
+                   this->token == Alphabet::NOTEQUAL ||
+                   this->token == Alphabet::LESSTHAN ||
+                   this->token == Alphabet::GREATERTHAN ||
+                   this->token == Alphabet::LESSEQUAL ||
+                   this->token == Alphabet::GREATEREQUAL)
+            {
+                if (this->token == Alphabet::EQUAL)
+                {
+                    matchToken(Alphabet::EQUAL);
+                }
+                else if (this->token == Alphabet::NOTEQUAL)
+                {
+                    matchToken(Alphabet::NOTEQUAL);
+                }
+                else if (this->token == Alphabet::LESSTHAN)
+                {
+                    matchToken(Alphabet::LESSTHAN);
+                }
+                else if (this->token == Alphabet::GREATERTHAN)
+                {
+                    matchToken(Alphabet::GREATERTHAN);
+                }
+                else if (this->token == Alphabet::LESSEQUAL)
+                {
+                    matchToken(Alphabet::LESSEQUAL);
+                }
+                else if (this->token == Alphabet::GREATEREQUAL)
+                {
+                    matchToken(Alphabet::GREATEREQUAL);
+                }
+                T();
+            }
+        //}
+    }
+
+    void T()
+    {
+
+        if (this->token == Alphabet::PLUS)
+        {
+            matchToken(Alphabet::PLUS);
+        }
+        else if (this->token == Alphabet::MINNUS)
+        {
+            matchToken(Alphabet::MINNUS);
+        }
+
+        R();
+
+        while (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
+        {
+            if (this->token == Alphabet::PLUS)
+            {
+                matchToken(Alphabet::PLUS);
+            }
+            else if (this->token == Alphabet::MINNUS)
+            {
+                matchToken(Alphabet::MINNUS);
+            }
+            else if (this->token == Alphabet::OR)
+            {
+                matchToken(Alphabet::OR);
+            }
+            R();
+        }
+    }
+
+    void R()
+    {
+        M();
+
+        while (this->token == Alphabet::TIMES ||
+               this->token == Alphabet::DIV ||
+               this->token == Alphabet::DIVIDE ||
+               this->token == Alphabet::AND ||
+               this->token == Alphabet::MOD)
+        {
+            if (this->token == Alphabet::TIMES)
+            {
+                matchToken(Alphabet::TIMES);
+            }
+            else if (this->token == Alphabet::DIV)
+            {
+                matchToken(Alphabet::DIV);
+            }
+            else if (this->token == Alphabet::DIVIDE)
+            {
+                matchToken(Alphabet::DIVIDE);
+            }
+            else if (this->token == Alphabet::AND)
+            {
+                matchToken(Alphabet::AND);
+            }
+            else if (this->token == Alphabet::MOD)
+            {
+                matchToken(Alphabet::MOD);
+            }
+            M();
+        }
+    }
+
+    void M()
+    {
+        if (this->token == Alphabet::NOT)
+        {
+            matchToken(Alphabet::NOT);
+            M();
+        }
+        else if (this->token == Alphabet::INT || this->token == Alphabet::FLOAT)
+        {
+            if (this->token == Alphabet::INT)
+            {
+                matchToken(Alphabet::INT);
+            }
+            else if (this->token == Alphabet::FLOAT)
+            {
+                matchToken(Alphabet::FLOAT);
+            }
+            matchToken(Alphabet::OPENPAR);
+            EXP();
+            matchToken(Alphabet::CLOSEPAR);
+        }
+        else if (this->token == Alphabet::ID)
+        {
+            matchToken(Alphabet::ID);
+            if (this->token == Alphabet::OPENBRACKET)
+            {
+                matchToken(Alphabet::OPENBRACKET);
+                EXP();
+                matchToken(Alphabet::CLOSEBRACKET);
+            }
+        }
+        else if (this->token == Alphabet::CONSTANT)
+        {
+            matchToken(Alphabet::CONSTANT);
+        }
+        else if (this->token == Alphabet::TRUE)
+        {
+            matchToken(Alphabet::TRUE);
+        } 
+        else if (this->token == Alphabet::FALSE)
+        {
+            matchToken(Alphabet::FALSE);
+        }
+        else 
+        {
+            matchToken(Alphabet::OPENPAR);
+            EXP();
+            matchToken(Alphabet::CLOSEPAR);
+        }
+    }
+
+    void parser()
+    {
+
+        this->tokenFromLexical = lexicalAnalyzer();
+        this->token = this->tokenFromLexical.token;
+
+        S();
+
+    }
+};
 
 int main()
 {
@@ -1026,25 +1607,20 @@ int main()
     {
         program += str + '\n';
     }
+    //cout << program << endl;
 
     // TODO? Quando acabar as entregas do TP1 e TP2 descomentar essa parte - para apresentação
     // // remove last \n
-    // program.pop_back();
+    //program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();
 
-    // Initializing lexeme with a char != of eof flag
-    LexicalRegister lexeme = LexicalRegister("", null, null, null);
-
-    // Calling lexical analyzer while eof is not reached
-    while (cursor != eof)
-    {
-        lexeme = lexicalAnalyzer();
-    }
+    SyntaxAnalyzer syntaxAnalyzer;
+    syntaxAnalyzer.parser();
 
     // Print line count and success compilation
-    line == 1 ? (cout << "1 linha compilada.") : (cout << line << " linhas compiladas.");
+    line == 1 ? (cout << "1 linha compilada." << endl) : (cout << line << " linhas compiladas."  << endl);
 
     return 0;
 }
