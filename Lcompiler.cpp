@@ -65,6 +65,8 @@ string testLexem(int n){
     else if(n == 37) return "boolean";
     else if(n == 40) return "id";
     else if(n == 41) return "constant";
+
+    return "";
 }
 
 class Alphabet
