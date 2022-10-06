@@ -1,3 +1,16 @@
+/**
+ * @file Throws.hpp
+ *
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
+ * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
+ * @brief Throws for many errors exceptions
+ * @version 0.1
+ * @date 2022-10-06
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "./headers/Throws.hpp"
 #include "./headers/Utils.hpp"
 

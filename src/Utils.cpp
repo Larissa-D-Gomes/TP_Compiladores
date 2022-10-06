@@ -1,3 +1,16 @@
+/**
+ * @file Utils.hpp
+ *
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
+ * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
+ * @brief Utils file and global important variables
+ * @version 0.1
+ * @date 2022-10-06
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <iostream>
 #include <string.h>
 
@@ -19,6 +32,12 @@ bool lastTokenBreakLine;
 // Global Symbol Table structure
 SymbolTable *symbolTable;
 
+/**
+ * @brief Just a testing function to see lexem:token relationship
+ * 
+ * @param n - number of token
+ * @return string - lexem
+ */
 string testLexem(int n){
     if(n == 0) return "const";
     else if(n == 1) return "int";

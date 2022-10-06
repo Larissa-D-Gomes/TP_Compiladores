@@ -1,7 +1,20 @@
+/**
+ * @file SyntaxAnalyzer.cpp
+ *
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
+ * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
+ * @brief Syntax Analyzer structure
+ * @version 0.1
+ * @date 2022-10-06
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <iostream>
 #include <string>
 
-#include "headers/SintaxAnalyzer.hpp"
+#include "headers/SyntaxAnalyzer.hpp"
 #include "headers/LexicalRegister.hpp"
 #include "headers/LexicalAnalyzer.hpp"
 #include "headers/Utils.hpp"
@@ -13,22 +26,33 @@
 
 using namespace std;
 
+/**
+ * @brief Construct a new Syntax Analyzer object
+ *
+ */
 SyntaxAnalyzer::SyntaxAnalyzer()
 {
     // Initializing lexeme with a char != of eof flag
     this->tokenFromLexical = LexicalRegister("", null, null, null);
 }
 
+/**
+ * @brief Match token from Lexical Analyzer and the expected token by L Language Grammar
+ *
+ * @param expectedToken Token expected by L Language Grammar
+ */
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
 
     // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
 
+    // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
     {
         this->tokenFromLexical = lexicalAnalyzer();
         this->token = this->tokenFromLexical.token;
     }
+    // Throws exceptions if the token doesn't match the expected token
     else
     {
         if (cursor == eof)
@@ -41,6 +65,12 @@ void SyntaxAnalyzer::matchToken(int expectedToken)
     }
 }
 
+/**
+ * @brief Check if actual token is included in the first tokens of DEC grammar variable
+ *
+ * @return true - token is first of DEC variable
+ * @return false - token is NOT first of DEC variable
+ */
 bool SyntaxAnalyzer::checkFirstDEC()
 {
     return this->token == Alphabet::INT ||
@@ -52,6 +82,12 @@ bool SyntaxAnalyzer::checkFirstDEC()
            this->token == Alphabet::ID;
 }
 
+/**
+ * @brief Check if actual token is included in the first tokens of CMD grammar variable
+ *
+ * @return true - token is first of CMD variable
+ * @return false - token is NOT first of CMD variable
+ */
 bool SyntaxAnalyzer::checkFirstCMD()
 {
     return this->token == Alphabet::WHILE ||
@@ -62,16 +98,34 @@ bool SyntaxAnalyzer::checkFirstCMD()
            this->token == Alphabet::WRITELN;
 }
 
+/**
+ * @brief Check if actual token is included in the first tokens of T grammar variable
+ *
+ * @return true - token is first of T variable
+ * @return false - token is NOT first of T variable
+ */
 bool SyntaxAnalyzer::checkFirstT()
 {
     return checkFirstR();
 }
 
+/**
+ * @brief Check if actual token is included in the first tokens of R grammar variable
+ *
+ * @return true - token is first of R variable
+ * @return false - token is NOT first of R variable
+ */
 bool SyntaxAnalyzer::checkFirstR()
 {
     return checkFirstM();
 }
 
+/**
+ * @brief Check if actual token is included in the first tokens of M grammar variable
+ *
+ * @return true - token is first of M variable
+ * @return false - token is NOT first of M variable
+ */
 bool SyntaxAnalyzer::checkFirstM()
 {
     return this->token == Alphabet::NOT ||
@@ -84,6 +138,9 @@ bool SyntaxAnalyzer::checkFirstM()
            this->token == Alphabet::FALSE;
 }
 
+/**
+ * @brief Variable S of the L Language Grammar
+ */
 void SyntaxAnalyzer::S()
 {
     while (checkFirstDEC() || checkFirstCMD())
@@ -100,6 +157,9 @@ void SyntaxAnalyzer::S()
     }
 }
 
+/**
+ * @brief Variable DEC of the L Language Grammar
+ */
 void SyntaxAnalyzer::DEC()
 {
     if (this->token == Alphabet::INT ||
@@ -161,6 +221,9 @@ void SyntaxAnalyzer::DEC()
     }
 }
 
+/**
+ * @brief Variable ATR of the L Language Grammar
+ */
 void SyntaxAnalyzer::ATR()
 {
     matchToken(Alphabet::ID);
@@ -176,6 +239,9 @@ void SyntaxAnalyzer::ATR()
     EXP();
 }
 
+/**
+ * @brief Variable DECONST of the L Language Grammar
+ */
 void SyntaxAnalyzer::DECONST()
 {
     if (this->token == Alphabet::MINNUS) // - CONSTANT
@@ -196,6 +262,9 @@ void SyntaxAnalyzer::DECONST()
     }
 }
 
+/**
+ * @brief Variable CMD of the L Language Grammar
+ */
 void SyntaxAnalyzer::CMD() // Language commands
 {
     if (this->token == Alphabet::WHILE) // WHILE(){}
@@ -250,6 +319,9 @@ void SyntaxAnalyzer::CMD() // Language commands
     }
 }
 
+/**
+ * @brief Variable PAR of the L Language Grammar
+ */
 void SyntaxAnalyzer::PAR()
 {
     matchToken(Alphabet::OPENPAR);
@@ -257,6 +329,9 @@ void SyntaxAnalyzer::PAR()
     matchToken(Alphabet::CLOSEPAR);
 }
 
+/**
+ * @brief Variable BLOCK of the L Language Grammar
+ */
 void SyntaxAnalyzer::BLOCK()
 {
     if (checkFirstCMD())
@@ -291,10 +366,11 @@ void SyntaxAnalyzer::BLOCK()
     }
 }
 
+/**
+ * @brief Variable EXP of the L Language Grammar
+ */
 void SyntaxAnalyzer::EXP()
 {
-    // if (checkFirstT())
-    //{
     T();
     while (this->token == Alphabet::EQUAL ||
            this->token == Alphabet::NOTEQUAL ||
@@ -329,9 +405,11 @@ void SyntaxAnalyzer::EXP()
         }
         T();
     }
-    //}
 }
 
+/**
+ * @brief Variable T of the L Language Grammar
+ */
 void SyntaxAnalyzer::T()
 {
 
@@ -364,6 +442,9 @@ void SyntaxAnalyzer::T()
     }
 }
 
+/**
+ * @brief Variable R of the L Language Grammar
+ */
 void SyntaxAnalyzer::R()
 {
     M();
@@ -398,6 +479,9 @@ void SyntaxAnalyzer::R()
     }
 }
 
+/**
+ * @brief Variable M of the L Language Grammar
+ */
 void SyntaxAnalyzer::M()
 {
     if (this->token == Alphabet::NOT)
@@ -449,9 +533,12 @@ void SyntaxAnalyzer::M()
     }
 }
 
+/**
+ * @brief Initial Syntax Analyzer call
+ */
 void SyntaxAnalyzer::parser()
 {
-
+    // Call the Lexical Analyzer to get first token
     this->tokenFromLexical = lexicalAnalyzer();
     this->token = this->tokenFromLexical.token;
 

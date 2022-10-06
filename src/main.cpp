@@ -16,7 +16,7 @@
 // import headers
 #include "headers/Utils.hpp"
 #include "headers/SymbolTable.hpp"
-#include "headers/SintaxAnalyzer.hpp"
+#include "headers/SyntaxAnalyzer.hpp"
 
 using namespace std;
 
@@ -38,13 +38,13 @@ int main()
     }
     //cout << program << endl;
 
-    // TODO? Quando acabar as entregas do TP1 e TP2 descomentar essa parte - para apresentação
-    // // remove last \n
-    //program.pop_back();
+    // remove last \n
+    program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();
 
+    // Call Syntax Analyzer method
     SyntaxAnalyzer syntaxAnalyzer;
     syntaxAnalyzer.parser();
 

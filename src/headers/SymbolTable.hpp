@@ -1,3 +1,16 @@
+/**
+ * @file SymbolTable.hpp
+ * 
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
+ * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
+ * @brief Symbol Table structure
+ * @version 0.1
+ * @date 2022-10-06
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include <iostream>

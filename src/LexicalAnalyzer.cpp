@@ -1,6 +1,20 @@
+/**
+ * @file LexicalAnalyzer.cpp
+ * 
+ * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
+ * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
+ * @brief Lexical Analyzer structure
+ * @version 0.1
+ * @date 2022-10-06
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <iostream>
 #include <string>
 
+// import headers
 #include "headers/LexicalAnalyzer.hpp"
 #include "headers/LexicalRegister.hpp"
 #include "headers/Utils.hpp"
@@ -26,79 +40,105 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
 
     TransitionReturn transitionReturn;
 
-    if (c == ' ' || c == '\n' || c == '\t' || c == '\r') // Ignore insignificant char
+    // Ignore insignificant char
+    if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
     {
+        // Stay on the same state
         transitionReturn.nextState = 0;
         transitionReturn.lexemeConcat = "";
 
         // Increment line count on line break read
-        if (c == '\n'){
+        if (c == '\n')
+        {
             line++;
         }
     }
-    else if (isCharacter(c) || c == '_') // Variables and reserved words
+    // Variables and reserved words path
+    else if (isCharacter(c) || c == '_')
     {
+        // Go from state 0 to state 1
         transitionReturn.nextState = 1;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (isNumber(c) && c != '0') // Numeric constants
+    // Integer without start 0 constants path
+    else if (isNumber(c) && c != '0')
     {
+        // Go from state 0 to state 2
         transitionReturn.nextState = 2;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '0') // Numeric constants
+    // Numeric constants starting whit 0 / Hexa constants path
+    else if (c == '0')
     {
+        // Go from state 0 to state 4
         transitionReturn.nextState = 4;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '\'') // Character constants
+    // Character constants path
+    else if (c == '\'')
     {
+        // Go from state 0 to state 7
         transitionReturn.nextState = 7;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '\"') // String constants
+    // String constants path
+    else if (c == '\"')
     {
+        // Go from state 0 to state 9
         transitionReturn.nextState = 9;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '/') // Div operator / Comments
+    // Div operator or Comments path
+    else if (c == '/')
     {
+        // Go from state 0 to state 10
         transitionReturn.nextState = 10;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '|') // Logic OR Operator
+    // Logic OR Operator path
+    else if (c == '|')
     {
+        // Go from state 0 to state 13
         transitionReturn.nextState = 13;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '<' || c == '>' || c == '!') // Compost operators
+    // Compost operators path
+    else if (c == '<' || c == '>' || c == '!')
     {
+        // Go from state 0 to state 14
         transitionReturn.nextState = 14;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == ':') // Attribution operator
+    // Attribution operator path
+    else if (c == ':')
     {
+        // Go from state 0 to state 15
         transitionReturn.nextState = 15;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '&') // Logic AND Operator
+    // Logic AND Operator path
+    else if (c == '&')
     {
+        // Go from state 0 to state 16
         transitionReturn.nextState = 16;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']') // Simple token operators symbols
+    // Numeric constants starting whit . constants path
+    else if (c == '.')
     {
+        transitionReturn.nextState = 17;
+        transitionReturn.lexemeConcat = lexeme + c;
+    }
+    // Simple token operators symbols
+    else if (c == '(' || c == ')' || c == ',' || c == '+' || c == '*' || c == ';' || c == '{' || c == '}' || c == '=' || c == '-' || c == '[' || c == ']')
+    {
+        // Go from state 0 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
         //  Create lexical register to SIMPLE OPERATOR SYMBOLS
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
-    }
-    else if (c == '.')
-    {
-        transitionReturn.nextState = 17;
-        transitionReturn.lexemeConcat = lexeme + c;
     }
 
     return transitionReturn;
@@ -115,21 +155,27 @@ TransitionReturn stateOneTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isCharacter(c) || isNumber(c) || c == '_') // Variables and reserved words
+    // Variables and reserved words path
+    if (isCharacter(c) || isNumber(c) || c == '_')
     {
+        // Stay on the same state
         transitionReturn.nextState = 1;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // End of variables and reserved words lexical analysis
+    // End of variables and reserved words lexical analysis
+    else
     {
+        // Go from state 1 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding last read char
 
+        // Search for the lexeme on the Symbol Table
         int pos = symbolTable->find(lexeme);
 
-        // Lexeme not found in the symbol Table
+        // Lexeme not found in the Symbol Table
         if (pos == null)
         {
+            // Insert lexeme on Symbol Table
             symbolTable->insert(lexeme);
             pos = symbolTable->find(lexeme);
 
@@ -139,7 +185,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
         }
         else
         {
-            // Get token and insert if lexeme is an id
+            // Get token and insert if lexeme is an identifier
             int token = symbolTable->search(transitionReturn.lexemeConcat);
 
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
@@ -174,20 +220,27 @@ TransitionReturn stateTwoTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isNumber(c)) // Numeric constant
+    // Numeric constant path
+    if (isNumber(c))
     {
+        // Stay on the same state
         transitionReturn.nextState = 2;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '.') // Real number constant
+    // Real number constant path
+    else if (c == '.')
     {
+        // Go from state 2 to state 3
         transitionReturn.nextState = 3;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // End of Integer Numeric Constants lexical analysis
+    // End of Integer Numeric Constants lexical analysis
+    else
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 2 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -210,15 +263,20 @@ TransitionReturn stateThreeTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isNumber(c)) // Numeric Constant analysis
+    // Real number constant path
+    if (isNumber(c))
     {
+        // Stay on the same state
         transitionReturn.nextState = 3;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else //  End of Float Numeric Constants lexical analysis
+    //  End of Float Numeric Constants lexical analysis
+    else
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 3 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -241,25 +299,34 @@ TransitionReturn stateFourTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if ((c == '.')) // Real number
+    // Real number constant path
+    if ((c == '.'))
     {
+        // Go from state 4 to state 3
         transitionReturn.nextState = 3;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (isNumber(c)) // Numeric Constant analysis
+    // Numeric constants starting whit 0 constants path
+    else if (isNumber(c))
     {
+        // Go from state 4 to state 2
         transitionReturn.nextState = 2;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == 'x') // Hexa Number analysis
+    // Hexa Number path
+    else if (c == 'x')
     {
+        // Go from state 4 to state 5
         transitionReturn.nextState = 5;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // Throw exception when Hexa Number was not identified
+    // End of 0 constante number lexical analysis
+    else
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 4 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -282,12 +349,15 @@ TransitionReturn stateFiveTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isHexa(c)) // Hexa Number analysis
+    // Hexa Number path
+    if (isHexa(c))
     {
+        // Go from state 5 to state 6
         transitionReturn.nextState = 6;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // Throw exception when Hexa Number was not identified
+    // Throw exception when Hexa Number was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -309,8 +379,10 @@ TransitionReturn stateSixTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isHexa(c)) // End of Hexa Number analysis
+    // End of Hexa Number path
+    if (isHexa(c))
     {
+        // Go from state 6 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -340,12 +412,15 @@ TransitionReturn stateSevenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isCharacter(c)) // Character analysis
+    // Character constants path
+    if (isCharacter(c))
     {
+        // Go from state 7 to state 8
         transitionReturn.nextState = 8;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // Throw exception when character was not identified
+    // Throw exception when character was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -367,8 +442,10 @@ TransitionReturn stateEightTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '\'') // End of Character Constants lexical analysis
+    // End of Character Constants lexical analysis
+    if (c == '\'')
     {
+        // Go from state 8 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -376,7 +453,8 @@ TransitionReturn stateEightTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::CHAR);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else // Throw exception when character was not identified
+    // Throw exception when character was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -398,13 +476,17 @@ TransitionReturn stateNineTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c != '\"' && c != '\n') // String analysis
+    // String constants path
+    if (c != '\"' && c != '\n')
     {
+        // Stay on same state
         transitionReturn.nextState = 9;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else if (c == '\"') // End of String Constants lexical analysis
+    // End of String Constants lexical analysis
+    else if (c == '\"')
     {
+        // Go from state 9 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -412,7 +494,8 @@ TransitionReturn stateNineTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::STRING);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else // Throw exception when string was not identified
+    // Throw exception when string was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -434,15 +517,20 @@ TransitionReturn stateTenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '*') // Comments analysis
+    // Comments analysis path
+    if (c == '*')
     {
+        // Go from state 10 to state 11
         transitionReturn.nextState = 11;
         transitionReturn.lexemeConcat = "";
     }
-    else if (c != '*') // End of Divisor operator lexical analysis
+    // End of Divisor operator lexical analysis
+    else if (c != '*')
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 10 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -465,8 +553,10 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c != '*') // Checks if it's a loop of comment
+    // Checks if it's a loop of comment
+    if (c != '*')
     {
+        // Stay on same state
         transitionReturn.nextState = 11;
 
         // Increment line count on line break read
@@ -477,8 +567,10 @@ TransitionReturn stateElevenTransition(string lexeme, char c)
         if (cursor == eof)
             throwUnexpectedEOFException();
     }
-    else if (c == '*') // Comment analysis
+    // Comment analysis Path
+    else if (c == '*')
     {
+        // Go from state 11 to stat 12
         transitionReturn.nextState = 12;
     }
 
@@ -496,20 +588,26 @@ TransitionReturn stateTwelveTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '/') // Checks if it's a loop of comment
+    // Checks if it's a loop of comment
+    if (c == '/')
     {
+        // Go from state 12 to state 0
         transitionReturn.nextState = 0;
     }
-    else if (c == '*') // Stay in comment loop
+    // Stay in comment loop
+    else if (c == '*')
     {
+        // Stay on the same state
         transitionReturn.nextState = 12;
 
-        // If we have a unexpected eof
+        // If it have a unexpected eof
         if (cursor == eof)
             throwUnexpectedEOFException();
     }
-    else if (c != '*' && c != '/') // Returns to previous state of comment
+    // Returns to previous state of comment
+    else if (c != '*' && c != '/')
     {
+        // Go from state 12 to state 11
         transitionReturn.nextState = 11;
     }
 
@@ -527,8 +625,10 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '|') // End of OR Logic lexical analysis
+    // End of OR Logic lexical analysis
+    if (c == '|')
     {
+        // Go from state 13 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -536,7 +636,8 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else // Throw exception when logical operator (OR - ||) was not identified
+    // Throw exception when logical operator OR was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -558,8 +659,10 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '=') // End of Compost Logical Operators lexical analysis
+    // End of Compost Logical Operators lexical analysis
+    if (c == '=')
     {
+        // Go from state 14 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -567,10 +670,13 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else if (c != '=') // End of Simple logical operators lexical analysis
+    // End of Simple logical operators lexical analysis
+    else if (c != '=')
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 14 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -593,15 +699,19 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '=') // End of Atribute Operator lexical analysis
+    // End of Atribute Operator lexical analysis
+    if (c == '=')
     {
+        // Go from state 15 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
+        // Create lexical register to ATTRIBUTION OPERATOR
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else // Throw exception when assignment command was not identified
+    // Throw exception when assignment command was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -623,8 +733,10 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (c == '&') // End of AND logic lexical analysis
+    // End of AND logic lexical analysis
+    if (c == '&')
     {
+        // Go from state 16 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme + c;
 
@@ -632,7 +744,8 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT);
         transitionReturn.lexicalReg = lexicalRegister;
     }
-    else // Throw exception when logical operator (AND - &&) was not identified
+    // Throw exception when logical operator AND was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -653,12 +766,16 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
 TransitionReturn stateSeventeenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
-    if (isNumber(c)) // Float number that begins with '.'
+
+    // Numeric constants starting whit . constants path
+    if (isNumber(c))
     {
+        // Go from state 17 to 18
         transitionReturn.nextState = 18;
         transitionReturn.lexemeConcat = lexeme + c;
     }
-    else // Throw exception when logical operator (AND - &&) was not identified
+    // Throw exception when logical operator (AND - &&) was not identified
+    else
     {
         if (cursor == eof)
             throwUnexpectedEOFException();
@@ -680,15 +797,20 @@ TransitionReturn stateEighteenTransition(string lexeme, char c)
 {
     TransitionReturn transitionReturn;
 
-    if (isNumber(c)) // Float number that begins with '.'
+    // Numeric constants starting whit . constants path
+    if (isNumber(c))
     {
+        // Stay on the same state
         transitionReturn.nextState = 18;
         transitionReturn.lexemeConcat = lexeme + c;
     }
+    // End of numeric constants starting whit . constants path
     else
     {
         // Returning a cursor position to avoid discarding valid characters for the next lexeme analysis
         cursor--;
+
+        // Go from state 18 to FINAL STATE
         transitionReturn.nextState = finalState;
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
@@ -717,7 +839,7 @@ LexicalRegister lexicalAnalyzer()
         if (cursor != eof)
         {
             c = tolower(program[cursor++]);
-         
+
             if (!isValidChar(c))
             {
                 throwInvalidCharacterException();
@@ -796,6 +918,6 @@ LexicalRegister lexicalAnalyzer()
         lexeme = tr.lexemeConcat;
         state = tr.nextState;
     }
-    //cout << tr.lexicalReg.lexeme << endl;
+    // cout << tr.lexicalReg.lexeme << endl;
     return tr.lexicalReg;
 }
