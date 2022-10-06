@@ -29,8 +29,6 @@ int main()
     lastTokenBreakLine = false;
     symbolTable = new SymbolTable();
 
-    symbolTable->print();
-
     // Read source program
     while (getline(cin, str))
     {
