@@ -137,7 +137,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         //  Create lexical register to SIMPLE OPERATOR SYMBOLS
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 1);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
 
@@ -180,7 +180,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
             pos = symbolTable->find(lexeme);
 
             // Create lexical register to IDENTIFIER
-            LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::ID, pos, ConstType::NOT_CONSTANT, transitionReturn.lexemeConcat.length());
+            LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::ID, pos, ConstType::NOT_CONSTANT,null);
             transitionReturn.lexicalReg = lexicalRegister;
         }
         else
@@ -197,7 +197,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
             else // Is an identifier
             {
                 // Create lexical register to RESERVED WORD
-                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::NOT_CONSTANT, transitionReturn.lexemeConcat.length());
+                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::NOT_CONSTANT, null);
                 transitionReturn.lexicalReg = lexicalRegister;
             }
         }
@@ -535,7 +535,7 @@ TransitionReturn stateTenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme; // Discarding invalid char
 
         // Create lexical register to DIVIDE
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 1);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
 
@@ -633,7 +633,7 @@ TransitionReturn stateThirteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // create lexical register to OR LOGIC
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 2);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // Throw exception when logical operator OR was not identified
@@ -667,7 +667,7 @@ TransitionReturn stateFourteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to COMPOST LOGICAL OPERATORS
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 2);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // End of Simple logical operators lexical analysis
@@ -707,7 +707,7 @@ TransitionReturn stateFifteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to ATTRIBUTION OPERATOR
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 2);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // Throw exception when assignment command was not identified
@@ -741,7 +741,7 @@ TransitionReturn stateSixteenTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to AND LOGIC
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, 2);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, symbolTable->search(transitionReturn.lexemeConcat), symbolTable->find(transitionReturn.lexemeConcat), ConstType::NOT_CONSTANT, null);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // Throw exception when logical operator AND was not identified
