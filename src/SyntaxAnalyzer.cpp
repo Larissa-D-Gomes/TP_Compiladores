@@ -33,7 +33,7 @@ using namespace std;
 SyntaxAnalyzer::SyntaxAnalyzer()
 {
     // Initializing lexeme with a char != of eof flag
-    this->tokenFromLexical = LexicalRegister("", null, null, null);
+    this->tokenFromLexical = LexicalRegister("", null, null, null, null);
 }
 
 /**
@@ -50,6 +50,7 @@ void SyntaxAnalyzer::matchToken(int expectedToken)
     if (this->token == expectedToken)
     {
         this->tokenFromLexical = lexicalAnalyzer();
+        //printLexicalRegister(this->tokenFromLexical);
         this->token = this->tokenFromLexical.token;
     }
     // Throws exceptions if the token doesn't match the expected token
@@ -540,6 +541,7 @@ void SyntaxAnalyzer::parser()
 {
     // Call the Lexical Analyzer to get first token
     this->tokenFromLexical = lexicalAnalyzer();
+    //printLexicalRegister(this->tokenFromLexical);
     this->token = this->tokenFromLexical.token;
 
     S();

@@ -29,6 +29,7 @@ public:
     int token;        // lexeme token
     int symbolTabPos; // position of the lexeme on symbol table (null if it is not on symbol table)
     int constType;    // const type (if it is a const token)
+    int constSize;    // const size (if it is a const token) in bytes
 
     /**
      * @brief Construct a new Lexical Register object
@@ -43,6 +44,7 @@ public:
      * @param token         // lexeme token
      * @param symbolTabPos  // position of the lexeme on symbol table (null if it is not on symbol table)
      * @param constType     // const type (if it is a const token)
+     * @param constSize
      */
-    LexicalRegister(string lexeme, int token, int symbolTabPos, int constType);
+    LexicalRegister(string lexeme, int token, int symbolTabPos, int constType, int constSize);
 };

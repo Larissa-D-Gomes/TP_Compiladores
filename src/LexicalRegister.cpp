@@ -24,10 +24,11 @@
  * @param symbolTabPos  // position of the lexeme on symbol table (null if it is not on symbol table)
  * @param constType     // const type (if it is a const token)
  */
-LexicalRegister::LexicalRegister(string lexeme, int token, int symbolTabPos, int constType)
+LexicalRegister::LexicalRegister(string lexeme, int token, int symbolTabPos, int constType, int constSize)
 {
     this->lexeme = lexeme;
     this->token = token;
     this->symbolTabPos = symbolTabPos;
     this->constType = constType;
+    this->constSize = constSize;
 }
