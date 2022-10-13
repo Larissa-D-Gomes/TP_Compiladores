@@ -16,6 +16,7 @@
 #include <string>
 
 #include "SymbolTable.hpp"
+#include "LexicalRegister.hpp"
 
 using namespace std;
 
@@ -75,3 +76,10 @@ bool isHexa(char c);
  * @return false - Is NOT a valid character
  */
 bool isValidChar(char c);
+
+/**
+ * @brief Print Lexical Register (just for debug)
+ * 
+ * @param lex Lexical Register to be printed
+ */
+void printLexicalRegister(LexicalRegister lex);

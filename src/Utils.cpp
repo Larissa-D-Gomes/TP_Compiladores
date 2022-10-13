@@ -16,6 +16,7 @@
 
 #include "headers/Utils.hpp"
 #include "headers/SymbolTable.hpp"
+#include "headers/LexicalRegister.hpp"
 
 using namespace std;
 
@@ -129,4 +130,19 @@ bool isHexa(char c)
 bool isValidChar(char c)
 {
     return ((c >= ' ' && c <= '"') || (c >= 'A' && c <= ']') || c == '/' || c == '_' || (c >= 'a' && c <= '}') || (c >= '%' && c <= '?')) || (c == '@') || c == '\n' || c == '\r' || c == '\t';
+}
+
+/**
+ * @brief Print Lexical Register (just for debug)
+ * 
+ * @param lex Lexical Register to be printed
+ */
+void printLexicalRegister(LexicalRegister lex)
+{
+    cout << "{\n   Lexeme: " << lex.lexeme
+         << "\n   Token: " << testLexem(lex.token)
+         << "\n   Symbol Table Position: " << lex.symbolTabPos
+         << "\n   Const Type: " << lex.constType
+         << "\n   Const Size (em bytes): " << lex.constSize
+         << "\n}\n" << endl;
 }
