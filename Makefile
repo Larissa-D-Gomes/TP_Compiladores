@@ -11,7 +11,7 @@ LDFLAGS =
 APPNAME = Lcompiler.exe
 EXT = .cpp
 SRCDIR = ./src/
-OBJDIR = ./obj/
+OBJDIR = obj
 
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))
