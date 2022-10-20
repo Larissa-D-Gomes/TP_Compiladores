@@ -395,7 +395,6 @@ void SyntaxAnalyzer::BLOCK()
     if (checkFirstCMD())
     {
         CMD();
-        matchToken(Alphabet::SEMICOLON);
     }
     else if (checkFirstATR())
     {
