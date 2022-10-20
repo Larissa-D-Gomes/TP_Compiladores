@@ -35,3 +35,4 @@
 io/
 .vscode/
 .DS_Store
+obj/

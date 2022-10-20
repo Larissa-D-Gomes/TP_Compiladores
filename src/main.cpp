@@ -36,8 +36,8 @@ int main()
     }
     //cout << program << endl;
 
-    // // remove last \n
-    // program.pop_back();
+    // remove last \n
+    program.pop_back();
 
     // Setting the global variable to control eof
     eof = program.length();

@@ -201,15 +201,21 @@ void SyntaxAnalyzer::S()
 {
     while (checkFirstDEC() || checkFirstCMD())
     {
-        if (checkFirstDEC())
+        if (checkFirstDEC()) // DEC ; 
         {
             DEC();
             matchToken(Alphabet::SEMICOLON);
         }
-        else if (checkFirstCMD())
+        else if (checkFirstCMD()) // CMD
         {
             CMD();
         }
+    }
+
+    // if read token is not EOF after S ($)
+    if (this->token != EOF)
+    {
+        throwUnexpectedToken(this->tokenFromLexical.lexeme);
     }
 }
 

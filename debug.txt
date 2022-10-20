@@ -68,12 +68,12 @@ while ((a1 && a2) || (a3 && a4) && !b1 = b2){
 
 while (a || b) a1 := -a2;
 
-while (a > 10){
+while (a > 10)
     a := 10;
+    
     if (a > 10)  writeln(a);
     else a := 5;
     
-}
 
 /* testes */
 if (a1 || a2 > a3) a1 := "40b";
@@ -99,3 +99,32 @@ write(a1, "string", f1 + f2 && f3 * f6, b1 > b2);
 write("aosifjasoij");
 writeln(a1, "string", c1 + c3, b1 <= b2);
 writeln("aosifjasoij");
+
+a62 := f2 + f4 * f2 div 12 && a4 || b7;
+
+if((a1 && a3) || (b3 || b7 && c7) && a5)
+
+/*while (f1 != r1 && write) {
+    write(,f1)
+}*/
+
+/* while (&&) {
+ *     write(,f1)
+ * }
+ */
+
+readln(c4);
+
+if(then + 22) {
+    a := 10;
+} else write(vinicius);
+
+a[.087] := 10;
+
+while(x < 10){
+    a[0x44] := 'c';
+    b := "string";
+}
+
+const a = 67;
+
