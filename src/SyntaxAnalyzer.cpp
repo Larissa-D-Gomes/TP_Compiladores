@@ -295,6 +295,7 @@ void SyntaxAnalyzer::CMD() // Language commands
         matchToken(Alphabet::OPENPAR);
         matchToken(Alphabet::ID);
         matchToken(Alphabet::CLOSEPAR);
+        matchToken(Alphabet::SEMICOLON);
     }
     else if (this->token == Alphabet::WRITE || this->token == Alphabet::WRITELN) // (WRITE | WRITELN)(EXP {, EXP}*)
     {
@@ -317,6 +318,7 @@ void SyntaxAnalyzer::CMD() // Language commands
         };
 
         matchToken(Alphabet::CLOSEPAR);
+        matchToken(Alphabet::SEMICOLON);
     }
 }
 
@@ -354,7 +356,6 @@ void SyntaxAnalyzer::BLOCK()
             if (checkFirstCMD())
             {
                 CMD();
-                matchToken(Alphabet::SEMICOLON);
             }
             else if (this->token == Alphabet::ID)
             {
