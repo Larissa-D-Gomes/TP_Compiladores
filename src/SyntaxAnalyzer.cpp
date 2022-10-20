@@ -340,7 +340,6 @@ void SyntaxAnalyzer::BLOCK()
     if (checkFirstCMD())
     {
         CMD();
-        matchToken(Alphabet::SEMICOLON);
     }
     else if (this->token == Alphabet::ID)
     {
