@@ -1,6 +1,101 @@
-int a := 10;
-int b := 5;
+/* int */ 
+int a1, a2, a3;
+int a4 := 5;
+int a5 := -7089;
 
-float green := 10;
+/* // float */
+float f1 := 6.0;
+float f2 := 7;
+float f3 := -7.0;
+f1 := f2;
+float f4 := 0.54;
+float f5 := .50;
 
-float soma := a + b;
+/* string */
+string s1, s2, s3;
+string s4 := "teste";
+s4 := "_09871";
+
+/* char */
+char c1, c2, c3;
+c1 := 'a';
+
+/* hexa */
+char h1 := 0xAA;
+char h2 := 0x00;
+char h3 := 0x11;
+char h4 := 0x19;
+char h5 := 0xEE;
+char h6 := 0xFE;
+char h7 := 0x15;
+
+/* boolean */
+boolean b1 := true;
+boolean b2 := false;
+b1 := b2;
+
+/* constantes */
+const x1 = 10;
+const x2 = 7.9;
+const x3 = "string";
+const x4 = -62;
+const x5 = -.80;
+const x6 = 'c';
+const x7 = 'x';
+const x8 = 0;
+const x9 = 0xAB;
+
+/* atribuicao */
+x1 := "1309859012";
+a1[a1 + a2 * a3 / a4] := "string";
+f1 := 30 div 20;
+f2 := 20.0 mod 2;
+a5 := 5+2-9/a3*a1;
+
+/* repeticao */
+while(a1 >= a2) {
+    b1 := false;
+    a5 := 10000;
+    a2 := 30;
+
+}
+
+while ((a1 && a2) || (a3 && a4) && !b1 = b2){
+    ;
+    ;
+    h1 := 0xAB;
+}
+
+while (a || b) a1 := -a2;
+
+while (a > 10){
+    a := 10;
+    if (a > 10)  writeln(a);
+    else a := 5;
+    
+}
+
+/* testes */
+if (a1 || a2 > a3) a1 := "40b";
+if (f1 <= f2) f1 := .29; else f4 := 5.89;;
+
+if (10 mod 4 >= -10) {
+    a1 := a2 + a3;
+    f1 := 5.0 + 23;
+    /* pede dois ; */
+    ;
+}
+else {
+    b1 := true;
+}
+
+/* leitura */
+readln(a1);
+readln(f1);
+readln(b1);
+
+/* escrita */
+write(a1, "string", f1 + f2 && f3 * f6, b1 > b2);
+write("aosifjasoij");
+writeln(a1, "string", c1 + c3, b1 <= b2);
+writeln("aosifjasoij");

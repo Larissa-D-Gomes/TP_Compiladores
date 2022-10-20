@@ -191,7 +191,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
             {
                 // Create lexical register to TRUE and FALSE
-                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, token, pos, ConstType::BOOLEAN, 2);
+                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, pos, ConstType::BOOLEAN, 2);
                 transitionReturn.lexicalReg = lexicalRegister;
             }
             else // Is an identifier

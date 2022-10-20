@@ -44,13 +44,13 @@ SyntaxAnalyzer::SyntaxAnalyzer()
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
 
-    // cout << "1043: AnalisadorLexico: [" << testLexem(this->token)  << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+    cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
 
     // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
     {
         this->tokenFromLexical = lexicalAnalyzer();
-        //printLexicalRegister(this->tokenFromLexical);
+        // printLexicalRegister(this->tokenFromLexical);
         this->token = this->tokenFromLexical.token;
     }
     // Throws exceptions if the token doesn't match the expected token
@@ -84,6 +84,28 @@ bool SyntaxAnalyzer::checkFirstDEC()
 }
 
 /**
+ * @brief Check if actual token is included in the first tokens of ATR grammar variable
+ *
+ * @return true - token is first of ATR variable
+ * @return false - token is NOT first of ATR variable
+ */
+bool SyntaxAnalyzer::checkFirstATR()
+{
+    return this->token == Alphabet::ID;
+}
+
+/**
+ * @brief Check if actual token is included in the first tokens of DECONST grammar variable
+ *
+ * @return true - token is first of DECONST variable
+ * @return false - token is NOT first of DECONST variable
+ */
+bool SyntaxAnalyzer::checkFirstDECONST()
+{
+    return this->token == Alphabet::CONSTANT;
+}
+
+/**
  * @brief Check if actual token is included in the first tokens of CMD grammar variable
  *
  * @return true - token is first of CMD variable
@@ -97,6 +119,39 @@ bool SyntaxAnalyzer::checkFirstCMD()
            this->token == Alphabet::READLN ||
            this->token == Alphabet::WRITE ||
            this->token == Alphabet::WRITELN;
+}
+
+/**
+ * @brief Check if actual token is included in the first tokens of PAR grammar variable
+ *
+ * @return true - token is first of PAR variable
+ * @return false - token is NOT first of PAR variable
+ */
+bool SyntaxAnalyzer::checkFirstPAR()
+{
+    return this->token == Alphabet::OPENPAR;
+}
+
+/**
+ * @brief Check if actual token is included in the first tokens of BLOCK grammar variable
+ *
+ * @return true - token is first of BLOCK variable
+ * @return false - token is NOT first of BLOCK variable
+ */
+bool SyntaxAnalyzer::checkFirstBLOCK()
+{
+    return checkFirstCMD() || checkFirstATR() || this->token == Alphabet::OPENBRACE;
+}
+
+/**
+ * @brief Check if actual token is included in the first tokens of EXP grammar variable
+ *
+ * @return true - token is first of EXP variable
+ * @return false - token is NOT first of EXP variable
+ */
+bool SyntaxAnalyzer::checkFirstEXP()
+{
+    return checkFirstT();
 }
 
 /**
@@ -342,7 +397,7 @@ void SyntaxAnalyzer::BLOCK()
         CMD();
         matchToken(Alphabet::SEMICOLON);
     }
-    else if (this->token == Alphabet::ID)
+    else if (checkFirstATR())
     {
         ATR();
         matchToken(Alphabet::SEMICOLON);
@@ -351,13 +406,13 @@ void SyntaxAnalyzer::BLOCK()
     {
         matchToken(Alphabet::OPENBRACE);
 
-        while (checkFirstCMD() || this->token == Alphabet::ID)
+        while (checkFirstCMD() || checkFirstATR())
         {
             if (checkFirstCMD())
             {
                 CMD();
             }
-            else if (this->token == Alphabet::ID)
+            else if (checkFirstATR())
             {
                 ATR();
                 matchToken(Alphabet::SEMICOLON);
@@ -542,7 +597,7 @@ void SyntaxAnalyzer::parser()
 {
     // Call the Lexical Analyzer to get first token
     this->tokenFromLexical = lexicalAnalyzer();
-    //printLexicalRegister(this->tokenFromLexical);
+    // printLexicalRegister(this->tokenFromLexical);
     this->token = this->tokenFromLexical.token;
 
     S();

@@ -55,12 +55,52 @@ public:
     bool checkFirstDEC();
 
     /**
+     * @brief Check if actual token is included in the first tokens of ATR grammar variable
+     *
+     * @return true - token is first of ATR variable
+     * @return false - token is NOT first of ATR variable
+     */
+    bool checkFirstATR();
+
+    /**
+     * @brief Check if actual token is included in the first tokens of DECONST grammar variable
+     *
+     * @return true - token is first of DECONST variable
+     * @return false - token is NOT first of DECONST variable
+     */
+    bool checkFirstDECONST();
+
+    /**
      * @brief Check if actual token is included in the first tokens of CMD grammar variable
      *
      * @return true - token is first of CMD variable
      * @return false - token is NOT first of CMD variable
      */
     bool checkFirstCMD();
+
+    /**
+     * @brief Check if actual token is included in the first tokens of PAR grammar variable
+     *
+     * @return true - token is first of PAR variable
+     * @return false - token is NOT first of PAR variable
+     */
+    bool checkFirstPAR();
+
+    /**
+     * @brief Check if actual token is included in the first tokens of BLOCK grammar variable
+     *
+     * @return true - token is first of BLOCK variable
+     * @return false - token is NOT first of BLOCK variable
+     */
+    bool checkFirstBLOCK();
+
+    /**
+     * @brief Check if actual token is included in the first tokens of EXP grammar variable
+     *
+     * @return true - token is first of EXP variable
+     * @return false - token is NOT first of EXP variable
+     */
+    bool checkFirstEXP();
 
     /**
      * @brief Check if actual token is included in the first tokens of T grammar variable
