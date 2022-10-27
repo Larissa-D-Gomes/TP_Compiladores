@@ -20,6 +20,9 @@
 #include "headers/Utils.hpp"
 #include "headers/Throws.hpp"
 #include "headers/Alphabet.hpp"
+#include "headers/ConstType.hpp"
+#include "headers/SymbolTable.hpp"
+#include "headers/ClassType.hpp"
 
 #define finalState -1
 #define null -1
@@ -33,7 +36,7 @@ using namespace std;
 SyntaxAnalyzer::SyntaxAnalyzer()
 {
     // Initializing lexeme with a char != of eof flag
-    this->tokenFromLexical = LexicalRegister("", null, null, null, null);
+    this->regLex = LexicalRegister("", null, null, null, null);
 }
 
 /**
@@ -44,14 +47,14 @@ SyntaxAnalyzer::SyntaxAnalyzer()
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
 
-    cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+    // cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
 
     // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
     {
-        this->tokenFromLexical = lexicalAnalyzer();
-        // printLexicalRegister(this->tokenFromLexical);
-        this->token = this->tokenFromLexical.token;
+        this->regLex = lexicalAnalyzer();
+        // printLexicalRegister(this->regLex);
+        this->token = this->regLex.token;
     }
     // Throws exceptions if the token doesn't match the expected token
     else
@@ -62,7 +65,7 @@ void SyntaxAnalyzer::matchToken(int expectedToken)
             throwUnexpectedEOFException();
         }
         else
-            throwUnexpectedToken(this->tokenFromLexical.lexeme);
+            throwUnexpectedToken(this->regLex.lexeme);
     }
 }
 
@@ -201,7 +204,7 @@ void SyntaxAnalyzer::S()
 {
     while (checkFirstDEC() || checkFirstCMD())
     {
-        if (checkFirstDEC()) // DEC ; 
+        if (checkFirstDEC()) // DEC ;
         {
             DEC();
             matchToken(Alphabet::SEMICOLON);
@@ -215,7 +218,7 @@ void SyntaxAnalyzer::S()
     // if read token is not EOF after S ($)
     if (this->token != EOF)
     {
-        throwUnexpectedToken(this->tokenFromLexical.lexeme);
+        throwUnexpectedToken(this->regLex.lexeme);
     }
 }
 
@@ -224,6 +227,8 @@ void SyntaxAnalyzer::S()
  */
 void SyntaxAnalyzer::DEC()
 {
+    int type = -1;
+
     if (this->token == Alphabet::INT ||
         this->token == Alphabet::FLOAT ||
         this->token == Alphabet::STRING ||
@@ -233,22 +238,38 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::INT) // INT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::INT);
+            type = ConstType::INT;
         }
         else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::FLOAT);
+            type = ConstType::FLOAT;
         }
         else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::STRING);
+            type = ConstType::STRING;
         }
         else if (this->token == Alphabet::BOOLEAN) // BOOLEAN ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::BOOLEAN);
+            type = ConstType::BOOLEAN;
         }
         else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::CHAR);
+            type = ConstType::CHAR;
+        }
+
+        // Semantic Action 1
+        if (symbolTable->getType(this->regLex.lexeme) == null)
+        {
+            symbolTable->setType(this->regLex.lexeme, type);
+            symbolTable->setType(this->regLex.lexeme, ClassType::VAR);
+        }
+        else
+        {
+            throwDeclaredID(this->regLex.lexeme);
         }
 
         matchToken(Alphabet::ID);
@@ -275,7 +296,15 @@ void SyntaxAnalyzer::DEC()
         matchToken(Alphabet::CONST);
         matchToken(Alphabet::ID);
         matchToken(Alphabet::EQUAL);
-        DECONST();
+
+        // Semantic Action 5
+        int constType = DECONST();
+
+        if (symbolTable->getType(regLex.lexeme) == null)
+        {
+            symbolTable->setType(regLex.lexeme, constType);
+            symbolTable->setClass(regLex.lexeme, ClassType::CONST);
+        }
     }
     else
     {
@@ -288,7 +317,19 @@ void SyntaxAnalyzer::DEC()
  */
 void SyntaxAnalyzer::ATR()
 {
+    // Semantic Action 3
+    if (symbolTable->getType(regLex.lexeme) == null)
+    {
+        throwDeclaredID(regLex.lexeme);
+    }
+    cout << ConstType::NOT_CONSTANT << endl;
+    if (symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
+    {
+        throwIncompatibleClass(regLex.lexeme);
+    }
+
     matchToken(Alphabet::ID);
+
 
     if (this->token == Alphabet::OPENBRACKET)
     {
@@ -304,7 +345,7 @@ void SyntaxAnalyzer::ATR()
 /**
  * @brief Variable DECONST of the L Language Grammar
  */
-void SyntaxAnalyzer::DECONST()
+int SyntaxAnalyzer::DECONST()
 {
     if (this->token == Alphabet::MINNUS) // - CONSTANT
     {
@@ -322,6 +363,9 @@ void SyntaxAnalyzer::DECONST()
     {
         matchToken(Alphabet::FALSE); // CONSTANT
     }
+
+    // Semantic Action 4
+    return this->regLex.constType;
 }
 
 /**
@@ -568,6 +612,17 @@ void SyntaxAnalyzer::M()
     else if (this->token == Alphabet::ID)
     {
         matchToken(Alphabet::ID);
+
+        // Semantic Action 3
+        if(symbolTable->getType(regLex.lexeme) == null)
+        {
+            throwDeclaredID(regLex.lexeme);
+        }
+        if(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
+        {
+            throwIncompatibleClass(regLex.lexeme);
+        }
+
         if (this->token == Alphabet::OPENBRACKET)
         {
             matchToken(Alphabet::OPENBRACKET);
@@ -601,9 +656,9 @@ void SyntaxAnalyzer::M()
 void SyntaxAnalyzer::parser()
 {
     // Call the Lexical Analyzer to get first token
-    this->tokenFromLexical = lexicalAnalyzer();
-    // printLexicalRegister(this->tokenFromLexical);
-    this->token = this->tokenFromLexical.token;
+    this->regLex = lexicalAnalyzer();
+    // printLexicalRegister(this->regLex);
+    this->token = this->regLex.token;
 
     S();
 }

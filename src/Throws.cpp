@@ -64,3 +64,23 @@ void throwUnexpectedToken(string lex)
     cout << line << "\ntoken nao esperado [" << lex << "].";
     exit(1);
 }
+
+/**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwDeclaredID(string lex)
+{
+    cout << line << "\nidentificador ja declarado [" << lex << "].";
+    exit(1);
+}
+
+/**
+ * @brief Print a error message when program finds incompatibles classes
+ *
+ */
+void throwIncompatibleClass(string lex)
+{
+    cout << "classe do identificador incompativel [" << lex << "]."<<endl;
+    exit(1);
+}

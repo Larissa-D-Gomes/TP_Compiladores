@@ -3,6 +3,7 @@ int a1, a2, a3;
 int a4 := 5;
 int a5 := -7089;
 
+a5 :=5+5;
 /* // float */
 float f1 := 6.0;
 float f2 := 7;

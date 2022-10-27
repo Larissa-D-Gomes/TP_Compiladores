@@ -29,7 +29,7 @@ class SyntaxAnalyzer
 {
 
 private:
-    LexicalRegister tokenFromLexical; // Lexical Register read by Lexical Analyzer
+    LexicalRegister regLex; // Lexical Register read by Lexical Analyzer
     int token;                        // Token from  Lexical Register read
 
 public:
@@ -144,7 +144,7 @@ public:
     /**
      * @brief Variable DECONST of the L Language Grammar
      */
-    void DECONST();
+    int DECONST();
 
     /**
      * @brief Variable CMD of the L Language Grammar
