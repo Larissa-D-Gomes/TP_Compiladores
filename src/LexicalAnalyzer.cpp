@@ -24,7 +24,7 @@
 #include "headers/SymbolTable.hpp"
 
 #define finalState -1
-#define null -1
+#define null -999
 
 using namespace std;
 

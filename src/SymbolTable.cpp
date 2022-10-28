@@ -21,7 +21,7 @@
 
 using namespace std;
 
-#define null -1
+#define null -999
 
 SymbolTable::SymbolTable()
 {
@@ -141,6 +141,6 @@ void SymbolTable::print()
 {
     for (auto const &pair : this->symbolTable)
     {
-        cout << "{ " << pair.second.token << " : " << pair.first << " }\n";
+        cout << "{token: " << pair.second.token << "    lex: " << pair.first << "    type:" << pair.second.type << "    classType: " << pair.second.classType << "}\n";
     }
 }

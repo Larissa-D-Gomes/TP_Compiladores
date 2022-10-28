@@ -76,11 +76,31 @@ void throwDeclaredID(string lex)
 }
 
 /**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwNotDeclaredID(string lex)
+{
+    cout << line << "\nidentificador nao declarado [" << lex << "].";
+    exit(1);
+}
+
+/**
  * @brief Print a error message when program finds incompatibles classes
  *
  */
 void throwIncompatibleClass(string lex)
 {
-    cout << "classe do identificador incompativel [" << lex << "]."<<endl;
+    cout << line << "\nclasse do identificador incompativel [" << lex << "]."<< endl;
+    exit(1);
+}
+
+/**
+ * @brief Print a error message when program finds incompatibles types
+ *
+ */
+void throwIncompatibleType(string lex)
+{
+    cout << line << "\ntipos incompativeis"<< endl;
     exit(1);
 }

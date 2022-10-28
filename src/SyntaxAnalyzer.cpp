@@ -25,7 +25,7 @@
 #include "headers/ClassType.hpp"
 
 #define finalState -1
-#define null -1
+#define null -999
 
 using namespace std;
 
@@ -47,7 +47,7 @@ SyntaxAnalyzer::SyntaxAnalyzer()
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
 
-    // cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+    cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
 
     // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
@@ -59,13 +59,15 @@ void SyntaxAnalyzer::matchToken(int expectedToken)
     // Throws exceptions if the token doesn't match the expected token
     else
     {
+        cout << cursor << eof << endl;
         if (cursor == eof)
         {
-            line--;
             throwUnexpectedEOFException();
         }
         else
+        {
             throwUnexpectedToken(this->regLex.lexeme);
+        }
     }
 }
 
@@ -215,11 +217,13 @@ void SyntaxAnalyzer::S()
         }
     }
 
-    // if read token is not EOF after S ($)
-    if (this->token != EOF)
-    {
-        throwUnexpectedToken(this->regLex.lexeme);
-    }
+    // // if read token is not EOF after S ($)
+    // if (this->token != EOF)
+    // {
+    //     cout << "THROW" << endl;
+    //     throwUnexpectedToken(this->regLex.lexeme);
+    // }
+    matchToken(EOF);
 }
 
 /**
@@ -283,6 +287,18 @@ void SyntaxAnalyzer::DEC()
         while (this->token == Alphabet::COMMA)
         {
             matchToken(Alphabet::COMMA);
+
+            // Semantic Action 1
+            if (symbolTable->getType(this->regLex.lexeme) == null)
+            {
+                symbolTable->setType(this->regLex.lexeme, type);
+                symbolTable->setType(this->regLex.lexeme, ClassType::VAR);
+            }
+            else
+            {
+                throwDeclaredID(this->regLex.lexeme);
+            }
+
             matchToken(Alphabet::ID);
             if (this->token == Alphabet::ATRIB)
             {
@@ -294,16 +310,19 @@ void SyntaxAnalyzer::DEC()
     else if (this->token == Alphabet::CONST) // CONST ID = [-]CONSTANT
     {
         matchToken(Alphabet::CONST);
+
+        string IDLex = regLex.lexeme;
+
         matchToken(Alphabet::ID);
         matchToken(Alphabet::EQUAL);
 
         // Semantic Action 5
         int constType = DECONST();
 
-        if (symbolTable->getType(regLex.lexeme) == null)
+        if (symbolTable->getType(IDLex) == null)
         {
-            symbolTable->setType(regLex.lexeme, constType);
-            symbolTable->setClass(regLex.lexeme, ClassType::CONST);
+            symbolTable->setType(IDLex, constType);
+            symbolTable->setClass(IDLex, ClassType::CONST);
         }
     }
     else
@@ -317,19 +336,19 @@ void SyntaxAnalyzer::DEC()
  */
 void SyntaxAnalyzer::ATR()
 {
+    // cout << regLex.lexeme << " | " << symbolTable->getType(regLex.lexeme) << endl;
     // Semantic Action 3
     if (symbolTable->getType(regLex.lexeme) == null)
     {
-        throwDeclaredID(regLex.lexeme);
+        throwNotDeclaredID(regLex.lexeme);
     }
-    cout << ConstType::NOT_CONSTANT << endl;
+
     if (symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
     {
         throwIncompatibleClass(regLex.lexeme);
     }
 
     matchToken(Alphabet::ID);
-
 
     if (this->token == Alphabet::OPENBRACKET)
     {
@@ -347,12 +366,16 @@ void SyntaxAnalyzer::ATR()
  */
 int SyntaxAnalyzer::DECONST()
 {
+    int constType = null;
+
     if (this->token == Alphabet::MINNUS) // - CONSTANT
     {
         matchToken(Alphabet::MINNUS);
     }
     if (this->token == Alphabet::CONSTANT)
     {
+        // Semantic Action 4
+        constType = this->regLex.constType;
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
     else if (this->token == Alphabet::TRUE)
@@ -365,7 +388,7 @@ int SyntaxAnalyzer::DECONST()
     }
 
     // Semantic Action 4
-    return this->regLex.constType;
+    return constType;
 }
 
 /**
@@ -611,17 +634,17 @@ void SyntaxAnalyzer::M()
     }
     else if (this->token == Alphabet::ID)
     {
-        matchToken(Alphabet::ID);
-
         // Semantic Action 3
-        if(symbolTable->getType(regLex.lexeme) == null)
+        if (symbolTable->getType(regLex.lexeme) == null)
         {
-            throwDeclaredID(regLex.lexeme);
+            throwNotDeclaredID(regLex.lexeme);
         }
-        if(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
+        if (symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
         {
             throwIncompatibleClass(regLex.lexeme);
         }
+
+        matchToken(Alphabet::ID);
 
         if (this->token == Alphabet::OPENBRACKET)
         {

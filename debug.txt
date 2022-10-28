@@ -2,6 +2,7 @@
 int a1, a2, a3;
 int a4 := 5;
 int a5 := -7089;
+int vinicius := 18;
 
 a5 :=5+5;
 /* // float */
@@ -67,13 +68,13 @@ while ((a1 && a2) || (a3 && a4) && !b1 = b2){
     h1 := 0xAB;
 }
 
-while (a || b) a1 := -a2;
+while (a1 || b1) a1 := -a2;
 
-while (a > 10)
-    a := 10;
+while (a1 > 10)
+    a1 := 10;
     
-    if (a > 10)  writeln(a);
-    else a := 5;
+    if (a1 > 10)  writeln(a3);
+    else a2 := 5;
     
 
 /* testes */
@@ -96,14 +97,14 @@ readln(f1);
 readln(b1);
 
 /* escrita */
-write(a1, "string", f1 + f2 && f3 * f6, b1 > b2);
+write(a1, "string", f1 + f2 && f3 * f5, b1 > b2);
 write("aosifjasoij");
 writeln(a1, "string", c1 + c3, b1 <= b2);
 writeln("aosifjasoij");
 
-a62 := f2 + f4 * f2 div 12 && a4 || b7;
+a5 := f2 + f4 * f2 div 12 && a4 || b2;
 
-if((a1 && a3) || (b3 || b7 && c7) && a5)
+if((a1 && a3) || (b2 || b2 && c2) && a5)
 
 /*while (f1 != r1 && write) {
     write(,f1)
@@ -116,16 +117,15 @@ if((a1 && a3) || (b3 || b7 && c7) && a5)
 
 readln(c4);
 
-if(then + 22) {
-    a := 10;
+if(a1 + 22) {
+    a1 := 10;
 } else write(vinicius);
 
-a[.087] := 10;
+a1[.087] := 10;
 
-while(x < 10){
-    a[0x44] := 'c';
-    b := "string";
+while(x1 < 10){
+    a1[0x44] := 'c';
+    b2 := "string";
 }
 
-const a = 67;
-
+const a3 = 67;
