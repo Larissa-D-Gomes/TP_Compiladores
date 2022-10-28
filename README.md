@@ -26,4 +26,4 @@ Para *buildar* o projeto, basta realizar a seguinte chamada na pasta raíz do pr
 
 `$ make`
 
-Pode ser possível criar um diretório `obj` na raiz do projeto para o _make_ gerar os arquivos .o
+Pode ser necessário criar um diretório `obj` na raiz do projeto para o _make_ gerar os arquivos .o
