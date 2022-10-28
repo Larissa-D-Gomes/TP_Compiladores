@@ -848,7 +848,7 @@ LexicalRegister lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return LexicalRegister("", null, null, null, null);
+            return LexicalRegister("eof", -1, null, null, null);
         }
 
         switch (state)

@@ -59,7 +59,6 @@ void SyntaxAnalyzer::matchToken(int expectedToken)
     // Throws exceptions if the token doesn't match the expected token
     else
     {
-        cout << cursor << eof << endl;
         if (cursor == eof)
         {
             throwUnexpectedEOFException();
@@ -217,12 +216,6 @@ void SyntaxAnalyzer::S()
         }
     }
 
-    // // if read token is not EOF after S ($)
-    // if (this->token != EOF)
-    // {
-    //     cout << "THROW" << endl;
-    //     throwUnexpectedToken(this->regLex.lexeme);
-    // }
     matchToken(EOF);
 }
 
@@ -343,7 +336,7 @@ void SyntaxAnalyzer::ATR()
         throwNotDeclaredID(regLex.lexeme);
     }
 
-    if (symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
+    if (!(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT))
     {
         throwIncompatibleClass(regLex.lexeme);
     }
@@ -639,7 +632,7 @@ void SyntaxAnalyzer::M()
         {
             throwNotDeclaredID(regLex.lexeme);
         }
-        if (symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT)
+        if (!(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT))
         {
             throwIncompatibleClass(regLex.lexeme);
         }

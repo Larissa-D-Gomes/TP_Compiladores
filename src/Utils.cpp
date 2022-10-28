@@ -80,6 +80,8 @@ string testLexem(int n){
     else if(n == 37) return "boolean";
     else if(n == 40) return "id";
     else if(n == 41) return "constant";
+    else if(n == -1) return "eof";
+    else if(n == null) return "null";
 
     return "";
 }
