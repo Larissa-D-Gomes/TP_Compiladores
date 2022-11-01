@@ -67,7 +67,7 @@ string testLexem(int n){
     else if(n == 24) return ";";
     else if(n == 25) return "{";
     else if(n == 26) return "}";
-    else if(n == 27) return "readl";
+    else if(n == 27) return "readln";
     else if(n == 28) return "div";
     else if(n == 29) return "string";
     else if(n == 30) return "write";

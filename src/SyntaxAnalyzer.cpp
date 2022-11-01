@@ -274,7 +274,14 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-            DECONST();
+                int constType = DECONST();
+
+                // Semantic Action 8
+                if(type == ConstType::INT && constType != ConstType::INT) throwIncompatibleType();
+                if(type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT)) throwIncompatibleType();
+                if(type == ConstType::STRING && constType != ConstType::STRING) throwIncompatibleType();
+                if(type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN) throwIncompatibleType();
+                if(type == ConstType::CHAR && constType != ConstType::CHAR) throwIncompatibleType();
         }
 
         while (this->token == Alphabet::COMMA)
@@ -296,7 +303,14 @@ void SyntaxAnalyzer::DEC()
             if (this->token == Alphabet::ATRIB)
             {
                 matchToken(Alphabet::ATRIB);
-                DECONST();
+                int constType = DECONST();
+
+                // Semantic Action 8
+                if(type == ConstType::INT && constType != ConstType::INT) throwIncompatibleType();
+                if(type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT)) throwIncompatibleType();
+                if(type == ConstType::STRING && constType != ConstType::STRING) throwIncompatibleType();
+                if(type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN) throwIncompatibleType();
+                if(type == ConstType::CHAR && constType != ConstType::CHAR) throwIncompatibleType();
             }
         }
     }
@@ -305,6 +319,12 @@ void SyntaxAnalyzer::DEC()
         matchToken(Alphabet::CONST);
 
         string IDLex = regLex.lexeme;
+
+        // Semantic Action 7
+        if (symbolTable->getType(regLex.lexeme) != null)
+        {
+            throwDeclaredID(regLex.lexeme);
+        }
 
         matchToken(Alphabet::ID);
         matchToken(Alphabet::EQUAL);
@@ -414,6 +434,13 @@ void SyntaxAnalyzer::CMD() // Language commands
     {
         matchToken(Alphabet::READLN);
         matchToken(Alphabet::OPENPAR);
+
+        // Semantic Action 6
+        if (symbolTable->getType(regLex.lexeme) == null)
+        {
+            throwNotDeclaredID(regLex.lexeme);
+        }
+
         matchToken(Alphabet::ID);
         matchToken(Alphabet::CLOSEPAR);
         matchToken(Alphabet::SEMICOLON);

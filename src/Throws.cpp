@@ -99,7 +99,7 @@ void throwIncompatibleClass(string lex)
  * @brief Print a error message when program finds incompatibles types
  *
  */
-void throwIncompatibleType(string lex)
+void throwIncompatibleType()
 {
     cout << line << "\ntipos incompativeis"<< endl;
     exit(1);

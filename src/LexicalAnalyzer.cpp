@@ -413,7 +413,7 @@ TransitionReturn stateSevenTransition(string lexeme, char c)
     TransitionReturn transitionReturn;
 
     // Character constants path
-    if (isCharacter(c))
+    if (isValidChar(c))
     {
         // Go from state 7 to state 8
         transitionReturn.nextState = 8;

@@ -66,5 +66,5 @@ void throwIncompatibleClass(string lex);
  * @brief Print a error message when program finds incompatibles types
  *
  */
-void throwIncompatibleType(string lex);
+void throwIncompatibleType();
 
