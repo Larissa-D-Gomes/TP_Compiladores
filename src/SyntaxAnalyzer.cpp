@@ -224,6 +224,7 @@ void SyntaxAnalyzer::S()
  */
 void SyntaxAnalyzer::DEC()
 {
+    // Variable type for Semantic Action 2
     int type = -1;
 
     if (this->token == Alphabet::INT ||
@@ -235,34 +236,40 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::INT) // INT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::INT);
+            // Semantic Action 2 (INT)
             type = ConstType::INT;
         }
         else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::FLOAT);
+            // Semantic Action 2 (FLOAT)
             type = ConstType::FLOAT;
         }
         else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::STRING);
+            // Semantic Action 2 (STRING)
             type = ConstType::STRING;
         }
         else if (this->token == Alphabet::BOOLEAN) // BOOLEAN ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::BOOLEAN);
+            // Semantic Action 2 (BOOLEAN)
             type = ConstType::BOOLEAN;
         }
         else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
             matchToken(Alphabet::CHAR);
+            // Semantic Action 2 (CHAR)
             type = ConstType::CHAR;
         }
 
+                        
         // Semantic Action 1
         if (symbolTable->getType(this->regLex.lexeme) == null)
         {
             symbolTable->setType(this->regLex.lexeme, type);
-            symbolTable->setType(this->regLex.lexeme, ClassType::VAR);
+            symbolTable->setClass(this->regLex.lexeme, ClassType::VAR);
         }
         else
         {
@@ -274,14 +281,19 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-                int constType = DECONST();
+            int constType = DECONST();
 
-                // Semantic Action 8
-                if(type == ConstType::INT && constType != ConstType::INT) throwIncompatibleType();
-                if(type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT)) throwIncompatibleType();
-                if(type == ConstType::STRING && constType != ConstType::STRING) throwIncompatibleType();
-                if(type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN) throwIncompatibleType();
-                if(type == ConstType::CHAR && constType != ConstType::CHAR) throwIncompatibleType();
+            // Semantic Action 8
+            if (type == ConstType::INT && constType != ConstType::INT)
+                throwIncompatibleType();
+            if (type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT))
+                throwIncompatibleType();
+            if (type == ConstType::STRING && constType != ConstType::STRING)
+                throwIncompatibleType();
+            if (type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN)
+                throwIncompatibleType();
+            if (type == ConstType::CHAR && constType != ConstType::CHAR)
+                throwIncompatibleType();
         }
 
         while (this->token == Alphabet::COMMA)
@@ -292,7 +304,7 @@ void SyntaxAnalyzer::DEC()
             if (symbolTable->getType(this->regLex.lexeme) == null)
             {
                 symbolTable->setType(this->regLex.lexeme, type);
-                symbolTable->setType(this->regLex.lexeme, ClassType::VAR);
+                symbolTable->setClass(this->regLex.lexeme, ClassType::VAR);
             }
             else
             {
@@ -306,11 +318,16 @@ void SyntaxAnalyzer::DEC()
                 int constType = DECONST();
 
                 // Semantic Action 8
-                if(type == ConstType::INT && constType != ConstType::INT) throwIncompatibleType();
-                if(type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT)) throwIncompatibleType();
-                if(type == ConstType::STRING && constType != ConstType::STRING) throwIncompatibleType();
-                if(type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN) throwIncompatibleType();
-                if(type == ConstType::CHAR && constType != ConstType::CHAR) throwIncompatibleType();
+                if (type == ConstType::INT && constType != ConstType::INT)
+                    throwIncompatibleType();
+                if (type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT))
+                    throwIncompatibleType();
+                if (type == ConstType::STRING && constType != ConstType::STRING)
+                    throwIncompatibleType();
+                if (type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN)
+                    throwIncompatibleType();
+                if (type == ConstType::CHAR && constType != ConstType::CHAR)
+                    throwIncompatibleType();
             }
         }
     }
@@ -349,29 +366,69 @@ void SyntaxAnalyzer::DEC()
  */
 void SyntaxAnalyzer::ATR()
 {
-    // cout << regLex.lexeme << " | " << symbolTable->getType(regLex.lexeme) << endl;
+    int expType;
+    
     // Semantic Action 3
     if (symbolTable->getType(regLex.lexeme) == null)
     {
         throwNotDeclaredID(regLex.lexeme);
     }
 
-    if (!(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT))
+    if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST)
     {
         throwIncompatibleClass(regLex.lexeme);
     }
+
+    int typeID = symbolTable->getType(regLex.lexeme);
 
     matchToken(Alphabet::ID);
 
     if (this->token == Alphabet::OPENBRACKET)
     {
         matchToken(Alphabet::OPENBRACKET);
-        EXP();
+        
+        // Semantic Action 9
+        expType = EXP();
+
+        cout << expType << endl;
+
+        if(expType != ConstType::INT){
+            throwIncompatibleType();
+        }
+
         matchToken(Alphabet::CLOSEBRACKET);
     }
 
     matchToken(Alphabet::ATRIB);
-    EXP();
+    expType = EXP();
+
+    // Semantic Action 10
+    if(typeID == ConstType::INT && expType != ConstType::INT)
+    {
+        //Incompatible type
+        throwIncompatibleType();
+    }
+    if(typeID == ConstType::FLOAT && (expType != ConstType::FLOAT && expType != ConstType::INT))
+    {
+        //Incompatible type
+        throwIncompatibleType();
+    }
+    if(typeID == ConstType::STRING && expType != ConstType::STRING)
+    {
+        //Incompatible type
+        throwIncompatibleType();
+    }
+    if(typeID == ConstType::BOOLEAN && expType != ConstType::BOOLEAN)
+    {
+        //Incompatible type
+        throwIncompatibleType();
+    }
+    if(typeID == ConstType::CHAR && expType != ConstType::CHAR)
+    {
+        //Incompatible type
+        throwIncompatibleType();
+    }
+
 }
 
 /**
@@ -518,8 +575,10 @@ void SyntaxAnalyzer::BLOCK()
 /**
  * @brief Variable EXP of the L Language Grammar
  */
-void SyntaxAnalyzer::EXP()
+int SyntaxAnalyzer::EXP()
 {
+    int constType = ConstType::FLOAT;
+    
     T();
     while (this->token == Alphabet::EQUAL ||
            this->token == Alphabet::NOTEQUAL ||
@@ -554,6 +613,8 @@ void SyntaxAnalyzer::EXP()
         }
         T();
     }
+
+    return constType;
 }
 
 /**

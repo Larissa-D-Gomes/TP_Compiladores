@@ -164,7 +164,7 @@ public:
     /**
      * @brief Variable EXP of the L Language Grammar
      */
-    void EXP();
+    int EXP();
 
     /**
      * @brief Variable T of the L Language Grammar
