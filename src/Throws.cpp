@@ -40,7 +40,7 @@ void throwUnexpectedEOFException()
         cout << lastTokenBreakLine << endl;
         line--;
     }
-    cout << line << "\nfim de arquivo nao esperado.";
+    cout << line << "\nfim de arquivo nao esperado." << endl;
     exit(1);
 }
 
@@ -51,7 +51,7 @@ void throwUnexpectedEOFException()
 void throwUndefinedLex(string lex)
 {
     if (lex.at(lex.length() - 1) == '\n') lex.pop_back();
-    cout << line << "\nlexema nao identificado [" << lex << "].";
+    cout << line << "\nlexema nao identificado [" << lex << "]." << endl;
     exit(1);
 }
 
@@ -61,7 +61,7 @@ void throwUndefinedLex(string lex)
  */
 void throwUnexpectedToken(string lex)
 {
-    cout << line << "\ntoken nao esperado [" << lex << "].";
+    cout << line << "\ntoken nao esperado [" << lex << "]." << endl;
     exit(1);
 }
 
@@ -71,7 +71,7 @@ void throwUnexpectedToken(string lex)
  */
 void throwDeclaredID(string lex)
 {
-    cout << line << "\nidentificador ja declarado [" << lex << "].";
+    cout << line << "\nidentificador ja declarado [" << lex << "]." << endl;
     exit(1);
 }
 
@@ -81,7 +81,7 @@ void throwDeclaredID(string lex)
  */
 void throwNotDeclaredID(string lex)
 {
-    cout << line << "\nidentificador nao declarado [" << lex << "].";
+    cout << line << "\nidentificador nao declarado [" << lex << "]." << endl;
     exit(1);
 }
 
@@ -104,3 +104,4 @@ void throwIncompatibleType()
     cout << line << "\ntipos incompativeis"<< endl;
     exit(1);
 }
+

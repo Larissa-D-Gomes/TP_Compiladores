@@ -39,7 +39,7 @@ SymbolTable *symbolTable;
  * @param n - number of token
  * @return string - lexem
  */
-string testLexem(int n){
+string tokenToString(int n){
     if(n == 0) return "const";
     else if(n == 1) return "int";
     else if(n == 2) return "char";
@@ -83,7 +83,37 @@ string testLexem(int n){
     else if(n == -1) return "eof";
     else if(n == null) return "null";
 
-    return "";
+    return "?";
+}
+
+/**
+ * @brief Just a testing function to see constType as String
+ * 
+ * @param n - number of const
+ * @return string - const as string
+ */
+string constTypeToString(int n){
+    if(n == 0) return "INT";
+    else if (n == 1) return "CHAR";
+    else if (n == 2) return "FLOAT";
+    else if (n == 3) return "BOOLEAN";
+    else if (n == 4) return "STRING";
+    else if (n == -1) return "NOT CONSTANT"; 
+
+    return "?";    
+}
+
+/**
+ * @brief Just a testing function to see classType as String
+ * 
+ * @param n - number of class
+ * @return string - class as string
+ */
+string classTypeToString(int n){
+    if(n == 0) return "VAR";
+    else if (n == 1) return "CONST"; 
+
+    return "?";    
 }
 
 /**
@@ -142,7 +172,7 @@ bool isValidChar(char c)
 void printLexicalRegister(LexicalRegister lex)
 {
     cout << "{\n   Lexeme: " << lex.lexeme
-         << "\n   Token: " << testLexem(lex.token)
+         << "\n   Token: " << tokenToString(lex.token)
          << "\n   Symbol Table Position: " << lex.symbolTabPos
          << "\n   Const Type: " << lex.constType
          << "\n   Const Size (em bytes): " << lex.constSize

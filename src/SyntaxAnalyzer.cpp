@@ -47,7 +47,7 @@ SyntaxAnalyzer::SyntaxAnalyzer()
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
 
-    cout << "AnalisadorLexico: [" << testLexem(this->token) << "] Esperado na Gramatica: [" << testLexem(expectedToken) << "]" << endl;
+    cout << "AnalisadorLexico: [" << tokenToString(this->token) << "] Esperado na Gramatica: [" << tokenToString(expectedToken) << "]" << endl;
 
     // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
@@ -225,7 +225,7 @@ void SyntaxAnalyzer::S()
 void SyntaxAnalyzer::DEC()
 {
     // Variable type for Semantic Action 2
-    int type = -1;
+    int type = null, constType = null;
 
     if (this->token == Alphabet::INT ||
         this->token == Alphabet::FLOAT ||
@@ -264,7 +264,6 @@ void SyntaxAnalyzer::DEC()
             type = ConstType::CHAR;
         }
 
-                        
         // Semantic Action 1
         if (symbolTable->getType(this->regLex.lexeme) == null)
         {
@@ -273,6 +272,7 @@ void SyntaxAnalyzer::DEC()
         }
         else
         {
+            cout << "(1.1)" << endl;
             throwDeclaredID(this->regLex.lexeme);
         }
 
@@ -281,19 +281,34 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-            int constType = DECONST();
+            constType = DECONST();
 
             // Semantic Action 8
             if (type == ConstType::INT && constType != ConstType::INT)
+            {
+                cout << "(8.1-1)" << endl;
                 throwIncompatibleType();
-            if (type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT))
+            }
+            if (type == ConstType::FLOAT && (constType != ConstType::INT && constType != ConstType::FLOAT))
+            {
+                cout << "(8.1-2)" << endl;
                 throwIncompatibleType();
+            }
             if (type == ConstType::STRING && constType != ConstType::STRING)
+            {
+                cout << "(8.1-3)" << endl;
                 throwIncompatibleType();
+            }
             if (type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN)
+            {
+                cout << "(8.1-4)" << endl;
                 throwIncompatibleType();
+            }
             if (type == ConstType::CHAR && constType != ConstType::CHAR)
+            {
+                cout << "(8.1-5)" << endl;
                 throwIncompatibleType();
+            }
         }
 
         while (this->token == Alphabet::COMMA)
@@ -315,19 +330,34 @@ void SyntaxAnalyzer::DEC()
             if (this->token == Alphabet::ATRIB)
             {
                 matchToken(Alphabet::ATRIB);
-                int constType = DECONST();
+                constType = DECONST();
 
                 // Semantic Action 8
                 if (type == ConstType::INT && constType != ConstType::INT)
+                {
+                    cout << "(8-1)" << endl;
                     throwIncompatibleType();
+                }
                 if (type == ConstType::FLOAT && (constType != ConstType::INT || constType != ConstType::FLOAT))
+                {
+                    cout << "(8-2)" << endl;
                     throwIncompatibleType();
+                }
                 if (type == ConstType::STRING && constType != ConstType::STRING)
+                {
+                    cout << "(8-3)" << endl;
                     throwIncompatibleType();
+                }
                 if (type == ConstType::BOOLEAN && constType != ConstType::BOOLEAN)
+                {
+                    cout << "(8-4)" << endl;
                     throwIncompatibleType();
+                }
                 if (type == ConstType::CHAR && constType != ConstType::CHAR)
+                {
+                    cout << "(8-5)" << endl;
                     throwIncompatibleType();
+                }
             }
         }
     }
@@ -338,9 +368,9 @@ void SyntaxAnalyzer::DEC()
         string IDLex = regLex.lexeme;
 
         // Semantic Action 7
-        if (symbolTable->getType(regLex.lexeme) != null)
+        if (symbolTable->getType(IDLex) != null)
         {
-            throwDeclaredID(regLex.lexeme);
+            throwDeclaredID(IDLex);
         }
 
         matchToken(Alphabet::ID);
@@ -366,69 +396,93 @@ void SyntaxAnalyzer::DEC()
  */
 void SyntaxAnalyzer::ATR()
 {
-    int expType;
-    
+    int expType = null, typeID = null;
+    bool isStringPos = false;
+
     // Semantic Action 3
     if (symbolTable->getType(regLex.lexeme) == null)
     {
+        cout << "(3.1)" << endl;
         throwNotDeclaredID(regLex.lexeme);
     }
 
     if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST)
     {
+        cout << "(3.1)" << endl;
         throwIncompatibleClass(regLex.lexeme);
     }
 
-    int typeID = symbolTable->getType(regLex.lexeme);
+    typeID = symbolTable->getType(regLex.lexeme);
 
     matchToken(Alphabet::ID);
 
     if (this->token == Alphabet::OPENBRACKET)
     {
+        // Semantic Action 31
+        if (typeID != ConstType::STRING)
+        {
+            cout << "(31)" << endl;
+            throwIncompatibleType();
+        }
+
         matchToken(Alphabet::OPENBRACKET);
-        
+
         // Semantic Action 9
         expType = EXP();
 
-        cout << expType << endl;
-
-        if(expType != ConstType::INT){
+        if (expType != ConstType::INT)
+        {
+            cout << "(9)" << endl;
             throwIncompatibleType();
         }
 
         matchToken(Alphabet::CLOSEBRACKET);
+
+        // Semantic Action 32
+        isStringPos = true;
     }
 
     matchToken(Alphabet::ATRIB);
     expType = EXP();
 
-    // Semantic Action 10
-    if(typeID == ConstType::INT && expType != ConstType::INT)
+    // Semantic Action 33
+    if (isStringPos && expType != ConstType::CHAR)
     {
-        //Incompatible type
-        throwIncompatibleType();
-    }
-    if(typeID == ConstType::FLOAT && (expType != ConstType::FLOAT && expType != ConstType::INT))
-    {
-        //Incompatible type
-        throwIncompatibleType();
-    }
-    if(typeID == ConstType::STRING && expType != ConstType::STRING)
-    {
-        //Incompatible type
-        throwIncompatibleType();
-    }
-    if(typeID == ConstType::BOOLEAN && expType != ConstType::BOOLEAN)
-    {
-        //Incompatible type
-        throwIncompatibleType();
-    }
-    if(typeID == ConstType::CHAR && expType != ConstType::CHAR)
-    {
-        //Incompatible type
+        cout << "(33)" << endl;
         throwIncompatibleType();
     }
 
+    // Semantic Action 10
+    if (typeID == ConstType::INT && expType != ConstType::INT)
+    {
+        // Incompatible type
+        cout << "(10-1)" << endl;
+        throwIncompatibleType();
+    }
+    if (typeID == ConstType::FLOAT && (expType != ConstType::FLOAT && expType != ConstType::INT))
+    {
+        // Incompatible type
+        cout << "(10-2)" << endl;
+        throwIncompatibleType();
+    }
+    if (!isStringPos && typeID == ConstType::STRING && expType != ConstType::STRING)
+    {
+        // Incompatible type
+        cout << "(10-3)" << endl;
+        throwIncompatibleType();
+    }
+    if (typeID == ConstType::BOOLEAN && expType != ConstType::BOOLEAN)
+    {
+        // Incompatible type
+        cout << "(10-4)" << endl;
+        throwIncompatibleType();
+    }
+    if (typeID == ConstType::CHAR && expType != ConstType::CHAR)
+    {
+        // Incompatible type
+        cout << "(10-5)" << endl;
+        throwIncompatibleType();
+    }
 }
 
 /**
@@ -437,9 +491,12 @@ void SyntaxAnalyzer::ATR()
 int SyntaxAnalyzer::DECONST()
 {
     int constType = null;
+    bool hasMinnus = false;
 
     if (this->token == Alphabet::MINNUS) // - CONSTANT
     {
+        // Semantic Action 29
+        hasMinnus = true;
         matchToken(Alphabet::MINNUS);
     }
     if (this->token == Alphabet::CONSTANT)
@@ -457,6 +514,13 @@ int SyntaxAnalyzer::DECONST()
         matchToken(Alphabet::FALSE); // CONSTANT
     }
 
+    // Semantic Action 30
+    if (hasMinnus && (constType != ConstType::INT && constType != ConstType::FLOAT))
+    {
+        cout << "(30)" << endl;
+        throwIncompatibleType();
+    }
+
     // Semantic Action 4
     return constType;
 }
@@ -466,17 +530,36 @@ int SyntaxAnalyzer::DECONST()
  */
 void SyntaxAnalyzer::CMD() // Language commands
 {
+    int parType = null;
+
     if (this->token == Alphabet::WHILE) // WHILE(){}
     {
         matchToken(Alphabet::WHILE);
-        PAR();
+        parType = PAR();
+
+        // Semantic Action 28
+        if (parType != ConstType::BOOLEAN)
+        {
+            cout << "(28-1)" << endl;
+            throwIncompatibleType();
+        }
+
         BLOCK();
     }
     else if (this->token == Alphabet::IF) // IF() [ELSE]
     {
         matchToken(Alphabet::IF);
-        PAR();
+        parType = PAR();
+
+        // Semantic Action 28
+        if (parType != ConstType::BOOLEAN)
+        {
+            cout << "(28-2)" << endl;
+            throwIncompatibleType();
+        }
+
         BLOCK();
+
         if (this->token == Alphabet::ELSE)
         {
             matchToken(Alphabet::ELSE);
@@ -495,6 +578,7 @@ void SyntaxAnalyzer::CMD() // Language commands
         // Semantic Action 6
         if (symbolTable->getType(regLex.lexeme) == null)
         {
+            cout << "(6)" << endl;
             throwNotDeclaredID(regLex.lexeme);
         }
 
@@ -530,11 +614,16 @@ void SyntaxAnalyzer::CMD() // Language commands
 /**
  * @brief Variable PAR of the L Language Grammar
  */
-void SyntaxAnalyzer::PAR()
+int SyntaxAnalyzer::PAR()
 {
+    int parType;
     matchToken(Alphabet::OPENPAR);
-    EXP();
+
+    // Semantic Action 27
+    parType = EXP();
     matchToken(Alphabet::CLOSEPAR);
+
+    return parType;
 }
 
 /**
@@ -573,13 +662,75 @@ void SyntaxAnalyzer::BLOCK()
 }
 
 /**
+ * @brief Verify if type conversation is accepted
+ *
+ * @param tType
+ * @param t1Type
+ * @param operation
+ */
+void SyntaxAnalyzer::verifyTypesForT(int tType, int t1Type, int operation)
+{
+    if (tType == ConstType::CHAR && t1Type != ConstType::CHAR)
+    {
+        cout << "(26-1)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType != ConstType::CHAR && t1Type == ConstType::CHAR)
+    {
+        cout << "(26-2)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType == ConstType::INT && (t1Type != ConstType::INT && t1Type != ConstType::FLOAT))
+    {
+        cout << "(26-3)" << endl;
+        throwIncompatibleType();
+    }
+    else if ((tType != ConstType::INT && tType != ConstType::FLOAT) && t1Type == ConstType::INT)
+    {
+        cout << "(26-4)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType == ConstType::FLOAT && (t1Type != ConstType::INT && t1Type != ConstType::FLOAT))
+    {
+        cout << "(26-5)" << endl;
+        throwIncompatibleType();
+    }
+    else if ((tType != ConstType::INT && tType != ConstType::FLOAT) && t1Type == ConstType::FLOAT)
+    {
+        cout << "(26-6)" << endl;
+        throwIncompatibleType();
+    }
+    else if ((tType == ConstType::STRING || t1Type == ConstType::STRING) && operation != Alphabet::EQUAL)
+    {
+        cout << "(26-7)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType == ConstType::STRING && t1Type != ConstType::STRING)
+    {
+        cout << "(26-8)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType != ConstType::STRING && t1Type == ConstType::STRING)
+    {
+        cout << "(26-9)" << endl;
+        throwIncompatibleType();
+    }
+    else if (tType == ConstType::BOOLEAN || t1Type == ConstType::BOOLEAN)
+    {
+        cout << "(26-10)" << endl;
+        throwIncompatibleType();
+    }
+}
+
+/**
  * @brief Variable EXP of the L Language Grammar
  */
 int SyntaxAnalyzer::EXP()
 {
-    int constType = ConstType::FLOAT;
-    
-    T();
+    int expType = null, operation = null;
+
+    int tType = T();
+
     while (this->token == Alphabet::EQUAL ||
            this->token == Alphabet::NOTEQUAL ||
            this->token == Alphabet::LESSTHAN ||
@@ -589,75 +740,241 @@ int SyntaxAnalyzer::EXP()
     {
         if (this->token == Alphabet::EQUAL)
         {
+            // Semantic Action 25
+            operation = Alphabet::EQUAL;
             matchToken(Alphabet::EQUAL);
         }
         else if (this->token == Alphabet::NOTEQUAL)
         {
+            // Semantic Action 25
+            operation = Alphabet::NOTEQUAL;
             matchToken(Alphabet::NOTEQUAL);
         }
         else if (this->token == Alphabet::LESSTHAN)
         {
+            // Semantic Action 25
+            operation = Alphabet::LESSTHAN;
             matchToken(Alphabet::LESSTHAN);
         }
         else if (this->token == Alphabet::GREATERTHAN)
         {
+            // Semantic Action 25
+            operation = Alphabet::GREATERTHAN;
             matchToken(Alphabet::GREATERTHAN);
         }
         else if (this->token == Alphabet::LESSEQUAL)
         {
+            // Semantic Action 25
+            operation = Alphabet::LESSEQUAL;
             matchToken(Alphabet::LESSEQUAL);
         }
         else if (this->token == Alphabet::GREATEREQUAL)
         {
+            // Semantic Action 25
+            operation = Alphabet::GREATEREQUAL;
             matchToken(Alphabet::GREATEREQUAL);
         }
-        T();
+        int t1Type = T();
+
+        // Semantic action 26
+        verifyTypesForT(tType, t1Type, operation);
+        tType = ConstType::BOOLEAN;
     }
 
-    return constType;
+    // Semantic Action 14
+    expType = tType;
+
+    return expType;
 }
 
 /**
  * @brief Variable T of the L Language Grammar
  */
-void SyntaxAnalyzer::T()
+int SyntaxAnalyzer::T()
 {
+    int tType = null, operation = null, rType = null, r1Type = null;
+    bool isPlusOrMinus = false;
 
     if (this->token == Alphabet::PLUS)
     {
+        // Semantic Action 34
+        isPlusOrMinus = true;
         matchToken(Alphabet::PLUS);
     }
     else if (this->token == Alphabet::MINNUS)
     {
+        // Semantic Action 34
+        isPlusOrMinus = true;
         matchToken(Alphabet::MINNUS);
     }
 
-    R();
-
+    rType = R();
+    // Semantic Action 35
+    if (isPlusOrMinus && (rType != ConstType::INT && rType != ConstType::FLOAT))
+    {
+        // ERROR: Incompatible types
+        cout << "(35)" << endl;
+        throwIncompatibleType();
+    }
     while (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
     {
         if (this->token == Alphabet::PLUS)
         {
+            // Semantic Action 23
+            operation = Alphabet::PLUS;
             matchToken(Alphabet::PLUS);
         }
         else if (this->token == Alphabet::MINNUS)
         {
+            // Semantic Action 23
+            operation = Alphabet::MINNUS;
             matchToken(Alphabet::MINNUS);
         }
         else if (this->token == Alphabet::OR)
         {
+            // Semantic Action 23
+            operation = Alphabet::OR;
             matchToken(Alphabet::OR);
         }
-        R();
+
+        r1Type = R();
+
+        // Semantic Action 24
+        if (operation == Alphabet::PLUS || operation == Alphabet::MINNUS)
+        {
+            if ((rType != ConstType::INT && rType != ConstType::FLOAT) || (r1Type != ConstType::INT && r1Type != ConstType::FLOAT))
+            {
+                cout << "(24-1)" << endl;
+                throwIncompatibleType();
+            }
+            else
+            {
+                if (rType == ConstType::FLOAT || r1Type == ConstType::FLOAT)
+                {
+                    tType = ConstType::FLOAT;
+                }
+                else
+                {
+                    tType = ConstType::INT;
+                }
+            }
+        }
+        else if (operation == Alphabet::OR)
+        {
+            if (rType != ConstType::BOOLEAN || r1Type != ConstType::BOOLEAN)
+            {
+                cout << "(24-2)" << endl;
+                throwIncompatibleType();
+            }
+            else
+            {
+                tType = ConstType::BOOLEAN;
+            }
+        }
     }
+    // Semantic Action 13
+    if (tType == null)
+        tType = rType;
+
+    return tType;
+}
+
+/**
+ * @brief Get type of R variable
+ *
+ * @param mType
+ * @param m1Type
+ * @param operation
+ * @return int
+ */
+// Semantic action 22
+int SyntaxAnalyzer::rGetType(int mType, int m1Type, int operation)
+{
+    int rType = null;
+
+    if (operation == Alphabet::TIMES)
+    {
+        // Impossible to execute a times operation with types different
+        // of int and float
+        if ((mType != ConstType::INT && mType != ConstType::FLOAT) ||
+            (m1Type != ConstType::INT && m1Type != ConstType::FLOAT))
+        {
+            cout << "(22-1)" << endl;
+            throwIncompatibleType();
+        }
+
+        // If times operation contains a float, change the operation
+        // type to float
+        if (mType == ConstType::FLOAT || m1Type == ConstType::FLOAT)
+            rType = ConstType::FLOAT;
+        else
+            rType = ConstType::INT;
+    }
+    else if (operation == Alphabet::DIV)
+    {
+        // Div operation needs two int operators
+        if (mType != ConstType::INT || m1Type != ConstType::INT)
+        {
+            cout << "(22-2)" << endl;
+            throwIncompatibleType();
+        }
+        else
+            rType = ConstType::INT;
+    }
+    else if (operation == Alphabet::DIVIDE)
+    {
+        // Impossible to execute a divide operation with types different
+        // of int and float
+        if ((mType != ConstType::INT && mType != ConstType::FLOAT) ||
+            (m1Type != ConstType::INT && m1Type != ConstType::FLOAT))
+        {
+            cout << "(22-3.0)" << endl;
+            throwIncompatibleType();
+        }
+
+        // If divide operation contains a float, change the operation
+        // type to float
+        if (mType == ConstType::FLOAT || m1Type == ConstType::FLOAT)
+            rType = ConstType::FLOAT;
+        else
+            rType = ConstType::INT;
+    }
+    else if (operation == Alphabet::AND)
+    {
+        // Impossible to execute a and operation with types different
+        // of boolean
+        if (mType != ConstType::BOOLEAN || m1Type != ConstType::BOOLEAN)
+        {
+            cout << "(22-3.1)" << endl;
+            throwIncompatibleType();
+        }
+        rType = ConstType::BOOLEAN;
+    }
+    else if (operation == Alphabet::MOD)
+    {
+        // Impossible to execute a mod operation with types different
+        // of int
+        if (mType != ConstType::INT || m1Type != ConstType::INT)
+        {
+            cout << "(22-4)" << endl;
+            throwIncompatibleType();
+        }
+        rType = ConstType::INT;
+    }
+    return rType;
 }
 
 /**
  * @brief Variable R of the L Language Grammar
  */
-void SyntaxAnalyzer::R()
+int SyntaxAnalyzer::R()
 {
-    M();
+    int rType = null, m1Type = null;
+
+    int mType = M();
+
+    // Semantic Action 21
+    int operation = null;
 
     while (this->token == Alphabet::TIMES ||
            this->token == Alphabet::DIV ||
@@ -667,91 +984,168 @@ void SyntaxAnalyzer::R()
     {
         if (this->token == Alphabet::TIMES)
         {
+            // Semantic Action 21
+            operation = Alphabet::TIMES;
             matchToken(Alphabet::TIMES);
         }
         else if (this->token == Alphabet::DIV)
         {
+            // Semantic Action 21
+            operation = Alphabet::DIV;
             matchToken(Alphabet::DIV);
         }
         else if (this->token == Alphabet::DIVIDE)
         {
+            // Semantic Action 21
+            operation = Alphabet::DIVIDE;
             matchToken(Alphabet::DIVIDE);
         }
         else if (this->token == Alphabet::AND)
         {
+            // Semantic Action 21
+            operation = Alphabet::AND;
             matchToken(Alphabet::AND);
         }
         else if (this->token == Alphabet::MOD)
         {
+            // Semantic Action 21
+            operation = Alphabet::MOD;
             matchToken(Alphabet::MOD);
         }
-        M();
+        m1Type = M();
+
+        // Semantic action 22
+        rType = rGetType(mType, m1Type, operation);
     }
+
+    // If semantic action 22 has not been executed
+    // Semantic action 12
+    if (rType == null)
+        rType = mType;
+
+    return rType;
 }
 
 /**
  * @brief Variable M of the L Language Grammar
  */
-void SyntaxAnalyzer::M()
+int SyntaxAnalyzer::M()
 {
+    int mType = null, m1Type = null, convType = null, expType = null, lexID = null;
+
     if (this->token == Alphabet::NOT)
     {
         matchToken(Alphabet::NOT);
-        M();
+        m1Type = M();
+
+        // Semantic Action 19
+        if (m1Type != ConstType::BOOLEAN)
+        {
+            cout << "(19)" << endl;
+            throwIncompatibleType();
+        }
+        else
+            mType = m1Type;
     }
     else if (this->token == Alphabet::INT || this->token == Alphabet::FLOAT)
     {
         if (this->token == Alphabet::INT)
         {
             matchToken(Alphabet::INT);
+            // Semantic Action 15
+            convType = ConstType::INT;
         }
         else if (this->token == Alphabet::FLOAT)
         {
             matchToken(Alphabet::FLOAT);
+            // Semantic Action 16
+            convType = ConstType::FLOAT;
         }
         matchToken(Alphabet::OPENPAR);
-        EXP();
+        expType = EXP();
+
+        // Semantic Action 17
+        if (expType != ConstType::INT && expType != ConstType::FLOAT)
+        {
+            cout << "(17)" << endl;
+            throwIncompatibleType();
+        }
+
         matchToken(Alphabet::CLOSEPAR);
+
+        // Semantic Action 18
+        if (convType == ConstType::INT)
+            mType = ConstType::INT;
+        else if (convType == ConstType::FLOAT)
+            mType = ConstType::FLOAT;
     }
     else if (this->token == Alphabet::ID)
     {
+        lexID = symbolTable->getType(regLex.lexeme);
+
         // Semantic Action 3
-        if (symbolTable->getType(regLex.lexeme) == null)
+        if (lexID == null)
         {
+            cout << "(3.2)" << endl;
             throwNotDeclaredID(regLex.lexeme);
-        }
-        if (!(symbolTable->getClass(regLex.lexeme) == ConstType::NOT_CONSTANT))
-        {
-            throwIncompatibleClass(regLex.lexeme);
         }
 
         matchToken(Alphabet::ID);
 
         if (this->token == Alphabet::OPENBRACKET)
         {
+            // Semantic Action 31
+            if (lexID != ConstType::STRING)
+            {
+                cout << "(31)" << endl;
+                throwIncompatibleType();
+            }
+
             matchToken(Alphabet::OPENBRACKET);
-            EXP();
+
+            // Semantic Action 9
+            expType = EXP();
+
+            if (expType != ConstType::INT)
+            {
+                cout << "(9)" << endl;
+                throwIncompatibleType();
+            }
+
             matchToken(Alphabet::CLOSEBRACKET);
         }
+
+        // Semantic Action 20
+        mType = lexID;
     }
     else if (this->token == Alphabet::CONSTANT)
     {
+        // Semantic Action 11
+        mType = regLex.constType;
         matchToken(Alphabet::CONSTANT);
     }
     else if (this->token == Alphabet::TRUE)
     {
+        // Semantic Action 11
+        mType = regLex.constType;
         matchToken(Alphabet::TRUE);
     }
     else if (this->token == Alphabet::FALSE)
     {
+        // Semantic Action 11
+        mType = regLex.constType;
         matchToken(Alphabet::FALSE);
     }
     else
     {
         matchToken(Alphabet::OPENPAR);
-        EXP();
+        // Semantic Action 36
+        mType = EXP();
+
         matchToken(Alphabet::CLOSEPAR);
     }
+
+    return mType;
 }
 
 /**
