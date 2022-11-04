@@ -21,8 +21,7 @@
 
 using namespace std;
 
-#define finalState -1
-#define null -1
+#define null -999
 
 SymbolTable::SymbolTable()
 {
@@ -35,12 +34,13 @@ SymbolTable::SymbolTable()
  */
 void SymbolTable::fillHash()
 {
-
     // fill reserved words list using a iterator
     // list position = alphabet byte value
     for (uint8_t i = 0; i < reservedWords.size(); i++)
     {
-        symbolTable[reservedWords[i]] = i;
+        RegST reg;
+        reg.token = i; 
+        symbolTable[reservedWords[i]] = reg;
     }
 }
 
@@ -57,7 +57,29 @@ int SymbolTable::search(string lex)
         return null;
 
     // Return token of lex
-    return this->symbolTable.at(lex);
+    return this->symbolTable.at(lex).token;
+}
+
+/**
+ * @brief Return the class of a lexeme
+ *
+ * @param lex the lexical form that you want to get position
+ * @return int -> class of the lexeme
+ */
+int SymbolTable::getClass(string lex)
+{
+    return this->symbolTable[lex].classType;
+}
+
+/**
+ * @brief Return the type of a lexeme
+ *
+ * @param lex the lexical form that you want to get position
+ * @return int -> type of the lexeme
+ */
+int SymbolTable::getType(string lex)
+{
+    return this->symbolTable[lex].type;
 }
 
 /**
@@ -88,8 +110,28 @@ int SymbolTable::find(string lex)
  */
 int SymbolTable::insert(string lex)
 {
-    this->symbolTable[lex] = Alphabet::ID;
+    this->symbolTable[lex].token = Alphabet::ID;
     return this->search(lex);
+}
+
+/**
+ * @brief Alter the type of a register at the symbol table
+ *
+ * @param lex lexical form to insert, int type new type
+ */
+void SymbolTable::setType(string lex, int type)
+{
+    this->symbolTable[lex].type = type;
+}
+
+/**
+ * @brief Alter the class of a register at the symbol table
+ *
+ * @param lex lexical form to insert, int classType new class
+ */
+void SymbolTable::setClass(string lex, int classType)
+{
+    this->symbolTable[lex].classType = classType;
 }
 
 /**
@@ -99,6 +141,6 @@ void SymbolTable::print()
 {
     for (auto const &pair : this->symbolTable)
     {
-        cout << "{ " << pair.second << " : " << pair.first << " }\n";
+        cout << "{token: " << pair.second.token << "    lex: " << pair.first << "    type:" << pair.second.type << "    classType: " << pair.second.classType << "}\n";
     }
 }

@@ -24,7 +24,7 @@
 #include "headers/SymbolTable.hpp"
 
 #define finalState -1
-#define null -1
+#define null -999
 
 using namespace std;
 
@@ -413,7 +413,7 @@ TransitionReturn stateSevenTransition(string lexeme, char c)
     TransitionReturn transitionReturn;
 
     // Character constants path
-    if (isCharacter(c))
+    if (isValidChar(c))
     {
         // Go from state 7 to state 8
         transitionReturn.nextState = 8;
@@ -848,7 +848,7 @@ LexicalRegister lexicalAnalyzer()
         else
         {
             // Flag EOF
-            return LexicalRegister("", null, null, null, null);
+            return LexicalRegister("eof", -1, null, null, null);
         }
 
         switch (state)

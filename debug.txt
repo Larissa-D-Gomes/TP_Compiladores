@@ -2,7 +2,9 @@
 int a1, a2, a3;
 int a4 := 5;
 int a5 := -7089;
+int vinicius := 18;
 
+a5 := 5 + 5;
 /* // float */
 float f1 := 6.0;
 float f2 := 7;
@@ -33,6 +35,7 @@ char h7 := 0x15;
 boolean b1 := true;
 boolean b2 := false;
 b1 := b2;
+boolean b3, b4;
 
 /* constantes */
 const x1 = 10;
@@ -46,11 +49,11 @@ const x8 = 0;
 const x9 = 0xAB;
 
 /* atribuicao */
-x1 := "1309859012";
-a1[a1 + a2 * a3 / a4] := "string";
+s1 := "1309859012";
+s1[a1 + a2 * a3] := 'c';
 f1 := 30 div 20;
-f2 := 20.0 mod 2;
-a5 := 5+2-9/a3*a1;
+f2 := 20 mod 2;
+f1 := 5+2-10.0/10/(10 mod 5);
 
 /* repeticao */
 while(a1 >= a2) {
@@ -60,23 +63,23 @@ while(a1 >= a2) {
 
 }
 
-while ((a1 && a2) || (a3 && a4) && !b1 = b2){
+while ((b1 && b2) || (b3 && b4) && (!b1)){
     ;
     ;
     h1 := 0xAB;
 }
 
-while (a || b) a1 := -a2;
+while (b1 || b1) a1 := -a2;
 
-while (a > 10)
-    a := 10;
+while (a1 > 10)
+    a1 := 10;
     
-    if (a > 10)  writeln(a);
-    else a := 5;
+if (a1 > 10)  writeln(a3);
+else a2 := 5;
     
 
 /* testes */
-if (a1 || a2 > a3) a1 := "40b";
+if ((a1 + 10 - 52) > (a4)) a1 := 40;
 if (f1 <= f2) f1 := .29; else f4 := 5.89;;
 
 if (10 mod 4 >= -10) {
@@ -95,16 +98,16 @@ readln(f1);
 readln(b1);
 
 /* escrita */
-write(a1, "string", f1 + f2 && f3 * f6, b1 > b2);
+write(a1, "string", f1 + f2 - f3 * f5, b1 && b2);
 write("aosifjasoij");
-writeln(a1, "string", c1 + c3, b1 <= b2);
+writeln(a1, "string", 560 + 120, b1 || b2);
 writeln("aosifjasoij");
 
-a62 := f2 + f4 * f2 div 12 && a4 || b7;
+b4 := ((f2 + f4 * f2) + (10 div 12 + a4)) < a2;
 
-if((a1 && a3) || (b3 || b7 && c7) && a5)
+if((a1 > a3) || (((b2 || b1) && b2) && b1))
 
-/*while (f1 != r1 && write) {
+/* while (f1 != r1 && write) {
     write(,f1)
 }*/
 
@@ -113,18 +116,20 @@ if((a1 && a3) || (b3 || b7 && c7) && a5)
  * }
  */
 
-readln(c4);
+readln(c3);
 
-if(then + 22) {
-    a := 10;
+if((a1 + 22 > 1) && (3.9 >= 2)) {
+    a1 := 10;
 } else write(vinicius);
 
-a[.087] := 10;
+s1[1] := 'x';
 
-while(x < 10){
-    a[0x44] := 'c';
-    b := "string";
+while(x1 < 10){
+    s1[12] := 0x44;
+    s2 := "string";
 }
 
-const a = 67;
-
+x3 = 67;
+/* COMO RESOLVER ISSO ? */
+float x;
+x[10] := 13.0;

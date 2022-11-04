@@ -18,7 +18,16 @@
 #include <string>
 #include <vector>
 
+#define null -999
+
 using namespace std;
+
+struct RegST
+{
+    int token = null;
+    int classType = null;
+    int type = null;
+};
 
 class SymbolTable
 {
@@ -28,7 +37,7 @@ private:
     vector<string> reservedWords = {"const", "int", "char", "while", "if", "float", "else", "&&", "||", "!", ":=", "=", "(", ")", "<", ">", "!=", ">=", "<=", ",", "+", "-", "*", "/", ";", "{", "}", "readln", "div", "string", "write", "writeln", "mod", "[", "]", "true", "false", "boolean"};
 
     // Symbol hash table
-    unordered_map<string, uint8_t> symbolTable;
+    unordered_map<string, RegST> symbolTable;
 
 public:
     // Constructor
@@ -67,4 +76,34 @@ public:
      * @brief print Symbol Table content (only used for tests)
      */
     void print();
+
+    /**
+     * @brief Alter the type of a register at the symbol table
+     *
+     * @param lex lexical form to insert, int type new type
+     */
+    void setType(string lex, int type);
+
+    /**
+     * @brief Alter the class of a register at the symbol table
+     *
+     * @param lex lexical form to insert, int classType new class
+     */
+     void setClass(string lex, int classType);
+
+    /**
+     * @brief Return the type of a lexeme
+     *
+     * @param lex the lexical form that you want to get position
+     * @return int -> type of lexeme
+     */
+     int getType(string lex);
+
+    /**
+     * @brief Return the class of a lexeme
+     *
+     * @param lex the lexical form that you want to get position
+     * @return int -> class of the lexeme
+     */
+    int getClass(string lex);
 };

@@ -43,3 +43,28 @@ void throwUndefinedLex(string lex);
  * @param lex - The lexeme read
  */
 void throwUnexpectedToken(string lex);
+
+/**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwDeclaredID(string lex);
+
+/**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwNotDeclaredID(string lex);
+
+/**
+ * @brief Print a error message when program finds incompatibles classes
+ *
+ */
+void throwIncompatibleClass(string lex);
+
+/**
+ * @brief Print a error message when program finds incompatibles types
+ *
+ */
+void throwIncompatibleType();
+

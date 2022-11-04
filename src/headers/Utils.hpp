@@ -39,7 +39,23 @@ extern SymbolTable *symbolTable;
  * @param n - number of token
  * @return string - lexem
  */
-string testLexem(int n);
+string tokenToString(int n);
+
+/**
+ * @brief Just a testing function to see constType as String
+ * 
+ * @param n - number of const
+ * @return string - const as string
+ */
+string constTypeToString(int n);
+
+/**
+ * @brief Just a testing function to see classType as String
+ * 
+ * @param n - number of class
+ * @return string - class as string
+ */
+string classTypeToString(int n);
 
 /**
  * @brief Verify if a char value is a character

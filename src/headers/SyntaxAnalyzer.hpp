@@ -29,7 +29,7 @@ class SyntaxAnalyzer
 {
 
 private:
-    LexicalRegister tokenFromLexical; // Lexical Register read by Lexical Analyzer
+    LexicalRegister regLex; // Lexical Register read by Lexical Analyzer
     int token;                        // Token from  Lexical Register read
 
 public:
@@ -144,7 +144,7 @@ public:
     /**
      * @brief Variable DECONST of the L Language Grammar
      */
-    void DECONST();
+    int DECONST();
 
     /**
      * @brief Variable CMD of the L Language Grammar
@@ -154,7 +154,7 @@ public:
     /**
      * @brief Variable PAR of the L Language Grammar
      */
-    void PAR();
+    int PAR();
 
     /**
      * @brief Variable BLOCK of the L Language Grammar
@@ -164,22 +164,41 @@ public:
     /**
      * @brief Variable EXP of the L Language Grammar
      */
-    void EXP();
+    int EXP();
+
+    /**
+     * @brief Verify if type conversation is accepted
+     * 
+     * @param tType 
+     * @param t1Type 
+     * @param operation 
+     */
+    void verifyTypesForT(int tType, int t1Type, int operation);
 
     /**
      * @brief Variable T of the L Language Grammar
      */
-    void T();
+    int T();
+
+    /**
+     * @brief Get type of R variable
+     * 
+     * @param mType 
+     * @param m1Type 
+     * @param operation 
+     * @return int 
+     */
+    int rGetType(int mType, int m1Type, int operation);
 
     /**
      * @brief Variable R of the L Language Grammar
      */
-    void R();
+    int R();
 
     /**
      * @brief Variable M of the L Language Grammar
      */
-    void M();
+    int M();
 
     /**
      * @brief Initial Syntax Analyzer call

@@ -40,7 +40,7 @@ void throwUnexpectedEOFException()
         cout << lastTokenBreakLine << endl;
         line--;
     }
-    cout << line << "\nfim de arquivo nao esperado.";
+    cout << line << "\nfim de arquivo nao esperado." << endl;
     exit(1);
 }
 
@@ -51,7 +51,7 @@ void throwUnexpectedEOFException()
 void throwUndefinedLex(string lex)
 {
     if (lex.at(lex.length() - 1) == '\n') lex.pop_back();
-    cout << line << "\nlexema nao identificado [" << lex << "].";
+    cout << line << "\nlexema nao identificado [" << lex << "]." << endl;
     exit(1);
 }
 
@@ -61,6 +61,47 @@ void throwUndefinedLex(string lex)
  */
 void throwUnexpectedToken(string lex)
 {
-    cout << line << "\ntoken nao esperado [" << lex << "].";
+    cout << line << "\ntoken nao esperado [" << lex << "]." << endl;
     exit(1);
 }
+
+/**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwDeclaredID(string lex)
+{
+    cout << line << "\nidentificador ja declarado [" << lex << "]." << endl;
+    exit(1);
+}
+
+/**
+ * @brief Print a error message when program finds a alredy declared id
+ *
+ */
+void throwNotDeclaredID(string lex)
+{
+    cout << line << "\nidentificador nao declarado [" << lex << "]." << endl;
+    exit(1);
+}
+
+/**
+ * @brief Print a error message when program finds incompatibles classes
+ *
+ */
+void throwIncompatibleClass(string lex)
+{
+    cout << line << "\nclasse do identificador incompativel [" << lex << "]."<< endl;
+    exit(1);
+}
+
+/**
+ * @brief Print a error message when program finds incompatibles types
+ *
+ */
+void throwIncompatibleType()
+{
+    cout << line << "\ntipos incompativeis"<< endl;
+    exit(1);
+}
+
