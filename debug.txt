@@ -95,7 +95,7 @@ else {
 /* leitura */
 readln(a1);
 readln(f1);
-readln(b1);
+readln(a5);
 
 /* escrita */
 write(a1, "string", f1 + f2 - f3 * f5, b1 && b2);
@@ -129,7 +129,4 @@ while(x1 < 10){
     s2 := "string";
 }
 
-x3 = 67;
-/* COMO RESOLVER ISSO ? */
-float x;
-x[10] := 13.0;
+readln(a2);

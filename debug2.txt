@@ -1,3 +1,2 @@
-if ((true || true) && (1 > 10) || (15 mod 1 > 2)) {
-
-} else if ((10 >= 1.0) > 10);
+boolean f := true;
+readln(f);
