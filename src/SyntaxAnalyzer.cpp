@@ -582,6 +582,18 @@ void SyntaxAnalyzer::CMD() // Language commands
             throwNotDeclaredID(regLex.lexeme);
         }
 
+        // Semantic Action 39
+        if (symbolTable->getType(regLex.lexeme) == ConstType::BOOLEAN){
+            cout << "(39)" << endl;
+            throwIncompatibleType();
+        }
+
+        // Semantic Action 40
+        if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST){
+            cout << "(40)" << endl;
+            throwIncompatibleClass(regLex.lexeme);
+        }
+
         matchToken(Alphabet::ID);
         matchToken(Alphabet::CLOSEPAR);
         matchToken(Alphabet::SEMICOLON);
@@ -730,6 +742,9 @@ int SyntaxAnalyzer::EXP()
     int expType = null, operation = null;
 
     int tType = T();
+
+    // Semantic Action 37
+    expType = tType;
 
     while (this->token == Alphabet::EQUAL ||
            this->token == Alphabet::NOTEQUAL ||
@@ -972,6 +987,9 @@ int SyntaxAnalyzer::R()
     int rType = null, m1Type = null;
 
     int mType = M();
+
+    // Semantic Action 38
+    rType = mType;
 
     // Semantic Action 21
     int operation = null;
