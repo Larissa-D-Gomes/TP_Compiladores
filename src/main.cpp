@@ -16,6 +16,7 @@
 
 // import headers
 #include "headers/Utils.hpp"
+#include "headers/CodeGeneratorUtils.hpp"
 #include "headers/SymbolTable.hpp"
 #include "headers/SyntaxAnalyzer.hpp"
 

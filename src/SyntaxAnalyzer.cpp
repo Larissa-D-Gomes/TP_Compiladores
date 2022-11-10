@@ -18,6 +18,7 @@
 #include "headers/LexicalRegister.hpp"
 #include "headers/LexicalAnalyzer.hpp"
 #include "headers/Utils.hpp"
+#include "headers/CodeGeneratorUtils.hpp"
 #include "headers/Throws.hpp"
 #include "headers/Alphabet.hpp"
 #include "headers/ConstType.hpp"

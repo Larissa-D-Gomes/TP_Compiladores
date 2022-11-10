@@ -32,16 +32,6 @@ extern int line;
 extern bool lastTokenBreakLine;
 // Global Symbol Table structure
 extern SymbolTable *symbolTable;
-// Global next memory free position
-extern long nextFreePosition;
-// Global Nasm Assembly program
-extern string assembly;
-// Global Nasm Assembly for declarations program
-extern string assemblyDec;
-// Global Nasm Assembly for commands program
-extern string assemblyCmd;
-// Assemble Label counter
-extern int assemblyLabel;
 
 /**
  * @brief Just a testing function to see lexem:token relationship
@@ -109,11 +99,3 @@ bool isValidChar(char c);
  * @param lex Lexical Register to be printed
  */
 void printLexicalRegister(LexicalRegister lex);
-
-/**
- * @brief Allocate memory for a variable tha contains 
- * memSize bytes
- * 
- * @param long memSize
- */
-void memoryAlocation(long memSize);
