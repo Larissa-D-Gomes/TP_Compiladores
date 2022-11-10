@@ -233,35 +233,53 @@ void SyntaxAnalyzer::DEC()
         this->token == Alphabet::BOOLEAN ||
         this->token == Alphabet::CHAR)
     {
+        int size;
         if (this->token == Alphabet::INT) // INT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
+            size = 4;
             matchToken(Alphabet::INT);
             // Semantic Action 2 (INT)
             type = ConstType::INT;
+
+            assemblyDec += "\tresd 1        ; Declaracao Inteiro em [" + to_string(nextFreePosition) + "]\n";
+
         }
         else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
+            size = 4;
             matchToken(Alphabet::FLOAT);
             // Semantic Action 2 (FLOAT)
             type = ConstType::FLOAT;
+
+            assemblyDec += "\tresd 1        ; Declaracao Float em [" + to_string(nextFreePosition) + "]\n";
+
         }
         else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
+            size = 256;
             matchToken(Alphabet::STRING);
             // Semantic Action 2 (STRING)
             type = ConstType::STRING;
+
+            assemblyDec += "\tresb 100h        ; Declaracao String em [" + to_string(nextFreePosition) + "]\n";
         }
         else if (this->token == Alphabet::BOOLEAN) // BOOLEAN ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
+            size = 4;
             matchToken(Alphabet::BOOLEAN);
             // Semantic Action 2 (BOOLEAN)
             type = ConstType::BOOLEAN;
+
+             assemblyDec += "\tresb 1        ; Declaracao Boolean em [" + to_string(nextFreePosition) + "]\n";
         }
         else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
+            size = 1;
             matchToken(Alphabet::CHAR);
             // Semantic Action 2 (CHAR)
             type = ConstType::CHAR;
+
+            assemblyDec += "\tresb 1        ; Declaracao Character em [" + to_string(nextFreePosition) + "]\n";
         }
 
         // Semantic Action 1
@@ -275,6 +293,9 @@ void SyntaxAnalyzer::DEC()
             cout << "(1.1)" << endl;
             throwDeclaredID(this->regLex.lexeme);
         }
+
+        symbolTable->setAddr(this->regLex.lexeme, nextFreePosition);
+        memoryAlocation(size);
 
         matchToken(Alphabet::ID);
 
@@ -1173,8 +1194,27 @@ void SyntaxAnalyzer::parser()
 {
     // Call the Lexical Analyzer to get first token
     this->regLex = lexicalAnalyzer();
+
     // printLexicalRegister(this->regLex);
     this->token = this->regLex.token;
 
+    assembly += "section .data                 ; Sessão de dados\n";
+    assembly += "M:                            ; Rotulo para demarcar o\n";
+    assembly += "                              ; inicio da sessao de dados\n";
+    assembly += "\tresb 0x10000              ; Reserva de temporarios\n";
+    assembly += "   ; ***Definicoes de variaveis e constantes\n";
+
     S();
+
+    assembly += assemblyDec;
+
+    assembly += "section .text                 ; Sessao de codigo\n";
+    assembly += "global _start                 ; Ponto inicial do programa\n";
+    assembly += "_start:                       ; Inicio do programa\n";
+    assembly += "   ; ***Comandos\n";
+    assembly += assemblyCmd;
+    assembly += "; Halt\n";
+    assembly += "mov rax, 60                   ; Chamada de saida\n";
+    assembly += "mov rdi, 0                    ; Codigo de saida sem erros\n";
+    assembly += "syscall                       ; Chama o kernel\n";
 }

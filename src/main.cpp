@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
 
 // import headers
 #include "headers/Utils.hpp"
@@ -50,6 +51,15 @@ int main()
 
     // Print line count and success compilation
     line == 1 ? (cout << "1 linha compilada." << endl) : (cout << line << " linhas compiladas."  << endl);
+
+    // Open assembly File
+    ofstream assemblyFile("arq.asm");
+
+    // Write assembly on the file
+    assemblyFile << assembly;
+
+    // Close arq
+    assemblyFile.close();
 
     return 0;
 }

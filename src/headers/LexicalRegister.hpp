@@ -44,7 +44,7 @@ public:
      * @param token         // lexeme token
      * @param symbolTabPos  // position of the lexeme on symbol table (null if it is not on symbol table)
      * @param constType     // const type (if it is a const token)
-     * @param constSize
+     * @param constSize     // const size (if it is a const token)
      */
     LexicalRegister(string lexeme, int token, int symbolTabPos, int constType, int constSize);
 };

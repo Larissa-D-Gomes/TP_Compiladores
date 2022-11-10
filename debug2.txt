@@ -1,2 +1,5 @@
-boolean f := true;
-readln(f);
+int a := 10;
+float f := 15.0;
+char c := 'a';
+string s := "string";
+boolean b := true;

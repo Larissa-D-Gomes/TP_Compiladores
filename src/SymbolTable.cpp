@@ -1,14 +1,14 @@
 /**
  * @file SymbolTable.cpp
- * 
+ *
  * COMPILADORES - CIÊNCIA DA COMPUTAÇÃO - PUC MINAS
  * @authors Larissa Domingues Gomes, Lucas Bottrel Lopes de Moura e Vinicius Silva Mendes
  * @brief Symbol Table structure
  * @version 0.1
  * @date 2022-10-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <iostream>
@@ -39,7 +39,7 @@ void SymbolTable::fillHash()
     for (uint8_t i = 0; i < reservedWords.size(); i++)
     {
         RegST reg;
-        reg.token = i; 
+        reg.token = i;
         symbolTable[reservedWords[i]] = reg;
     }
 }
@@ -135,12 +135,31 @@ void SymbolTable::setClass(string lex, int classType)
 }
 
 /**
+ * @brief Return the address of a lexeme
+ *
+ * @param lex the lexical form that you want to get address
+ * @return int -> type of lexeme
+ */
+int SymbolTable::getAddr(string lex){
+    return this->symbolTable[lex].addr;
+}
+
+/**
+ * @brief Set the address of a register at the symbol table
+ *
+ * @param lex lexical form to insert, int addr new class
+ */
+void SymbolTable::setAddr(string lex, long addr){
+    this->symbolTable[lex].addr = addr;
+}
+
+/**
  * @brief print Symbol Table content (only used for tests)
  */
 void SymbolTable::print()
 {
     for (auto const &pair : this->symbolTable)
     {
-        cout << "{token: " << pair.second.token << "    lex: " << pair.first << "    type:" << pair.second.type << "    classType: " << pair.second.classType << "}\n";
+        cout << "{token: " << pair.second.token << "    lex: " << pair.first << "    type:" << pair.second.type << "    classType: " << pair.second.classType << "    addr: " << pair.second.addr << "}\n";
     }
 }

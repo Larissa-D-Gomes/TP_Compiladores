@@ -22,11 +22,13 @@
 
 using namespace std;
 
+/* Symbol Table Register */
 struct RegST
 {
     int token = null;
     int classType = null;
     int type = null;
+    long addr = null;
 };
 
 class SymbolTable
@@ -106,4 +108,19 @@ public:
      * @return int -> class of the lexeme
      */
     int getClass(string lex);
+
+    /**
+     * @brief Return the address of a lexeme
+     *
+     * @param lex the lexical form that you want to get address
+     * @return int -> type of lexeme
+     */
+     int getAddr(string lex);
+
+    /**
+     * @brief Set the address of a register at the symbol table
+     *
+     * @param lex lexical form to insert, int addr new class
+     */
+     void setAddr(string lex, long addr);
 };

@@ -191,7 +191,7 @@ TransitionReturn stateOneTransition(string lexeme, char c)
             if (token == Alphabet::TRUE || token == Alphabet::FALSE) // Reserved word constant TRUE or FALSE
             {
                 // Create lexical register to TRUE and FALSE
-                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, pos, ConstType::BOOLEAN, 2);
+                LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, pos, ConstType::BOOLEAN, 1);
                 transitionReturn.lexicalReg = lexicalRegister;
             }
             else // Is an identifier
@@ -450,7 +450,7 @@ TransitionReturn stateEightTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to CHAR CONSTANT
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, -1, ConstType::CHAR, 1);
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::CHAR, 1);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // Throw exception when character was not identified
@@ -491,7 +491,7 @@ TransitionReturn stateNineTransition(string lexeme, char c)
         transitionReturn.lexemeConcat = lexeme + c;
 
         // Create lexical register to STRING CONSTANT
-        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::STRING, transitionReturn.lexemeConcat.length());
+        LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::STRING, 256);
         transitionReturn.lexicalReg = lexicalRegister;
     }
     // Throw exception when string was not identified

@@ -32,6 +32,14 @@ int line;
 bool lastTokenBreakLine;
 // Global Symbol Table structure
 SymbolTable *symbolTable;
+// Global next memory free position
+long nextFreePosition = 0x10000;
+// Global Nasm Assembly program
+string assembly = "";
+// Global Nasm Assembly for declarations program
+string assemblyDec = "";
+// Global Nasm Assembly for commands program
+string assemblyCmd = "";
 
 /**
  * @brief Just a testing function to see lexem:token relationship
@@ -177,4 +185,15 @@ void printLexicalRegister(LexicalRegister lex)
          << "\n   Const Type: " << lex.constType
          << "\n   Const Size (em bytes): " << lex.constSize
          << "\n}\n" << endl;
+}
+
+/**
+ * @brief Allocate memory for a variable tha contains 
+ * memSize bytes
+ * 
+ * @param long memSize
+ */
+void memoryAlocation(long memSize){
+    cout << nextFreePosition << " " << memSize << endl;
+    nextFreePosition += memSize;
 }
