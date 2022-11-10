@@ -40,6 +40,8 @@ extern string assembly;
 extern string assemblyDec;
 // Global Nasm Assembly for commands program
 extern string assemblyCmd;
+// Assemble Label counter
+extern int assemblyLabel;
 
 /**
  * @brief Just a testing function to see lexem:token relationship
