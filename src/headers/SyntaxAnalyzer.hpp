@@ -18,6 +18,7 @@
 
 // import headers
 #include "LexicalRegister.hpp"
+#include "CodeGeneratorUtils.hpp"
 
 using namespace std;
 
@@ -144,7 +145,7 @@ public:
     /**
      * @brief Variable DECONST of the L Language Grammar
      */
-    int DECONST();
+    ExpressionReturn DECONST(bool isNewConst);
 
     /**
      * @brief Variable CMD of the L Language Grammar
@@ -154,7 +155,7 @@ public:
     /**
      * @brief Variable PAR of the L Language Grammar
      */
-    int PAR();
+    ExpressionReturn PAR();
 
     /**
      * @brief Variable BLOCK of the L Language Grammar
@@ -164,7 +165,7 @@ public:
     /**
      * @brief Variable EXP of the L Language Grammar
      */
-    int EXP();
+    ExpressionReturn EXP();
 
     /**
      * @brief Verify if type conversation is accepted
@@ -178,7 +179,7 @@ public:
     /**
      * @brief Variable T of the L Language Grammar
      */
-    int T();
+    ExpressionReturn T();
 
     /**
      * @brief Get type of R variable
@@ -193,12 +194,12 @@ public:
     /**
      * @brief Variable R of the L Language Grammar
      */
-    int R();
+    ExpressionReturn R();
 
     /**
      * @brief Variable M of the L Language Grammar
      */
-    int M();
+    ExpressionReturn M();
 
     /**
      * @brief Initial Syntax Analyzer call

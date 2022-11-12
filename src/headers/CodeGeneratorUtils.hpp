@@ -30,8 +30,19 @@ extern string assembly;
 extern string assemblyDec;
 // Global Nasm Assembly for commands program
 extern string assemblyCmd;
-// Assemble Label counter
+// Assembly Label counter
 extern int assemblyLabel;
+// Assembly Temp counter
+extern int assemblyTempCount;
+
+/**
+ * @brief Struct to return address and type for variables 
+ * 
+ */
+struct ExpressionReturn {
+    long addr = null;
+    int type = null;
+};
 
 /**
  * @brief Allocate memory for a variable tha contains 
@@ -46,3 +57,11 @@ string getNextAssemblyLabel();
 string getCodeWrite(long addr, int type);
 
 string getCodeWriteStr(long addr, int type);
+
+int newTemp(int memSize);
+
+void resetTempCounter();
+
+long getTypeMemSize(int type);
+
+long getCodeDeconst(bool hasMinnus, int type, string stringValue);
