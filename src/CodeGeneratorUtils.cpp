@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "headers/Utils.hpp"
+#include "Alphabet.hpp"
 #include "headers/SymbolTable.hpp"
 #include "headers/LexicalRegister.hpp"
 #include "headers/ConstType.hpp"
@@ -42,7 +43,7 @@ int assemblyTempCount = 0;
  */
 void memoryAlocation(long memSize)
 {
-    cout << nextFreePosition << " " << memSize << endl;
+    // cout << nextFreePosition << " " << memSize << endl;
     nextFreePosition += memSize;
 }
 
@@ -121,7 +122,7 @@ long getTypeMemSize(int type)
 long getCodeDeconst(bool hasMinnus, int type, string stringValue)
 {
     long actualMemoryPosition = nextFreePosition;
-   
+
     if (type == ConstType::CHAR)
     {
         assemblyDec += "\tdb " + stringValue + ", 1\t\t\t; Declaracao Const Char em [" + to_string(actualMemoryPosition) + "]\n";
@@ -139,29 +140,110 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue)
     }
     else if (type == ConstType::STRING)
     {
-        assemblyDec += "\tdb" + stringValue + ",0\t\t\t; Declaracao Const String em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += "\tdb " + stringValue + ",0\t\t\t; Declaracao Const String em [" + to_string(actualMemoryPosition) + "]\n";
     }
     else if (type == ConstType::FLOAT)
     {
         assemblyDec += "\tdd ";
+
         if (hasMinnus)
         {
             assemblyDec += "-";
         }
+
+        if (stringValue[0] == '.')
+        {
+            assemblyDec += '0';
+        }
+
         assemblyDec += stringValue + "\t\t\t; Declaracao Const Float em [" + to_string(actualMemoryPosition) + "]\n";
     }
     else if (type == ConstType::BOOLEAN)
     {
-        if(stringValue == "false")
+        if (stringValue == "false")
         {
             stringValue = "0";
-        } else {
+        }
+        else
+        {
             stringValue = "1";
         }
         assemblyDec += "\tdd " + stringValue + "\t\t\t; Declaracao Const Boolean em [" + to_string(actualMemoryPosition) + "]\n";
     }
-    
+
     memoryAlocation(getTypeMemSize(type));
+
+    return actualMemoryPosition;
+}
+
+long getCodeExpConst(string stringValue, int type)
+{
+    long actualMemoryPosition;
+
+    if (type == ConstType::STRING)
+    {
+        actualMemoryPosition = nextFreePosition;
+        assemblyDec += "\tdb " + stringValue + ",0\t\t\t; Declaracao String EXP em [" + to_string(actualMemoryPosition) + "]\n";
+        // Memory Allocation in data area
+        memoryAlocation(getTypeMemSize(type));
+    }
+    else if (type == ConstType::FLOAT)
+    {
+        actualMemoryPosition = nextFreePosition;
+
+        assemblyDec += "\tdd ";
+        if (stringValue[0] == '.')
+        {
+            assemblyDec += " 0";
+        }
+
+        assemblyDec += stringValue + "\t\t\t; Declaracao Float EXP em [" + to_string(actualMemoryPosition) + "]\n";
+        // Memory Allocation in data area
+        memoryAlocation(getTypeMemSize(type));
+    }
+    else
+    {
+        actualMemoryPosition = assemblyTempCount;
+
+        if (type == ConstType::INT)
+        {
+            assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t; Move Inteiro imediato para registrador\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+        }
+        else if (type == ConstType::CHAR)
+        {
+            assemblyCmd += "\tmov AL, " + stringValue + "\t\t\t; Move Char imediato para registrador\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+        }
+        else if (type == ConstType::BOOLEAN)
+        {
+            if (stringValue == "false")
+            {
+                stringValue = "0";
+            }
+            else
+            {
+                stringValue = "1";
+            }
+
+            assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t; Move Boolean imediado para registrador eax\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+        }
+        newTemp(getTypeMemSize(type));
+    }
+
+    return actualMemoryPosition;
+}
+
+long getCodeNotExp(long addr, int type){
+    long actualMemoryPosition = assemblyTempCount;
+
+    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor da memoria para o registrador \n";
+    assemblyCmd += "\tneg RAX \t\t\t; Nega o valor que esta no registrador\n";
+    assemblyCmd += "\tadd RAX, 1 \t\t\t; Nega o valor que esta no registrador\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], RAX \t\t\t; Move o valor do registrador para a posicao de memoria [" + to_string(actualMemoryPosition) + "]\n";
+
+    newTemp(getTypeMemSize(type));
 
     return actualMemoryPosition;
 }

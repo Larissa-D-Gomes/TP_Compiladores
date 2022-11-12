@@ -8,3 +8,12 @@ const s = "string";
 string s1 := "bolsonaro";
 const b = true;
 boolean b1 := true;
+
+a1 := 3;
+c1 := 'a';
+f1 := 15.0;
+f1 := .50;
+s1 := "euqerobolean";
+b1 := false;
+
+b1 := !b1;

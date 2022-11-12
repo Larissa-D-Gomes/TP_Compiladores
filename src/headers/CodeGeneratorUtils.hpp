@@ -65,3 +65,7 @@ void resetTempCounter();
 long getTypeMemSize(int type);
 
 long getCodeDeconst(bool hasMinnus, int type, string stringValue);
+
+long getCodeExpConst(string lexeme, int const);
+
+long getCodeNotExp(long addr, int type);

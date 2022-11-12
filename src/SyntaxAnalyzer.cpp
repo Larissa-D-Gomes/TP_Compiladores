@@ -480,7 +480,6 @@ void SyntaxAnalyzer::ATR()
     // Semantic Action 10
     if (typeID == ConstType::INT && expRet.type != ConstType::INT)
     {
-        cout << expRet.type << " " << typeID << endl;
         // Incompatible type
         cout << "(10-1)" << endl;
         throwIncompatibleType();
@@ -945,16 +944,16 @@ ExpressionReturn SyntaxAnalyzer::T()
  * @return int
  */
 // Semantic action 22
-int SyntaxAnalyzer::rGetType(int mType, int m1Return, int operation)
+ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn M1, int operation)
 {
-    int rType = null;
+    ExpressionReturn rRet;
 
     if (operation == Alphabet::TIMES)
     {
         // Impossible to execute a times operation with types different
         // of int and float
-        if ((mType != ConstType::INT && mType != ConstType::FLOAT) ||
-            (m1Return != ConstType::INT && m1Return != ConstType::FLOAT))
+        if ((M.type != ConstType::INT && M.type != ConstType::FLOAT) ||
+            (M1.type != ConstType::INT && M1.type != ConstType::FLOAT))
         {
             cout << "(22-1)" << endl;
             throwIncompatibleType();
@@ -962,28 +961,41 @@ int SyntaxAnalyzer::rGetType(int mType, int m1Return, int operation)
 
         // If times operation contains a float, change the operation
         // type to float
-        if (mType == ConstType::FLOAT || m1Return == ConstType::FLOAT)
-            rType = ConstType::FLOAT;
+        if (M.type == ConstType::FLOAT || M1.type == ConstType::FLOAT)
+        {
+            rRet.type = ConstType::FLOAT;
+
+            if(M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
+            {
+                // Metodo para dois floats
+            } else if(M.type == ConstType::INT) {
+                // Metodo para UM floats m, m1
+            } else {
+                // Metodo para UM floats m1, m 
+            }
+        }
         else
-            rType = ConstType::INT;
+        {
+            rRet.type = ConstType::INT;
+        }
     }
     else if (operation == Alphabet::DIV)
     {
         // Div operation needs two int operators
-        if (mType != ConstType::INT || m1Return != ConstType::INT)
+        if (M.type != ConstType::INT || M1.type != ConstType::INT)
         {
             cout << "(22-2)" << endl;
             throwIncompatibleType();
         }
         else
-            rType = ConstType::INT;
+            rRet.type = ConstType::INT;
     }
     else if (operation == Alphabet::DIVIDE)
     {
         // Impossible to execute a divide operation with types different
         // of int and float
-        if ((mType != ConstType::INT && mType != ConstType::FLOAT) ||
-            (m1Return != ConstType::INT && m1Return != ConstType::FLOAT))
+        if ((M.type != ConstType::INT && M1.type != ConstType::FLOAT) ||
+            (M1.type != ConstType::INT && M1.type != ConstType::FLOAT))
         {
             cout << "(22-3.0)" << endl;
             throwIncompatibleType();
@@ -991,34 +1003,34 @@ int SyntaxAnalyzer::rGetType(int mType, int m1Return, int operation)
 
         // If divide operation contains a float, change the operation
         // type to float
-        if (mType == ConstType::FLOAT || m1Return == ConstType::FLOAT)
-            rType = ConstType::FLOAT;
+        if (M.type == ConstType::FLOAT || M1.type == ConstType::FLOAT)
+            rRet.type = ConstType::FLOAT;
         else
-            rType = ConstType::INT;
+            rRet.type = ConstType::INT;
     }
     else if (operation == Alphabet::AND)
     {
         // Impossible to execute a and operation with types different
         // of boolean
-        if (mType != ConstType::BOOLEAN || m1Return != ConstType::BOOLEAN)
+        if (M.type != ConstType::BOOLEAN || M1.type != ConstType::BOOLEAN)
         {
             cout << "(22-3.1)" << endl;
             throwIncompatibleType();
         }
-        rType = ConstType::BOOLEAN;
+        rRet.type = ConstType::BOOLEAN;
     }
     else if (operation == Alphabet::MOD)
     {
         // Impossible to execute a mod operation with types different
         // of int
-        if (mType != ConstType::INT || m1Return != ConstType::INT)
+        if (M.type != ConstType::INT || M1.type != ConstType::INT)
         {
             cout << "(22-4)" << endl;
             throwIncompatibleType();
         }
-        rType = ConstType::INT;
+        rRet.type = ConstType::INT;
     }
-    return rType;
+    return rRet;
 }
 
 /**
@@ -1032,6 +1044,9 @@ ExpressionReturn SyntaxAnalyzer::R()
 
     // Semantic Action 38
     rRet.type = mRet.type;
+
+    // Synthesizes address from son
+    rRet.addr = mRet.addr;
 
     // Semantic Action 21
     int operation = null;
@@ -1072,10 +1087,11 @@ ExpressionReturn SyntaxAnalyzer::R()
             operation = Alphabet::MOD;
             matchToken(Alphabet::MOD);
         }
+
         m1Ret = M();
 
         // Semantic action 22
-        rRet.type = rGetType(mRet.type, m1Ret.type, operation);
+        rRet = rGetReturn(mRet, m1Ret, operation);
     }
 
     // If semantic action 22 has not been executed
@@ -1108,6 +1124,9 @@ ExpressionReturn SyntaxAnalyzer::M()
         }
         else
             mRet.type = m1Ret.type;
+
+        getCodeNotExp(m1Ret.addr, m1Ret.type);
+
     }
     else if (this->token == Alphabet::INT || this->token == Alphabet::FLOAT)
     {
@@ -1144,6 +1163,7 @@ ExpressionReturn SyntaxAnalyzer::M()
     else if (this->token == Alphabet::ID)
     {
         lexID = symbolTable->getType(regLex.lexeme);
+        mRet.addr = symbolTable->getAddr(regLex.lexeme);
 
         // Semantic Action 3
         if (lexID == null)
@@ -1184,20 +1204,24 @@ ExpressionReturn SyntaxAnalyzer::M()
     {
         // Semantic Action 11
         mRet.type = regLex.constType;
+
+        mRet.addr = getCodeExpConst(regLex.lexeme, regLex.constType);
+        mRet.type = regLex.constType;
+
         matchToken(Alphabet::CONSTANT);
     }
-    else if (this->token == Alphabet::TRUE)
-    {
-        // Semantic Action 11
-        mRet.type = regLex.constType;
-        matchToken(Alphabet::TRUE);
-    }
-    else if (this->token == Alphabet::FALSE)
-    {
-        // Semantic Action 11
-        mRet.type = regLex.constType;
-        matchToken(Alphabet::FALSE);
-    }
+    // else if (this->token == Alphabet::TRUE)
+    // {
+    //     // Semantic Action 11
+    //     mRet.type = regLex.constType;
+    //     matchToken(Alphabet::TRUE);
+    // }
+    // else if (this->token == Alphabet::FALSE)
+    // {
+    //     // Semantic Action 11
+    //     mRet.type = regLex.constType;
+    //     matchToken(Alphabet::FALSE);
+    // }
     else
     {
         matchToken(Alphabet::OPENPAR);
