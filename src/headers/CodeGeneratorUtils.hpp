@@ -72,7 +72,7 @@ long getCodeNotExp(long addr, int type);
 
 long getCodeTimesOperationtForFloat(long addr1, long addr2);
 
-long getCodeTimesOperationtForFloatAndInt(long addrFloat, long addrInt);
+long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2);
 
 long getCodeTimesOperationtForInt(long addr1, long addr2);
 
@@ -80,8 +80,18 @@ long getCodeDivOperationtForInt(long addr1, long addr2);
 
 long getCodeDivideOperationtForFloat(long addr1, long addr2);
 
-long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat);
+long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2);
 
-long getCodeDivideOperationtForFloatAndInt(long addrFloat, long addrInt);
+long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2);
 
 long getCodeDivideOperationtForInt(long addr1, long addr2);
+
+long getCodeModOperationtForInt(long addr1, long addr2);
+
+long getCodePlusMinnusForFloat(long addr1, long addr2, int operation);
+
+long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation);
+
+long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation);
+
+long getCodePlusMinnusForInt(long addr1, long addr2, int operation);

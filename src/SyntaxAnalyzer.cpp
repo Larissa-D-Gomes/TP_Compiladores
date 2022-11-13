@@ -244,7 +244,6 @@ void SyntaxAnalyzer::DEC()
             type = ConstType::INT;
 
             assemblyDec += "\tresd 1\t\t\t; Declaracao Var Inteiro em [" + to_string(nextFreePosition) + "]\n";
-
         }
         else if (this->token == Alphabet::FLOAT) // FLOAT ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
@@ -254,7 +253,6 @@ void SyntaxAnalyzer::DEC()
             type = ConstType::FLOAT;
 
             assemblyDec += "\tresd 1\t\t\t; Declaracao Var Float em [" + to_string(nextFreePosition) + "]\n";
-
         }
         else if (this->token == Alphabet::STRING) // STRING ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
@@ -272,7 +270,7 @@ void SyntaxAnalyzer::DEC()
             // Semantic Action 2 (BOOLEAN)
             type = ConstType::BOOLEAN;
 
-             assemblyDec += "\tresb 1\t\t\t; Declaracao Var Boolean em [" + to_string(nextFreePosition) + "]\n";
+            assemblyDec += "\tresb 1\t\t\t; Declaracao Var Boolean em [" + to_string(nextFreePosition) + "]\n";
         }
         else if (this->token == Alphabet::CHAR) // CHAR ID [:= [-]CONSTANT] {, ID [:= [-]CONSTANT]}*
         {
@@ -484,7 +482,7 @@ void SyntaxAnalyzer::ATR()
         cout << "(10-1)" << endl;
         throwIncompatibleType();
     }
-    if (typeID == ConstType::FLOAT && (expRet.type  != ConstType::FLOAT && expRet.type  != ConstType::INT))
+    if (typeID == ConstType::FLOAT && (expRet.type != ConstType::FLOAT && expRet.type != ConstType::INT))
     {
         // Incompatible type
         cout << "(10-2)" << endl;
@@ -530,13 +528,11 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
         // Semantic Action 4
         deconstRet.type = this->regLex.constType;
 
-        if(isNewConst)
+        if (isNewConst)
         {
             deconstRet.addr = getCodeDeconst(hasMinnus, deconstRet.type, this->regLex.lexeme);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
-
-        
     }
     /*else if (this->token == Alphabet::TRUE)
     {
@@ -557,7 +553,7 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
         cout << "(30)" << endl;
         throwIncompatibleType();
     }
-    
+
     // Semantic Action 4
     return deconstRet;
 }
@@ -620,13 +616,15 @@ void SyntaxAnalyzer::CMD() // Language commands
         }
 
         // Semantic Action 39
-        if (symbolTable->getType(regLex.lexeme) == ConstType::BOOLEAN){
+        if (symbolTable->getType(regLex.lexeme) == ConstType::BOOLEAN)
+        {
             cout << "(39)" << endl;
             throwIncompatibleType();
         }
 
         // Semantic Action 40
-        if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST){
+        if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST)
+        {
             cout << "(40)" << endl;
             throwIncompatibleClass(regLex.lexeme);
         }
@@ -847,9 +845,10 @@ ExpressionReturn SyntaxAnalyzer::EXP()
  */
 ExpressionReturn SyntaxAnalyzer::T()
 {
-    ExpressionReturn tRet, rRet , r1Ret;
+    ExpressionReturn tRet, rRet, r1Ret;
     int operation;
     bool isPlusOrMinus = false;
+    bool hasMinus = false;
 
     if (this->token == Alphabet::PLUS)
     {
@@ -859,12 +858,14 @@ ExpressionReturn SyntaxAnalyzer::T()
     }
     else if (this->token == Alphabet::MINNUS)
     {
+        hasMinus = true;
         // Semantic Action 34
         isPlusOrMinus = true;
         matchToken(Alphabet::MINNUS);
     }
 
     rRet = R();
+
     // Semantic Action 35
     if (isPlusOrMinus && (rRet.type != ConstType::INT && rRet.type != ConstType::FLOAT))
     {
@@ -872,6 +873,14 @@ ExpressionReturn SyntaxAnalyzer::T()
         cout << "(35)" << endl;
         throwIncompatibleType();
     }
+
+    if (hasMinus)
+    {
+        assemblyCmd += "\tmov EAX, [M + " + to_string(rRet.addr) + "] \t\t\t; Move o valor da memoria para o registrador EAX\n";
+        assemblyCmd += "\tneg EAX \t\t\t; Nega o valor do registrador EAX\n";
+        assemblyCmd += "\tmov [M + " + to_string(rRet.addr) + "], EAX \t\t\t; Guarda valor negado no endereco original\n";
+    }
+
     while (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
     {
         if (this->token == Alphabet::PLUS)
@@ -908,10 +917,24 @@ ExpressionReturn SyntaxAnalyzer::T()
                 if (rRet.type == ConstType::FLOAT || r1Ret.type == ConstType::FLOAT)
                 {
                     tRet.type = ConstType::FLOAT;
+
+                    if (rRet.type == ConstType::FLOAT && r1Ret.type == ConstType::FLOAT)
+                    {
+                        tRet.addr = getCodePlusMinnusForFloat(rRet.addr, r1Ret.addr, operation);
+                    }
+                    else if (rRet.type == ConstType::INT)
+                    {
+                        tRet.addr = getCodePlusMinnusForFloatAndInt(rRet.addr, r1Ret.addr, operation);
+                    }
+                    else
+                    {
+                        tRet.addr = getCodePlusMinnusForIntAndFloat(rRet.addr, r1Ret.addr, operation);
+                    }
                 }
                 else
                 {
                     tRet.type = ConstType::INT;
+                    tRet.addr = getCodePlusMinnusForInt(rRet.addr, r1Ret.addr, operation);
                 }
             }
         }
@@ -964,13 +987,15 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         if (M.type == ConstType::FLOAT || M1.type == ConstType::FLOAT)
         {
             rRet.type = ConstType::FLOAT;
-            if(M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
+            if (M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
             {
-               rRet.addr = getCodeTimesOperationtForFloat(M.addr, M1.addr);
-            } else if(M.type == ConstType::INT) 
+                rRet.addr = getCodeTimesOperationtForFloat(M.addr, M1.addr);
+            }
+            else if (M.type == ConstType::INT)
             {
                 rRet.addr = getCodeTimesOperationtForFloatAndInt(M1.addr, M.addr);
-            } else 
+            }
+            else
             {
                 rRet.addr = getCodeTimesOperationtForFloatAndInt(M.addr, M1.addr);
             }
@@ -989,7 +1014,7 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
             cout << "(22-2)" << endl;
             throwIncompatibleType();
         }
-      
+
         rRet.type = ConstType::INT;
         rRet.addr = getCodeDivOperationtForInt(M.addr, M1.addr);
     }
@@ -1010,13 +1035,15 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         {
             rRet.type = ConstType::FLOAT;
 
-            if(M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
+            if (M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
             {
-               rRet.addr = getCodeDivideOperationtForFloat(M.addr, M1.addr);
-            } else if(M.type == ConstType::INT) 
+                rRet.addr = getCodeDivideOperationtForFloat(M.addr, M1.addr);
+            }
+            else if (M.type == ConstType::INT)
             {
                 rRet.addr = getCodeDivideOperationtForIntAndFloat(M.addr, M1.addr);
-            } else 
+            }
+            else
             {
                 rRet.addr = getCodeDivideOperationtForFloatAndInt(M.addr, M1.addr);
             }
@@ -1036,6 +1063,7 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
             cout << "(22-3.1)" << endl;
             throwIncompatibleType();
         }
+        rRet.addr = getCodeTimesOperationtForInt(M.addr, M1.addr);
         rRet.type = ConstType::BOOLEAN;
     }
     else if (operation == Alphabet::MOD)
@@ -1047,6 +1075,7 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
             cout << "(22-4)" << endl;
             throwIncompatibleType();
         }
+        rRet.addr = getCodeModOperationtForInt(M.addr, M1.addr);
         rRet.type = ConstType::INT;
     }
     return rRet;
@@ -1110,13 +1139,16 @@ ExpressionReturn SyntaxAnalyzer::R()
         m1Ret = M();
 
         // Semantic action 22
-        rRet = rGetReturn(mRet, m1Ret, operation);
+        rRet = rGetReturn(rRet, m1Ret, operation);
     }
 
     // If semantic action 22 has not been executed
     // Semantic action 12
     if (rRet.type == null)
+    {
         rRet.type = mRet.type;
+        rRet.type = mRet.addr;
+    }
 
     return rRet;
 }
@@ -1145,7 +1177,6 @@ ExpressionReturn SyntaxAnalyzer::M()
             mRet.type = m1Ret.type;
 
         getCodeNotExp(m1Ret.addr, m1Ret.type);
-
     }
     else if (this->token == Alphabet::INT || this->token == Alphabet::FLOAT)
     {

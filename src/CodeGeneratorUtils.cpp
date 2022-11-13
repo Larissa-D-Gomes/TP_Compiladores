@@ -235,7 +235,8 @@ long getCodeExpConst(string stringValue, int type)
     return actualMemoryPosition;
 }
 
-long getCodeNotExp(long addr, int type){
+long getCodeNotExp(long addr, int type)
+{
     long actualMemoryPosition = assemblyTempCount;
 
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor da memoria para o registrador \n";
@@ -252,7 +253,7 @@ long getCodeNotExp(long addr, int type){
  * @brief Generate code for times operation for two float
  * variables
  *
- * @param long float 1 address and float 2 address 
+ * @param long float 1 address and float 2 address
  * @return long temporary variable address
  */
 long getCodeTimesOperationtForFloat(long addr1, long addr2)
@@ -262,8 +263,8 @@ long getCodeTimesOperationtForFloat(long addr1, long addr2)
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float1 * float2\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
@@ -272,20 +273,20 @@ long getCodeTimesOperationtForFloat(long addr1, long addr2)
  * @brief Generate code for times operation for one float and one integer
  * variables
  *
- * @param long float address and integer address 
+ * @param long float address and integer address
  * @return long temporary variable address
  */
-long getCodeTimesOperationtForFloatAndInt(long addrFloat, long addrInt)
+long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float * float(int)\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
@@ -294,7 +295,7 @@ long getCodeTimesOperationtForFloatAndInt(long addrFloat, long addrInt)
  * @brief Generate code for times operation for two int
  * variables
  *
- * @param long int 1 address and int 2 address 
+ * @param long int 1 address and int 2 address
  * @return long temporary variable address
  */
 long getCodeTimesOperationtForInt(long addr1, long addr2)
@@ -314,7 +315,7 @@ long getCodeTimesOperationtForInt(long addr1, long addr2)
  * @brief Generate code for div operation for two int
  * variables
  *
- * @param long int 1 address and int 2 address 
+ * @param long int 1 address and int 2 address
  * @return long temporary variable address
  */
 long getCodeDivOperationtForInt(long addr1, long addr2)
@@ -334,7 +335,7 @@ long getCodeDivOperationtForInt(long addr1, long addr2)
  * @brief Generate code for divide operation for two float
  * variables
  *
- * @param long float 1 address and float 2 address 
+ * @param long float 1 address and float 2 address
  * @return long temporary variable address
  */
 long getCodeDivideOperationtForFloat(long addr1, long addr2)
@@ -344,8 +345,8 @@ long getCodeDivideOperationtForFloat(long addr1, long addr2)
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float1 / float2\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
@@ -354,20 +355,20 @@ long getCodeDivideOperationtForFloat(long addr1, long addr2)
  * @brief Generate code for divide operation for one float and one integer
  * variables
  *
- * @param long float address and integer address 
+ * @param long float address and integer address
  * @return long temporary variable address
  */
-long getCodeDivideOperationtForFloatAndInt(long addrFloat, long addrInt)
+long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float / float(int)\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
@@ -376,20 +377,20 @@ long getCodeDivideOperationtForFloatAndInt(long addrFloat, long addrInt)
  * @brief Generate code for divide operation for one float and one integer
  * variables
  *
- * @param long integer address and float address 
+ * @param long integer address and float address
  * @return long temporary variable address
  */
-long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat)
+long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int) / float\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
@@ -398,7 +399,7 @@ long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat)
  * @brief Generate code for divide operation for two int
  * variables
  *
- * @param long int 1 address and int 2 address 
+ * @param long int 1 address and int 2 address
  * @return long temporary variable address
  */
 long getCodeDivideOperationtForInt(long addr1, long addr2)
@@ -412,8 +413,106 @@ long getCodeDivideOperationtForInt(long addr1, long addr2)
     assemblyCmd += "\tcvtsi2ss XMM1, EBX \t\t\t; Expande int2 para float2\n";
 
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int1) / float(int2)\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::INT));
+    return actualMemoryPosition;
+}
+
+/**
+ * @brief Generate code for mod operation for two int
+ * variables
+ *
+ * @param long int 1 address and int 2 address
+ * @return long temporary variable address
+ */
+long getCodeModOperationtForInt(long addr1, long addr2)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+
+    assemblyCmd += "\tidiv EBX \t\t\t; int1 mod int2\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EDX \t\t\t; Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::INT));
+    return actualMemoryPosition;
+}
+
+long getCodePlusMinnusForFloat(long addr1, long addr2, int operation)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
+
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1 + float2\n";
+    } else{
+        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1 - float2\n";
+    }
     
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::FLOAT));
+    return actualMemoryPosition;
+}
+
+long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+
+    // Type conversion
+    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
+
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1 + float2(int)\n";
+    } else{
+        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1 - float2(int)\n";
+    }
+    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::FLOAT));
+    return actualMemoryPosition;
+}
+
+long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+
+    // Type conversion
+    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
+
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1(int) + float2\n";
+    } else{
+        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1(int) - float2\n";
+    }
+    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::FLOAT));
+    return actualMemoryPosition;
+}
+
+long getCodePlusMinnusForInt(long addr1, long addr2, int operation)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\tadd EAX, EBX  \t\t\t; int1 + int2\n";
+    } else{
+        assemblyCmd += "\tsub EAX, EBX  \t\t\t; int1 - int2\n";
+    }
+
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+
     newTemp(getTypeMemSize(ConstType::INT));
     return actualMemoryPosition;
 }
