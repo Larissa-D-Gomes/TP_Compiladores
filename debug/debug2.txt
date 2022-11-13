@@ -1,4 +1,4 @@
-const a = 10;
+/*const a = 10;
 int a1 := 10;
 const f = 15.0;
 float f1 := 12.0;
@@ -16,4 +16,9 @@ f1 := .50;
 s1 := "euqerobolean";
 b1 := false;
 
-b1 := !b1;
+b1 := !b1;*/
+
+float f1 := 12.0;
+int x :=10;
+f1 := f1 / x ;
+

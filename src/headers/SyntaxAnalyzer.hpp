@@ -189,7 +189,7 @@ public:
      * @param operation 
      * @return int 
      */
-    ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn M1, int operation);
+    ExpressionReturn rGetReturn(ExpressionReturn M, ExpressionReturn M1, int operation);
 
     /**
      * @brief Variable R of the L Language Grammar

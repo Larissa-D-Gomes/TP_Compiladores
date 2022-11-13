@@ -69,3 +69,19 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue);
 long getCodeExpConst(string lexeme, int const);
 
 long getCodeNotExp(long addr, int type);
+
+long getCodeTimesOperationtForFloat(long addr1, long addr2);
+
+long getCodeTimesOperationtForFloatAndInt(long addrFloat, long addrInt);
+
+long getCodeTimesOperationtForInt(long addr1, long addr2);
+
+long getCodeDivOperationtForInt(long addr1, long addr2);
+
+long getCodeDivideOperationtForFloat(long addr1, long addr2);
+
+long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat);
+
+long getCodeDivideOperationtForFloatAndInt(long addrFloat, long addrInt);
+
+long getCodeDivideOperationtForInt(long addr1, long addr2);

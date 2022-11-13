@@ -964,19 +964,21 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         if (M.type == ConstType::FLOAT || M1.type == ConstType::FLOAT)
         {
             rRet.type = ConstType::FLOAT;
-
             if(M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
             {
-                // Metodo para dois floats
-            } else if(M.type == ConstType::INT) {
-                // Metodo para UM floats m, m1
-            } else {
-                // Metodo para UM floats m1, m 
+               rRet.addr = getCodeTimesOperationtForFloat(M.addr, M1.addr);
+            } else if(M.type == ConstType::INT) 
+            {
+                rRet.addr = getCodeTimesOperationtForFloatAndInt(M1.addr, M.addr);
+            } else 
+            {
+                rRet.addr = getCodeTimesOperationtForFloatAndInt(M.addr, M1.addr);
             }
         }
         else
         {
             rRet.type = ConstType::INT;
+            rRet.addr = getCodeTimesOperationtForInt(M.addr, M1.addr);
         }
     }
     else if (operation == Alphabet::DIV)
@@ -987,14 +989,15 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
             cout << "(22-2)" << endl;
             throwIncompatibleType();
         }
-        else
-            rRet.type = ConstType::INT;
+      
+        rRet.type = ConstType::INT;
+        rRet.addr = getCodeDivOperationtForInt(M.addr, M1.addr);
     }
     else if (operation == Alphabet::DIVIDE)
     {
         // Impossible to execute a divide operation with types different
         // of int and float
-        if ((M.type != ConstType::INT && M1.type != ConstType::FLOAT) ||
+        if ((M.type != ConstType::INT && M.type != ConstType::FLOAT) ||
             (M1.type != ConstType::INT && M1.type != ConstType::FLOAT))
         {
             cout << "(22-3.0)" << endl;
@@ -1004,9 +1007,25 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         // If divide operation contains a float, change the operation
         // type to float
         if (M.type == ConstType::FLOAT || M1.type == ConstType::FLOAT)
+        {
             rRet.type = ConstType::FLOAT;
+
+            if(M.type == ConstType::FLOAT && M1.type == ConstType::FLOAT)
+            {
+               rRet.addr = getCodeDivideOperationtForFloat(M.addr, M1.addr);
+            } else if(M.type == ConstType::INT) 
+            {
+                rRet.addr = getCodeDivideOperationtForIntAndFloat(M.addr, M1.addr);
+            } else 
+            {
+                rRet.addr = getCodeDivideOperationtForFloatAndInt(M.addr, M1.addr);
+            }
+        }
         else
-            rRet.type = ConstType::INT;
+        {
+            rRet.type = ConstType::FLOAT;
+            rRet.addr = getCodeDivideOperationtForInt(M.addr, M1.addr);
+        }
     }
     else if (operation == Alphabet::AND)
     {
