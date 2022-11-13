@@ -279,10 +279,10 @@ long getCodeTimesOperationtForFloatAndInt(long addrFloat, long addrInt)
 {
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float * float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
     
@@ -361,10 +361,10 @@ long getCodeDivideOperationtForFloatAndInt(long addrFloat, long addrInt)
 {
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float / float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
     
@@ -383,10 +383,10 @@ long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat)
 {
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addrFloat) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrInt) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int) / float\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
     
@@ -404,11 +404,12 @@ long getCodeDivideOperationtForIntAndFloat(long addrInt, long addrFloat)
 long getCodeDivideOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador RAX\n";
-    assemblyCmd += "\tmov RBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador RBX\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int1 para float1\n";
-    assemblyCmd += "\tcvtsi2ss XMM1, RBX \t\t\t; Expande int2 para float2\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int1 para float1\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, EBX \t\t\t; Expande int2 para float2\n";
 
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int1) / float(int2)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition)+ " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
