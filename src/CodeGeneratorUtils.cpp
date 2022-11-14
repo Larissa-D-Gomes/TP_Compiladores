@@ -249,6 +249,7 @@ long getCodeNotExp(long addr, int type)
     return actualMemoryPosition;
 }
 
+// R OPERATIONS
 /**
  * @brief Generate code for times operation for two float
  * variables
@@ -443,6 +444,7 @@ long getCodeModOperationtForInt(long addr1, long addr2)
     return actualMemoryPosition;
 }
 
+// T OPERATIONS
 long getCodePlusMinnusForFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
@@ -546,16 +548,47 @@ long getCodeForOR(long addr1, long addr2){
     return actualMemoryPosition;
 }
 
-///
+// EXP OPERATIONS
+long getCodeCmpForCharAndChar(long addr1, long addr2, int operation){
+    // TODO
+}
 
-long getCodeCmpForFloat(long addr1, long addr2, int operation)
+long getCodeCmpForIntAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
 
-    assemblyCmd += getCmpCodeFloat(operation);
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\tadd EAX, EBX  \t\t\t; int1 + int2\n";
+    } else{
+        assemblyCmd += "\tsub EAX, EBX  \t\t\t; int1 - int2\n";
+    }
+
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::INT));
+    return actualMemoryPosition;
+}
+
+long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
+{
+    long actualMemoryPosition = assemblyTempCount;
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+    // Type conversion
+    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
     
+    if(operation == Alphabet::PLUS){
+        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1(int) + float2\n";
+    } else{
+        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1(int) - float2\n";
+    }
+    
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::FLOAT));
     return actualMemoryPosition;
 }
 
@@ -581,47 +614,13 @@ long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation)
     return actualMemoryPosition;
 }
 
-long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
+long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
-    // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
-    
-    if(operation == Alphabet::PLUS){
-        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1(int) + float2\n";
-    } else{
-        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1(int) - float2\n";
-    }
-    
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
-    newTemp(getTypeMemSize(ConstType::FLOAT));
-    return actualMemoryPosition;
-}
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
-long getCodeCmpForInt(long addr1, long addr2, int operation)
-{
-    long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
-
-    if(operation == Alphabet::PLUS){
-        assemblyCmd += "\tadd EAX, EBX  \t\t\t; int1 + int2\n";
-    } else{
-        assemblyCmd += "\tsub EAX, EBX  \t\t\t; int1 - int2\n";
-    }
-
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
-
-    newTemp(getTypeMemSize(ConstType::INT));
-    return actualMemoryPosition;
-}
-
-string getCmpCodeFloat(int operation){
-    long actualMemoryPosition = assemblyTempCount;
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
@@ -651,7 +650,6 @@ string getCmpCodeFloat(int operation){
         assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 != float2\n";
     }  
 
-
     assemblyCmd += "mov EAX, 0 ; Define registrador como falso";
     assemblyCmd += "jmp " + labelEnd;
 
@@ -661,6 +659,55 @@ string getCmpCodeFloat(int operation){
     assemblyCmd += labelEnd + ":";
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
 
-
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+    
+    return actualMemoryPosition;
 }
+
+long getCodeCmpForStringAndString(long addr1, long addr2, int operation){
+    // TODO
+}
+
+// string getCmpCodeFloat(int operation){
+//     long actualMemoryPosition = assemblyTempCount;
+//     string labelTrue = getNextAssemblyLabel();
+//     string labelEnd = getNextAssemblyLabel();
+
+//     assemblyCmd += "\tcomiss XMM0, XMM1  \t\t\t; compara float1 com float2\n";
+//     // =
+//     if(operation == Alphabet::EQUAL){
+//         assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 = float2\n";
+//     } 
+//     // >
+//     else if (operation == Alphabet::GREATERTHAN){
+//         assemblyCmd += "\tja " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 > float2\n";
+//     }  
+//     // >=
+//     else if (operation == Alphabet::GREATEREQUAL){
+//         assemblyCmd += "\tjae " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 >= float2\n";
+//     }
+//     // <
+//     else if (operation == Alphabet::LESSTHAN){
+//         assemblyCmd += "\tjb " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 < float2\n";
+//     }
+//     // <=
+//     else if (operation == Alphabet::LESSEQUAL){
+//         assemblyCmd += "\tjbe " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 <= float2\n";
+//     }    
+//     // !=
+//     else if (operation == Alphabet::NOTEQUAL){
+//         assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 != float2\n";
+//     }  
+
+//     assemblyCmd += "mov EAX, 0 ; Define registrador como falso";
+//     assemblyCmd += "jmp " + labelEnd;
+
+//     assemblyCmd += labelTrue + ":";
+//     assemblyCmd += "mov EAX, 1 ; Define registrador como true";
+
+//     assemblyCmd += labelEnd + ":";
+//     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+
+//     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+//     return assemblyCmd;
+// }

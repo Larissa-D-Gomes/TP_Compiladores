@@ -97,3 +97,17 @@ long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation);
 long getCodePlusMinnusForInt(long addr1, long addr2, int operation);
 
 long getCodeForOR(long addr1, long addr2);
+
+
+// EXP OPERATIONS
+long getCodeCmpForCharAndChar(long addr1, long addr2, int operation);
+
+long getCodeCmpForIntAndInt(long addr1, long addr2, int operation);
+
+long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation);
+
+long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation);
+
+long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation);
+
+long getCodeCmpForStringAndString(long addr1, long addr2, int operation);

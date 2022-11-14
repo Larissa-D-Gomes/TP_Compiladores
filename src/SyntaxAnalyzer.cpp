@@ -719,6 +719,8 @@ void SyntaxAnalyzer::BLOCK()
 ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionReturn T1, int operation)
 {
     ExpressionReturn tRet;
+
+    // CHAR OPERATIONS
     if (T.type == ConstType::CHAR && T1.type != ConstType::CHAR)
     {
         cout << "(26-1)" << endl;
@@ -731,9 +733,11 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if ((T.type == ConstType::CHAR && T1.type == ConstType::CHAR))
     {
-
-        // Char cmp Char
+        // TODO: CHAR cmp CHAR
+        tRet.addr = getCodeCmpForCharAndChar(T.addr,T1.addr, operation);  
     }
+
+    // INT X FLOAT OPERATIONS
     else if (T.type == ConstType::INT && (T1.type != ConstType::INT && T1.type != ConstType::FLOAT))
     {
         cout << "(26-3)" << endl;
@@ -756,20 +760,25 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::INT)
     {
-        // INT cmp INT
+        // TODO: INT cmp INT
+        tRet.addr = getCodeCmpForIntAndInt(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::FLOAT)
     {
-        // INT cmp FLOAT
+        // TODO: INT cmp FLOAT
+        tRet.addr = getCodeCmpForIntAndFloat(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::INT)
     {
-        // FLOAT cmp INT
+        // TODO: FLOAT cmp INT
+        tRet.addr = getCodeCmpForFloatAndInt(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::FLOAT)
     {
-        // FLOAT cmp FLOAT
+        tRet.addr = getCodeCmpForFloatAndFloat(T.addr,T1.addr, operation);
     }
+    
+    // STRINGS OPERATIONS - ONLY =
     else if ((T.type == ConstType::STRING || T1.type == ConstType::STRING) && operation != Alphabet::EQUAL)
     {
         cout << "(26-7)" << endl;
@@ -787,8 +796,11 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if (T.type != ConstType::STRING && T1.type == ConstType::STRING)
     {
-        // STRING cmp STRING 
+        // TODO: STRING cmp STRING
+        tRet.addr = getCodeCmpForStringAndString(T.addr,T1.addr, operation);  
     }
+
+    // BOOLEAN OPERATIONS - CANNOT DO
     else if (T.type == ConstType::BOOLEAN || T1.type == ConstType::BOOLEAN)
     {
         cout << "(26-10)" << endl;
