@@ -13,13 +13,13 @@ _start:                       ; Inicio do programa
 	mov [ M + 0 ], EAX 			; Move registrador para posicao atual de memoria em [0]
 	mov EAX, [ M + 65540 ] 			; Move o valor de int 1 da memoria para o registrador EAX
 	mov EBX, [ M + 0 ] 			; Move o valor de int 2 da memoria para o registrador EBX
-	imul EBX 			; int1 * int2
+	add EAX, EBX  			; int1 + int2
 	mov [ M + 4 ], EAX 			; Salva resultado em temporario
 	mov EAX, 1			; Move Inteiro imediato para registrador
 	mov [ M + 8 ], EAX 			; Move registrador para posicao atual de memoria em [8]
 	mov EAX, [ M + 4 ] 			; Move o valor de int 1 da memoria para o registrador EAX
 	mov EBX, [ M + 8 ] 			; Move o valor de int 2 da memoria para o registrador EBX
-	idiv EBX 			; int1 div int2
+	sub EAX, EBX  			; int1 - int2
 	mov [ M + 12 ], EAX 			; Salva resultado em temporario
 ; Halt
 mov rax, 60                   ; Chamada de saida

@@ -881,6 +881,8 @@ ExpressionReturn SyntaxAnalyzer::T()
         assemblyCmd += "\tmov [M + " + to_string(rRet.addr) + "], EAX \t\t\t; Guarda valor negado no endereco original\n";
     }
 
+    tRet = rRet;
+
     while (this->token == Alphabet::PLUS || this->token == Alphabet::MINNUS || this->token == Alphabet::OR)
     {
         if (this->token == Alphabet::PLUS)
@@ -907,40 +909,40 @@ ExpressionReturn SyntaxAnalyzer::T()
         // Semantic Action 24
         if (operation == Alphabet::PLUS || operation == Alphabet::MINNUS)
         {
-            if ((rRet.type != ConstType::INT && rRet.type != ConstType::FLOAT) || (r1Ret.type != ConstType::INT && r1Ret.type != ConstType::FLOAT))
+            if ((tRet.type != ConstType::INT && tRet.type != ConstType::FLOAT) || (r1Ret.type != ConstType::INT && r1Ret.type != ConstType::FLOAT))
             {
                 cout << "(24-1)" << endl;
                 throwIncompatibleType();
             }
             else
             {
-                if (rRet.type == ConstType::FLOAT || r1Ret.type == ConstType::FLOAT)
+                if (tRet.type == ConstType::FLOAT || r1Ret.type == ConstType::FLOAT)
                 {
                     tRet.type = ConstType::FLOAT;
 
-                    if (rRet.type == ConstType::FLOAT && r1Ret.type == ConstType::FLOAT)
+                    if (tRet.type == ConstType::FLOAT && r1Ret.type == ConstType::FLOAT)
                     {
-                        tRet.addr = getCodePlusMinnusForFloat(rRet.addr, r1Ret.addr, operation);
+                        tRet.addr = getCodePlusMinnusForFloat(tRet.addr, r1Ret.addr, operation);
                     }
-                    else if (rRet.type == ConstType::INT)
+                    else if (tRet.type == ConstType::INT)
                     {
-                        tRet.addr = getCodePlusMinnusForFloatAndInt(rRet.addr, r1Ret.addr, operation);
+                        tRet.addr = getCodePlusMinnusForFloatAndInt(tRet.addr, r1Ret.addr, operation);
                     }
                     else
                     {
-                        tRet.addr = getCodePlusMinnusForIntAndFloat(rRet.addr, r1Ret.addr, operation);
+                        tRet.addr = getCodePlusMinnusForIntAndFloat(tRet.addr, r1Ret.addr, operation);
                     }
                 }
                 else
                 {
                     tRet.type = ConstType::INT;
-                    tRet.addr = getCodePlusMinnusForInt(rRet.addr, r1Ret.addr, operation);
+                    tRet.addr = getCodePlusMinnusForInt(tRet.addr, r1Ret.addr, operation);
                 }
             }
         }
         else if (operation == Alphabet::OR)
         {
-            if (rRet.type != ConstType::BOOLEAN || r1Ret.type != ConstType::BOOLEAN)
+            if (tRet.type != ConstType::BOOLEAN || r1Ret.type != ConstType::BOOLEAN)
             {
                 cout << "(24-2)" << endl;
                 throwIncompatibleType();

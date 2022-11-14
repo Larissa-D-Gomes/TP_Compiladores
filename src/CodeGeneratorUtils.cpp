@@ -281,9 +281,10 @@ long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2)
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
+  
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float * float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
@@ -363,9 +364,9 @@ long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2)
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float / float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
@@ -385,9 +386,9 @@ long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";   
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int) / float\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
@@ -405,12 +406,15 @@ long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
 long getCodeDivideOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
 
-    // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int1 para float1\n";
-    assemblyCmd += "\tcvtsi2ss XMM1, EBX \t\t\t; Expande int2 para float2\n";
+     // Type conversion
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int1 para float1\n";
+    
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int2 para float2\n";
 
     assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int1) / float(int2)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
@@ -462,9 +466,10 @@ long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation)
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-
+    
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
 
     if(operation == Alphabet::PLUS){
         assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1 + float2(int)\n";
@@ -483,10 +488,10 @@ long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation)
     long actualMemoryPosition = assemblyTempCount;
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-
+    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
-
+    
     if(operation == Alphabet::PLUS){
         assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1(int) + float2\n";
     } else{
