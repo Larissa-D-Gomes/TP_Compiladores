@@ -111,3 +111,7 @@ long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation);
 long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation);
 
 long getCodeCmpForStringAndString(long addr1, long addr2, int operation);
+
+string getCmpCodeFloat(int operation);
+
+string getCmpCodeInt(int operation);
