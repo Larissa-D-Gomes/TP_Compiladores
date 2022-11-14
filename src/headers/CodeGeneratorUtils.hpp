@@ -95,3 +95,5 @@ long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation);
 long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation);
 
 long getCodePlusMinnusForInt(long addr1, long addr2, int operation);
+
+long getCodeForOR(long addr1, long addr2);

@@ -712,62 +712,90 @@ void SyntaxAnalyzer::BLOCK()
 /**
  * @brief Verify if type conversation is accepted
  *
- * @param tType
- * @param t1Type
+ * @param T
+ * @param T1
  * @param operation
  */
-void SyntaxAnalyzer::verifyTypesForT(int tType, int t1Type, int operation)
+ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionReturn T1, int operation)
 {
-    if (tType == ConstType::CHAR && t1Type != ConstType::CHAR)
+    ExpressionReturn tRet;
+    if (T.type == ConstType::CHAR && T1.type != ConstType::CHAR)
     {
         cout << "(26-1)" << endl;
         throwIncompatibleType();
     }
-    else if (tType != ConstType::CHAR && t1Type == ConstType::CHAR)
+    else if (T.type != ConstType::CHAR && T1.type == ConstType::CHAR)
     {
         cout << "(26-2)" << endl;
         throwIncompatibleType();
     }
-    else if (tType == ConstType::INT && (t1Type != ConstType::INT && t1Type != ConstType::FLOAT))
+    else if ((T.type == ConstType::CHAR && T1.type == ConstType::CHAR))
+    {
+
+        // Char cmp Char
+    }
+    else if (T.type == ConstType::INT && (T1.type != ConstType::INT && T1.type != ConstType::FLOAT))
     {
         cout << "(26-3)" << endl;
         throwIncompatibleType();
     }
-    else if ((tType != ConstType::INT && tType != ConstType::FLOAT) && t1Type == ConstType::INT)
+    else if ((T.type != ConstType::INT && T.type != ConstType::FLOAT) && T1.type == ConstType::INT)
     {
         cout << "(26-4)" << endl;
         throwIncompatibleType();
     }
-    else if (tType == ConstType::FLOAT && (t1Type != ConstType::INT && t1Type != ConstType::FLOAT))
+    else if (T.type == ConstType::FLOAT && (T1.type != ConstType::INT && T1.type != ConstType::FLOAT))
     {
         cout << "(26-5)" << endl;
         throwIncompatibleType();
     }
-    else if ((tType != ConstType::INT && tType != ConstType::FLOAT) && t1Type == ConstType::FLOAT)
+    else if ((T.type != ConstType::INT && T.type != ConstType::FLOAT) && T1.type == ConstType::FLOAT)
     {
         cout << "(26-6)" << endl;
         throwIncompatibleType();
     }
-    else if ((tType == ConstType::STRING || t1Type == ConstType::STRING) && operation != Alphabet::EQUAL)
+    else if (T.type == ConstType::INT && T1.type == ConstType::INT)
+    {
+        // INT cmp INT
+    }
+    else if (T.type == ConstType::INT && T1.type == ConstType::FLOAT)
+    {
+        // INT cmp FLOAT
+    }
+    else if (T.type == ConstType::FLOAT && T1.type == ConstType::INT)
+    {
+        // FLOAT cmp INT
+    }
+    else if (T.type == ConstType::FLOAT && T1.type == ConstType::FLOAT)
+    {
+        // FLOAT cmp FLOAT
+    }
+    else if ((T.type == ConstType::STRING || T1.type == ConstType::STRING) && operation != Alphabet::EQUAL)
     {
         cout << "(26-7)" << endl;
         throwIncompatibleType();
     }
-    else if (tType == ConstType::STRING && t1Type != ConstType::STRING)
+    else if (T.type == ConstType::STRING && T1.type != ConstType::STRING)
     {
         cout << "(26-8)" << endl;
         throwIncompatibleType();
     }
-    else if (tType != ConstType::STRING && t1Type == ConstType::STRING)
+    else if (T.type != ConstType::STRING && T1.type == ConstType::STRING)
     {
         cout << "(26-9)" << endl;
         throwIncompatibleType();
     }
-    else if (tType == ConstType::BOOLEAN || t1Type == ConstType::BOOLEAN)
+    else if (T.type != ConstType::STRING && T1.type == ConstType::STRING)
+    {
+        // STRING cmp STRING 
+    }
+    else if (T.type == ConstType::BOOLEAN || T1.type == ConstType::BOOLEAN)
     {
         cout << "(26-10)" << endl;
         throwIncompatibleType();
     }
+
+    return tRet;
 }
 
 /**
@@ -783,6 +811,7 @@ ExpressionReturn SyntaxAnalyzer::EXP()
 
     // Semantic Action 37
     expRet.type = tRet.type;
+    expRet.addr = tRet.addr;
 
     while (this->token == Alphabet::EQUAL ||
            this->token == Alphabet::NOTEQUAL ||
@@ -830,7 +859,7 @@ ExpressionReturn SyntaxAnalyzer::EXP()
         t1Ret = T();
 
         // Semantic action 26
-        verifyTypesForT(tRet.type, t1Ret.type, operation);
+        verifyTypesForT(tRet, t1Ret, operation);
         tRet.type = ConstType::BOOLEAN;
     }
 
@@ -949,6 +978,7 @@ ExpressionReturn SyntaxAnalyzer::T()
             }
             else
             {
+                tRet.addr = getCodeForOR(tRet.addr, r1Ret.addr);
                 tRet.type = ConstType::BOOLEAN;
             }
         }

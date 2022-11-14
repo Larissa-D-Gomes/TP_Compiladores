@@ -174,7 +174,7 @@ public:
      * @param t1Type 
      * @param operation 
      */
-    void verifyTypesForT(int tType, int t1Type, int operation);
+    ExpressionReturn verifyTypesForT(ExpressionReturn T, ExpressionReturn T1, int operation);
 
     /**
      * @brief Variable T of the L Language Grammar

@@ -29,6 +29,6 @@ f2 :=  + 13.0 - 1;
 */
 
 
-int f1 := 14;
-int f2 := 12;
-f1 := f2 + 13 - 1;
+boolean b1 := true;
+boolean b2 := false;
+b2 := b1 || b2 || b1 || true; 
