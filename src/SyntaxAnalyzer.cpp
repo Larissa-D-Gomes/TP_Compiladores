@@ -297,12 +297,14 @@ void SyntaxAnalyzer::DEC()
         symbolTable->setAddr(this->regLex.lexeme, nextFreePosition);
         memoryAlocation(size);
 
+        long addrID = symbolTable->getAddr(this->regLex.lexeme);
+
         matchToken(Alphabet::ID);
 
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-            deconstRet = DECONST(false);
+            deconstRet = DECONST(true);
 
             // Semantic Action 8
             if (type == ConstType::INT && deconstRet.type != ConstType::INT)
@@ -310,25 +312,63 @@ void SyntaxAnalyzer::DEC()
                 cout << "(8.1-1)" << endl;
                 throwIncompatibleType();
             }
+
+            // ATRIB INT X INT
+            else if (type == ConstType::INT && deconstRet.type == ConstType::INT)
+            {
+                getCodeAtribIntAndInt(addrID, deconstRet.addr);
+            }
+
             if (type == ConstType::FLOAT && (deconstRet.type != ConstType::INT && deconstRet.type != ConstType::FLOAT))
             {
                 cout << "(8.1-2)" << endl;
                 throwIncompatibleType();
             }
+
+            // ATRIB FLOAT X FLOAT
+            else if (type == ConstType::FLOAT && deconstRet.type == ConstType::FLOAT)
+            {
+                getCodeAtribFloatAndFloat(addrID, deconstRet.addr);
+            }
+            // ATRIB FLOAT X INT
+            else if (type == ConstType::FLOAT && deconstRet.type == ConstType::INT)
+            {
+                getCodeAtribFloatAndInt(addrID, deconstRet.addr);
+            }
+
             if (type == ConstType::STRING && deconstRet.type != ConstType::STRING)
             {
                 cout << "(8.1-3)" << endl;
                 throwIncompatibleType();
             }
+
+            // ATRIB STRING
+            else if (type == ConstType::STRING && deconstRet.type == ConstType::STRING)
+            {
+                getCodeAtribStringAndString(addrID, deconstRet.addr);
+            }
+
             if (type == ConstType::BOOLEAN && deconstRet.type != ConstType::BOOLEAN)
             {
                 cout << "(8.1-4)" << endl;
                 throwIncompatibleType();
             }
+
+            // ATRIB BOOLEAN X BOOLEAN
+            else if (type == ConstType::BOOLEAN && deconstRet.type == ConstType::BOOLEAN)
+            {
+                getCodeAtribBooleanAndBoolean(addrID, deconstRet.addr);
+            }
+
             if (type == ConstType::CHAR && deconstRet.type != ConstType::CHAR)
             {
                 cout << "(8.1-5)" << endl;
                 throwIncompatibleType();
+            }
+            // ATRIB CHAR
+            else if (type == ConstType::CHAR && deconstRet.type == ConstType::CHAR)
+            {
+                getCodeAtribCharAndChar(addrID, deconstRet.addr);
             }
         }
 
@@ -351,7 +391,7 @@ void SyntaxAnalyzer::DEC()
             if (this->token == Alphabet::ATRIB)
             {
                 matchToken(Alphabet::ATRIB);
-                deconstRet = DECONST(false);
+                deconstRet = DECONST(true);
 
                 // Semantic Action 8
                 if (type == ConstType::INT && deconstRet.type != ConstType::INT)
@@ -359,25 +399,61 @@ void SyntaxAnalyzer::DEC()
                     cout << "(8-1)" << endl;
                     throwIncompatibleType();
                 }
+
+                // ATRIB INT X INT
+                else if (type == ConstType::INT && deconstRet.type == ConstType::INT)
+                {
+                    getCodeAtribIntAndInt(addrID, deconstRet.addr);
+                }
+
                 if (type == ConstType::FLOAT && (deconstRet.type != ConstType::INT || deconstRet.type != ConstType::FLOAT))
                 {
                     cout << "(8-2)" << endl;
                     throwIncompatibleType();
                 }
+                // ATRIB FLOAT X FLOAT
+                else if (type == ConstType::FLOAT && deconstRet.type == ConstType::FLOAT)
+                {
+                    getCodeAtribFloatAndFloat(addrID, deconstRet.addr);
+                }
+                // ATRIB FLOAT X INT
+                else if (type == ConstType::FLOAT && deconstRet.type == ConstType::INT)
+                {
+                    getCodeAtribFloatAndInt(addrID, deconstRet.addr);
+                }
+
                 if (type == ConstType::STRING && deconstRet.type != ConstType::STRING)
                 {
                     cout << "(8-3)" << endl;
                     throwIncompatibleType();
                 }
+
+                // ATRIB STRING X STRING
+                else if (type == ConstType::STRING && deconstRet.type == ConstType::STRING)
+                {
+                    getCodeAtribStringAndString(addrID, deconstRet.addr);
+                }
+
                 if (type == ConstType::BOOLEAN && deconstRet.type != ConstType::BOOLEAN)
                 {
                     cout << "(8-4)" << endl;
                     throwIncompatibleType();
                 }
+
+                // ATRIB BOOLEAN X BOOLEAN
+                else if (type == ConstType::BOOLEAN && deconstRet.type == ConstType::BOOLEAN)
+                {
+                    getCodeAtribBooleanAndBoolean(addrID, deconstRet.addr);
+                }
                 if (type == ConstType::CHAR && deconstRet.type != ConstType::CHAR)
                 {
                     cout << "(8-5)" << endl;
                     throwIncompatibleType();
+                }
+                // ATRIB CHAR
+                else if (type == ConstType::CHAR && deconstRet.type == ConstType::CHAR)
+                {
+                    getCodeAtribCharAndChar(addrID, deconstRet.addr);
                 }
             }
         }
@@ -418,8 +494,8 @@ void SyntaxAnalyzer::DEC()
  */
 void SyntaxAnalyzer::ATR()
 {
-    ExpressionReturn expRet;
-    int typeID = null;
+    ExpressionReturn expRet, exp1Ret;
+    int typeID = null, addrID = null;
     bool isStringPos = false;
 
     // Semantic Action 3
@@ -436,6 +512,7 @@ void SyntaxAnalyzer::ATR()
     }
 
     typeID = symbolTable->getType(regLex.lexeme);
+    addrID = symbolTable->getAddr(regLex.lexeme);
 
     matchToken(Alphabet::ID);
 
@@ -451,9 +528,9 @@ void SyntaxAnalyzer::ATR()
         matchToken(Alphabet::OPENBRACKET);
 
         // Semantic Action 9
-        expRet = EXP();
+        exp1Ret = EXP();
 
-        if (expRet.type != ConstType::INT)
+        if (exp1Ret.type != ConstType::INT)
         {
             cout << "(9)" << endl;
             throwIncompatibleType();
@@ -474,6 +551,11 @@ void SyntaxAnalyzer::ATR()
         cout << "(33)" << endl;
         throwIncompatibleType();
     }
+    // ATRIB CHAR
+    else if (isStringPos && expRet.type == ConstType::CHAR)
+    {
+        getCodeAtribStringPos(addrID, exp1Ret.addr, expRet.addr);
+    }
 
     // Semantic Action 10
     if (typeID == ConstType::INT && expRet.type != ConstType::INT)
@@ -482,29 +564,63 @@ void SyntaxAnalyzer::ATR()
         cout << "(10-1)" << endl;
         throwIncompatibleType();
     }
+    // ATRIB INT X INT
+    else if (typeID == ConstType::INT && expRet.type == ConstType::INT)
+    {
+        getCodeAtribIntAndInt(addrID, expRet.addr);
+    }
+
     if (typeID == ConstType::FLOAT && (expRet.type != ConstType::FLOAT && expRet.type != ConstType::INT))
     {
         // Incompatible type
         cout << "(10-2)" << endl;
         throwIncompatibleType();
     }
+    // ATRIB FLOAT X FLOAT
+    else if (typeID == ConstType::FLOAT && expRet.type == ConstType::FLOAT)
+    {
+        getCodeAtribFloatAndFloat(addrID, expRet.addr);
+    }
+    // ATRIB FLOAT X INT
+    else if (typeID == ConstType::FLOAT && expRet.type == ConstType::INT)
+    {
+        getCodeAtribFloatAndInt(addrID, expRet.addr);
+    }
+
     if (!isStringPos && typeID == ConstType::STRING && expRet.type != ConstType::STRING)
     {
         // Incompatible type
         cout << "(10-3)" << endl;
         throwIncompatibleType();
     }
+    // ATRIB STRING
+    else if (!isStringPos && typeID == ConstType::STRING && expRet.type == ConstType::STRING)
+    {
+        getCodeAtribStringAndString(addrID, expRet.addr);
+    }
+
     if (typeID == ConstType::BOOLEAN && expRet.type != ConstType::BOOLEAN)
     {
         // Incompatible type
         cout << "(10-4)" << endl;
         throwIncompatibleType();
     }
+    // ATRIB BOOLEAN X BOOLEAN
+    else if (typeID == ConstType::BOOLEAN && expRet.type == ConstType::BOOLEAN)
+    {
+        getCodeAtribBooleanAndBoolean(addrID, expRet.addr);
+    }
+
     if (typeID == ConstType::CHAR && expRet.type != ConstType::CHAR)
     {
         // Incompatible type
         cout << "(10-5)" << endl;
         throwIncompatibleType();
+    }
+    // ATRIB CHAR
+    else if (typeID == ConstType::CHAR && expRet.type == ConstType::CHAR)
+    {
+        getCodeAtribCharAndChar(addrID, expRet.addr);
     }
 }
 
@@ -530,7 +646,7 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
 
         if (isNewConst)
         {
-            deconstRet.addr = getCodeDeconst(hasMinnus, deconstRet.type, this->regLex.lexeme);
+            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
@@ -563,7 +679,8 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
  */
 void SyntaxAnalyzer::CMD() // Language commands
 {
-    ExpressionReturn parRet;
+    ExpressionReturn parRet, expRet;
+    bool isWriteLn = false;
 
     if (this->token == Alphabet::WHILE) // WHILE(){}
     {
@@ -642,16 +759,32 @@ void SyntaxAnalyzer::CMD() // Language commands
         else if (this->token == Alphabet::WRITELN) // WRITELN(EXP {, EXP}*)
         {
             matchToken(Alphabet::WRITELN);
+            isWriteLn = true;
         }
 
         matchToken(Alphabet::OPENPAR);
-        EXP();
+
+        expRet = EXP();
+        cout << "=-=-=-=" << expRet.type << "=-=-=-=" << endl;
+        getCodeWrite(expRet.addr, expRet.type);
+        if (isWriteLn)
+        {
+            // TODO
+            getCodeBreakLine();
+        }
 
         while (this->token == Alphabet::COMMA)
         {
             matchToken(Alphabet::COMMA);
-            EXP();
+            expRet = EXP();
+            getCodeWrite(expRet.addr, expRet.type);
         };
+
+        if (isWriteLn)
+        {
+            // TODO
+            getCodeBreakLine();
+        }
 
         matchToken(Alphabet::CLOSEPAR);
         matchToken(Alphabet::SEMICOLON);
@@ -733,7 +866,7 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if ((T.type == ConstType::CHAR && T1.type == ConstType::CHAR))
     {
-        tRet.addr = getCodeCmpForCharAndChar(T.addr,T1.addr, operation);  
+        tRet.addr = getCodeCmpForCharAndChar(T.addr, T1.addr, operation);
     }
 
     // INT X FLOAT OPERATIONS
@@ -759,21 +892,21 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::INT)
     {
-        tRet.addr = getCodeCmpForIntAndInt(T.addr,T1.addr, operation);
+        tRet.addr = getCodeCmpForIntAndInt(T.addr, T1.addr, operation);
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::FLOAT)
     {
-        tRet.addr = getCodeCmpForIntAndFloat(T.addr,T1.addr, operation);
+        tRet.addr = getCodeCmpForIntAndFloat(T.addr, T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::INT)
     {
-        tRet.addr = getCodeCmpForFloatAndInt(T.addr,T1.addr, operation);
+        tRet.addr = getCodeCmpForFloatAndInt(T.addr, T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::FLOAT)
     {
-        tRet.addr = getCodeCmpForFloatAndFloat(T.addr,T1.addr, operation);
+        tRet.addr = getCodeCmpForFloatAndFloat(T.addr, T1.addr, operation);
     }
-    
+
     // STRINGS OPERATIONS - ONLY =
     else if ((T.type == ConstType::STRING || T1.type == ConstType::STRING) && operation != Alphabet::EQUAL)
     {
@@ -792,7 +925,7 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if (T.type == ConstType::STRING && T1.type == ConstType::STRING)
     {
-        tRet.addr = getCodeCmpForStringAndString(T.addr,T1.addr, operation);  
+        tRet.addr = getCodeCmpForStringAndString(T.addr, T1.addr, operation);
     }
 
     // BOOLEAN OPERATIONS - CANNOT DO
@@ -1262,7 +1395,6 @@ ExpressionReturn SyntaxAnalyzer::M()
         }
 
         matchToken(Alphabet::ID);
-
         if (this->token == Alphabet::OPENBRACKET)
         {
             // Semantic Action 31
@@ -1282,6 +1414,10 @@ ExpressionReturn SyntaxAnalyzer::M()
                 cout << "(9)" << endl;
                 throwIncompatibleType();
             }
+
+            cout << constTypeToString(mRet.type) << endl;
+            mRet.addr = getCodeAccessStringPosition(mRet.addr, expRet.addr);
+            lexID = ConstType::CHAR;
 
             matchToken(Alphabet::CLOSEBRACKET);
         }
@@ -1319,7 +1455,7 @@ ExpressionReturn SyntaxAnalyzer::M()
 
         matchToken(Alphabet::CLOSEPAR);
     }
-
+    cout << "=-=-=-=" << constTypeToString(mRet.type) << "=-=-=-=" << endl;
     return mRet;
 }
 

@@ -1,2 +1,6 @@
-boolean b1;
-b1 := "str" = "string1";
+string teste := "123";
+writeln(teste[4]); 
+/*
+
+char c := 'c';
+write(c);*/

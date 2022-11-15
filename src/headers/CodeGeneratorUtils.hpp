@@ -54,15 +54,26 @@ void memoryAlocation(long memSize);
 
 string getNextAssemblyLabel();
 
-string getCodeWrite(long addr, int type);
-
-string getCodeWriteStr(long addr, int type);
-
 int newTemp(int memSize);
 
 void resetTempCounter();
 
 long getTypeMemSize(int type);
+
+void getCodeBreakLine();
+
+// WRITE / WRITELN
+void getCodeWrite(long addr, int type);
+
+void getCodeWriteStr(long addr);
+
+void getCodeWriteChar(long addr);
+
+void getCodeWriteInt(long addr);
+
+void getCodeWriteFloat(long addr);
+
+void getCodeWriteBoolean(long addr);
 
 long getCodeDeconst(bool hasMinnus, int type, string stringValue);
 
@@ -98,7 +109,6 @@ long getCodePlusMinnusForInt(long addr1, long addr2, int operation);
 
 long getCodeForOR(long addr1, long addr2);
 
-
 // EXP OPERATIONS
 long getCodeCmpForCharAndChar(long addr1, long addr2, int operation);
 
@@ -115,3 +125,19 @@ long getCodeCmpForStringAndString(long addr1, long addr2, int operation);
 string getCmpCodeFloat(int operation);
 
 string getCmpCodeInt(int operation);
+
+long getCodeAccessStringPosition(long addrString, long addrIndex);
+
+void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib);
+
+void getCodeAtribIntAndInt(long addr1, long addr2);
+
+void getCodeAtribFloatAndFloat(long addr1, long addr2);
+
+void getCodeAtribFloatAndInt(long addr1, long addr2);
+
+void getCodeAtribStringAndString(long addr1, long addr2);
+
+void getCodeAtribBooleanAndBoolean(long addr1, long addr2);
+
+void getCodeAtribCharAndChar(long addr1, long addr2);
