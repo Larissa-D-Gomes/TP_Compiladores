@@ -733,7 +733,6 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if ((T.type == ConstType::CHAR && T1.type == ConstType::CHAR))
     {
-        // TODO: CHAR cmp CHAR
         tRet.addr = getCodeCmpForCharAndChar(T.addr,T1.addr, operation);  
     }
 
@@ -760,17 +759,14 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::INT)
     {
-        // TODO: INT cmp INT
         tRet.addr = getCodeCmpForIntAndInt(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::FLOAT)
     {
-        // TODO: INT cmp FLOAT
         tRet.addr = getCodeCmpForIntAndFloat(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::INT)
     {
-        // TODO: FLOAT cmp INT
         tRet.addr = getCodeCmpForFloatAndInt(T.addr,T1.addr, operation);
     }
     else if (T.type == ConstType::FLOAT && T1.type == ConstType::FLOAT)
@@ -794,9 +790,8 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
         cout << "(26-9)" << endl;
         throwIncompatibleType();
     }
-    else if (T.type != ConstType::STRING && T1.type == ConstType::STRING)
+    else if (T.type == ConstType::STRING && T1.type == ConstType::STRING)
     {
-        // TODO: STRING cmp STRING
         tRet.addr = getCodeCmpForStringAndString(T.addr,T1.addr, operation);  
     }
 

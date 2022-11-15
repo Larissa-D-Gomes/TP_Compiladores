@@ -1,2 +1,2 @@
-boolean b1 := true;
-b1 := 1 > 2; 
+boolean b1;
+b1 := "str" = "string1";

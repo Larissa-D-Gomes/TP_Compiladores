@@ -595,7 +595,7 @@ string getCmpCodeInt(int operation){
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    assemblyCmd += "\tcomiss EAX, EBX  \t\t\t; compara int1 com int2\n";
+    assemblyCmd += "\tcmp EAX, EBX  \t\t\t; compara int1 com int2\n";
     // =
     if(operation == Alphabet::EQUAL){
         assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 = int2\n";
@@ -633,7 +633,52 @@ string getCmpCodeInt(int operation){
 }
 
 long getCodeCmpForCharAndChar(long addr1, long addr2, int operation){
-    // TODO
+    
+    long actualMemoryPosition = assemblyTempCount;
+
+    string labelTrue = getNextAssemblyLabel();
+    string labelEnd = getNextAssemblyLabel();
+
+    assemblyCmd += "\tmov AL, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de char 1 da memoria para o registrador EAX\n";
+    assemblyCmd += "\tmov BL, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de char 2 da memoria para o registrador EBX\n";
+    assemblyCmd += "\tcmp AL, BL \t\t\t ; compara caracteres";
+    
+    if(operation == Alphabet::EQUAL){
+        assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 = int2\n";
+    } 
+    // >
+    else if (operation == Alphabet::GREATERTHAN){
+        assemblyCmd += "\tjg " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 > int2\n";
+    }  
+    // >=
+    else if (operation == Alphabet::GREATEREQUAL){
+        assemblyCmd += "\tjge " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 >= int2\n";
+    }
+    // <
+    else if (operation == Alphabet::LESSTHAN){
+        assemblyCmd += "\tjl " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 < int2\n";
+    }
+    // <=
+    else if (operation == Alphabet::LESSEQUAL){
+        assemblyCmd += "\tjle " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 <= int2\n";
+    }    
+    // !=
+    else if (operation == Alphabet::NOTEQUAL){
+        assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 != int2\n";
+    }  
+
+    assemblyCmd += "\tmov EAX, 0 ; Define registrador como falso\n";
+    assemblyCmd += "\tjmp " + labelEnd;
+
+    assemblyCmd += "\n"+ labelTrue + ":\n";
+    assemblyCmd += "\tmov EAX, 1 ; Define registrador como true\n";
+
+    assemblyCmd += labelEnd + ":\n";
+    
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::BOOLEAN));
+    return actualMemoryPosition;
 }
 
 long getCodeCmpForIntAndInt(long addr1, long addr2, int operation)
@@ -645,7 +690,7 @@ long getCodeCmpForIntAndInt(long addr1, long addr2, int operation)
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
 
-    newTemp(getTypeMemSize(ConstType::INT));
+    newTemp(getTypeMemSize(ConstType::BOOLEAN));
     return actualMemoryPosition;
 }
 
@@ -656,7 +701,7 @@ long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
     assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int para float\n";
     getCmpCodeFloat(operation);
     
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
@@ -692,11 +737,52 @@ long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation)
     getCmpCodeFloat(operation);
 
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
-    
     return actualMemoryPosition;
 }
 
 long getCodeCmpForStringAndString(long addr1, long addr2, int operation){
-    // TODO
+    long actualMemoryPosition = assemblyTempCount;
+
+    string labelStartLoop = getNextAssemblyLabel();
+    string labelEndLoop = getNextAssemblyLabel();
+    string labelFalse = getNextAssemblyLabel();
+    string labelTrue = getNextAssemblyLabel();
+    string labelEnd = getNextAssemblyLabel();
+
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr1) + " ; Movendo string1 da memória para registrador\n";
+    assemblyCmd += "\tmov RAX, RSI ; Copiando endereço da string1 para um registrador de índice\n";
+    assemblyCmd += "\tmov RDI, M + " + to_string(addr2) + " ; Movendo string2 da memória para registrador\n";
+    assemblyCmd += "\tmov RBX, RDI ; Copiando endereço da string2 para um registrador de índice\n";
+
+    assemblyCmd += labelStartLoop + ": ; Inicio do loop\n";
+    assemblyCmd += "\tmov AL, [RAX] ; Leitura de caracter na posicao RAX da memória\n";
+    assemblyCmd += "\tmov BL, [RBX] ; Leitura de caracter na posicao RBX da memória\n";
+    assemblyCmd += "\tcmp AL, 0 ; Verificação de flag de fim de string\n";
+    assemblyCmd += "\tje " + labelEndLoop + " \n ; Se caracter lido = flag de fim de string finalizar loop\n";
+
+    assemblyCmd += "\tcmp AL, BL ; Verificação de igualdade de caracter\n";
+    assemblyCmd += "\tjne " + labelFalse + " \n ; Se string1[i] != string2[i]\n";
+    assemblyCmd += "\tadd RAX, 1 ; Incrementando numero de caracteres\n";
+    assemblyCmd += "\tadd RBX, 1 ; Incrementando numero de caracteres\n";
+    assemblyCmd += "\tjmp " + labelStartLoop + "  ; Se caracter lido != flag de fim de string continuar loop\n";
+
+    assemblyCmd += labelEndLoop + ": ; Fim do loop\n";
+    assemblyCmd += "\tcmp BL, 0 ; Verificação de flag de fim de string\n";
+
+    assemblyCmd += "\tje " + labelTrue + " \n ; Se caracter lido = flag de fim de string finalizar loop\n";
+
+    assemblyCmd += "\n"+ labelFalse + ":\n";
+    assemblyCmd += "\tmov EAX, 0 ; Define registrador como falso\n";
+    assemblyCmd += "\tjmp " + labelEnd;
+
+    assemblyCmd += "\n"+ labelTrue + ":\n";
+    assemblyCmd += "\tmov EAX, 1 ; Define registrador como true\n";
+
+    assemblyCmd += labelEnd + ":\n";
+    
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+
+    newTemp(getTypeMemSize(ConstType::BOOLEAN));
+    return actualMemoryPosition;
 }
 

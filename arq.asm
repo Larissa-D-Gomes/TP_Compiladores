@@ -4,24 +4,40 @@ M:                            ; Rotulo para demarcar o
 	resb 0x10000              ; Reserva de temporarios
    ; ***Definicoes de variaveis e constantes
 	resb 1			; Declaracao Var Boolean em [65536]
+	db "str",0			; Declaracao String EXP em [65540]
+	db "string1",0			; Declaracao String EXP em [65796]
 section .text                 ; Sessao de codigo
 global _start                 ; Ponto inicial do programa
 _start:                       ; Inicio do programa
    ; ***Comandos
-	mov EAX, 1			; Move Inteiro imediato para registrador
-	mov [ M + 0 ], EAX 			; Move registrador para posicao atual de memoria em [0]
-	mov EAX, 2			; Move Inteiro imediato para registrador
-	mov [ M + 4 ], EAX 			; Move registrador para posicao atual de memoria em [4]
-	mov EAX, [ M + 0 ] 			; Move o valor de int 1 da memoria para o registrador EAX
-	mov EBX, [ M + 4 ] 			; Move o valor de int 2 da memoria para o registrador EBX
-	comiss EAX, EBX  			; compara int1 com int2
-	jg L1			; salta para L1 se int1 > int2
+	mov RSI, M + 65540 ; Movendo string1 da memória para registrador
+	mov RAX, RSI ; Copiando endereço da string1 para um registrador de índice
+	mov RDI, M + 65796 ; Movendo string2 da memória para registrador
+	mov RBX, RDI ; Copiando endereço da string2 para um registrador de índice
+L1: ; Inicio do loop
+	mov AL, [RAX] ; Leitura de caracter na posicao RAX da memória
+	mov BL, [RBX] ; Leitura de caracter na posicao RBX da memória
+	cmp AL, 0 ; Verificação de flag de fim de string
+	je L2 
+ ; Se caracter lido = flag de fim de string finalizar loop
+	cmp AL, BL ; Verificação de igualdade de caracter
+	jne L3 
+ ; Se string1[i] != string2[i]
+	add RAX, 1 ; Incrementando numero de caracteres
+	add RBX, 1 ; Incrementando numero de caracteres
+	jmp L1  ; Se caracter lido != flag de fim de string continuar loop
+L2: ; Fim do loop
+	cmp BL, 0 ; Verificação de flag de fim de string
+	je L4 
+ ; Se caracter lido = flag de fim de string finalizar loop
+
+L3:
 	mov EAX, 0 ; Define registrador como falso
-	jmp L2
-L1:
+	jmp L5
+L4:
 	mov EAX, 1 ; Define registrador como true
-L2:
-	mov [ M + 8 ], EAX 			; Salva resultado em temporario
+L5:
+	mov [ M + 0 ], EAX 			; Salva resultado em temporario
 ; Halt
 mov rax, 60                   ; Chamada de saida
 mov rdi, 0                    ; Codigo de saida sem erros
