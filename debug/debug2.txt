@@ -1,6 +1,4 @@
-string teste := "123";
-writeln(teste[4]); 
-/*
+int s;
 
-char c := 'c';
-write(c);*/
+readln(s);
+writeln(s+s);

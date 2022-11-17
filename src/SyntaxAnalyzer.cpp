@@ -515,9 +515,11 @@ void SyntaxAnalyzer::ATR()
     addrID = symbolTable->getAddr(regLex.lexeme);
 
     matchToken(Alphabet::ID);
+    bool isToResetTemp = true;
 
     if (this->token == Alphabet::OPENBRACKET)
     {
+        isToResetTemp = false;
         // Semantic Action 31
         if (typeID != ConstType::STRING)
         {
@@ -528,7 +530,7 @@ void SyntaxAnalyzer::ATR()
         matchToken(Alphabet::OPENBRACKET);
 
         // Semantic Action 9
-        exp1Ret = EXP();
+        exp1Ret = EXP(true);
 
         if (exp1Ret.type != ConstType::INT)
         {
@@ -543,7 +545,7 @@ void SyntaxAnalyzer::ATR()
     }
 
     matchToken(Alphabet::ATRIB);
-    expRet = EXP();
+    expRet = EXP(isToResetTemp);
 
     // Semantic Action 33
     if (isStringPos && expRet.type != ConstType::CHAR)
@@ -746,6 +748,8 @@ void SyntaxAnalyzer::CMD() // Language commands
             throwIncompatibleClass(regLex.lexeme);
         }
 
+        getCodeRead(symbolTable->getAddr(regLex.lexeme), symbolTable->getType(regLex.lexeme));
+
         matchToken(Alphabet::ID);
         matchToken(Alphabet::CLOSEPAR);
         matchToken(Alphabet::SEMICOLON);
@@ -764,26 +768,20 @@ void SyntaxAnalyzer::CMD() // Language commands
 
         matchToken(Alphabet::OPENPAR);
 
-        expRet = EXP();
-        cout << "=-=-=-=" << expRet.type << "=-=-=-=" << endl;
+        expRet = EXP(true);
         getCodeWrite(expRet.addr, expRet.type);
-        if (isWriteLn)
-        {
-            // TODO
-            getCodeBreakLine();
-        }
 
         while (this->token == Alphabet::COMMA)
         {
             matchToken(Alphabet::COMMA);
-            expRet = EXP();
+            expRet = EXP(true);
             getCodeWrite(expRet.addr, expRet.type);
+
         };
 
         if (isWriteLn)
         {
-            // TODO
-            getCodeBreakLine();
+            getCodeWriteLineBr();
         }
 
         matchToken(Alphabet::CLOSEPAR);
@@ -801,7 +799,7 @@ ExpressionReturn SyntaxAnalyzer::PAR()
     matchToken(Alphabet::OPENPAR);
 
     // Semantic Action 27
-    parRet = EXP();
+    parRet = EXP(true);
     matchToken(Alphabet::CLOSEPAR);
 
     return parRet;
@@ -941,9 +939,12 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
 /**
  * @brief Variable EXP of the L Language Grammar
  */
-ExpressionReturn SyntaxAnalyzer::EXP()
+ExpressionReturn SyntaxAnalyzer::EXP(bool isToResetTemp)
 {
-    resetTempCounter();
+    if(isToResetTemp)
+    {
+        resetTempCounter();
+    }
     ExpressionReturn expRet, tRet, t1Ret;
     int operation = null;
 
@@ -999,12 +1000,13 @@ ExpressionReturn SyntaxAnalyzer::EXP()
         t1Ret = T();
 
         // Semantic action 26
-        verifyTypesForT(tRet, t1Ret, operation);
+        tRet.addr = verifyTypesForT(tRet, t1Ret, operation).addr;
         tRet.type = ConstType::BOOLEAN;
     }
 
     // Semantic Action 14
     expRet.type = tRet.type;
+    expRet.addr = tRet.addr;
 
     return expRet;
 }
@@ -1365,7 +1367,7 @@ ExpressionReturn SyntaxAnalyzer::M()
             convType = ConstType::FLOAT;
         }
         matchToken(Alphabet::OPENPAR);
-        expRet = EXP();
+        expRet = EXP(true);
 
         // Semantic Action 17
         if (expRet.type != ConstType::INT && expRet.type != ConstType::FLOAT)
@@ -1407,7 +1409,7 @@ ExpressionReturn SyntaxAnalyzer::M()
             matchToken(Alphabet::OPENBRACKET);
 
             // Semantic Action 9
-            expRet = EXP();
+            expRet = EXP(true);
 
             if (expRet.type != ConstType::INT)
             {
@@ -1451,11 +1453,10 @@ ExpressionReturn SyntaxAnalyzer::M()
     {
         matchToken(Alphabet::OPENPAR);
         // Semantic Action 36
-        mRet = EXP();
+        mRet = EXP(true);
 
         matchToken(Alphabet::CLOSEPAR);
     }
-    cout << "=-=-=-=" << constTypeToString(mRet.type) << "=-=-=-=" << endl;
     return mRet;
 }
 
@@ -1464,6 +1465,7 @@ ExpressionReturn SyntaxAnalyzer::M()
  */
 void SyntaxAnalyzer::parser()
 {
+    
     // Call the Lexical Analyzer to get first token
     this->regLex = lexicalAnalyzer();
 

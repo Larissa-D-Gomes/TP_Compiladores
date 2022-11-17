@@ -165,7 +165,7 @@ public:
     /**
      * @brief Variable EXP of the L Language Grammar
      */
-    ExpressionReturn EXP();
+    ExpressionReturn EXP(bool isToResetTemp);
 
     /**
      * @brief Verify if type conversation is accepted

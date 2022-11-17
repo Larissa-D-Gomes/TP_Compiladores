@@ -34,6 +34,8 @@ extern string assemblyCmd;
 extern int assemblyLabel;
 // Assembly Temp counter
 extern int assemblyTempCount;
+extern long addrStringTrue;
+extern long addrStringFalse;
 
 /**
  * @brief Struct to return address and type for variables 
@@ -60,10 +62,10 @@ void resetTempCounter();
 
 long getTypeMemSize(int type);
 
-void getCodeBreakLine();
-
 // WRITE / WRITELN
 void getCodeWrite(long addr, int type);
+
+void getCodeWriteLineBr();
 
 void getCodeWriteStr(long addr);
 
@@ -141,3 +143,12 @@ void getCodeAtribStringAndString(long addr1, long addr2);
 void getCodeAtribBooleanAndBoolean(long addr1, long addr2);
 
 void getCodeAtribCharAndChar(long addr1, long addr2);
+
+// READLN
+void getCodeRead(long addr, int type);
+
+void getCodeReadStr(long addr);
+
+void getCodeReadFloat(long addr);
+
+void getCodeReadInt(long addr);
