@@ -34,8 +34,6 @@ extern string assemblyCmd;
 extern int assemblyLabel;
 // Assembly Temp counter
 extern int assemblyTempCount;
-extern long addrStringTrue;
-extern long addrStringFalse;
 
 /**
  * @brief Struct to return address and type for variables 
@@ -81,6 +79,10 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue);
 
 long getCodeExpConst(string lexeme, int const);
 
+// M OPERATIONS
+
+long getCodeCasting(long addr, int convType);
+
 long getCodeNotExp(long addr, int type);
 
 long getCodeTimesOperationtForFloat(long addr1, long addr2);
@@ -124,9 +126,9 @@ long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation);
 
 long getCodeCmpForStringAndString(long addr1, long addr2, int operation);
 
-string getCmpCodeFloat(int operation);
+void getCmpCodeFloat(int operation);
 
-string getCmpCodeInt(int operation);
+void getCmpCodeInt(int operation);
 
 long getCodeAccessStringPosition(long addrString, long addrIndex);
 
@@ -152,3 +154,15 @@ void getCodeReadStr(long addr);
 void getCodeReadFloat(long addr);
 
 void getCodeReadInt(long addr);
+
+// Conditional Operations
+string getCodeOpenIf(long addr);
+
+void getCodeCloseBlockIf(string label);
+
+string getCodeOpenElse(long addr);
+
+// While Operations
+void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop);
+
+void getCodeCloseBlockWhile(string labelFalse, string labelLoop);
