@@ -177,6 +177,8 @@ void getCodeWriteInt(long addr)
     string labelEndLoop = getNextAssemblyLabel();
 
     assemblyCmd += "\n\t; -- WRITE INT --\n";
+    assemblyCmd += "\tmov EAX, 0 ; Zera registrador\n";
+    assemblyCmd += "\tmov RSI, 0 ; Zera registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Inteiro a ser ;convertido\n";
     assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; End. string ou temp.\n";
     assemblyCmd += "\tmov RCX, 0 \t\t\t ; Contador pilha\n";
@@ -194,13 +196,13 @@ void getCodeWriteInt(long addr)
     assemblyCmd += "\tadd RCX, 1 \t\t\t ; Incrementa contador\n";
     assemblyCmd += "\tcdq \t\t\t ; Estende EDX:EAX p/ div.\n";
     assemblyCmd += "\tidiv EBX \t\t\t ; Divide EDX;EAX por EBX\n";
-    assemblyCmd += "\tpush DX \t\t\t ; Empilha valor do resto\n";
+    assemblyCmd += "\tpush RDX \t\t\t ; Empilha valor do resto\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Verifica se quoc. é 0\n";
     assemblyCmd += "\tjne " + label1 + " \t\t\t ; Se não é 0, continua\n";
     assemblyCmd += "\tadd RDI, RCX \t\t\t ; Atualiza tam. string\n";
     assemblyCmd += "\t; Agora, desemp. os valores e escreve o string\n";
     assemblyCmd += "\t" + label2 + ":\n";
-    assemblyCmd += "\tpop DX \t\t\t ; Desempilha valor\n";
+    assemblyCmd += "\tpop RDX \t\t\t ; Desempilha valor\n";
     assemblyCmd += "\tadd DL, \'0\' \t\t\t ; Transforma em caractere\n";
     assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
     assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
@@ -275,13 +277,13 @@ void getCodeWriteFloat(long addr)
     assemblyCmd += "\tadd RCX, 1 \t\t\t ; Incrementa contador\n";
     assemblyCmd += "\tcdq \t\t\t ; Estende EDX:EAX p/ div.\n";
     assemblyCmd += "\tidiv EBX \t\t\t ; Divide EDX;EAX por EBX\n";
-    assemblyCmd += "\tpush DX \t\t\t ; Empilha valor do resto\n";
+    assemblyCmd += "\tpush RDX \t\t\t ; Empilha valor do resto\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Verifica se quoc. é 0\n";
     assemblyCmd += "\tjne " + label1 + " \t\t\t ; Se não é 0, continua\n";
     assemblyCmd += "\tsub RDI, RCX \t\t\t;decrementa precisao\n";
     assemblyCmd += "\t; Agora, desemp valores e escreve parte int\n";
     assemblyCmd += label2 + ":\n";
-    assemblyCmd += "\tpop DX \t\t\t ; Desempilha valor\n";
+    assemblyCmd += "\tpop RDX \t\t\t ; Desempilha valor\n";
     assemblyCmd += "\tadd DL, \'0\' \t\t\t ; Transforma em caractere\n";
     assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
     assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
@@ -428,7 +430,7 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue)
 
     if (type == ConstType::CHAR)
     {
-        assemblyDec += "\tdb " + stringValue + ", 1 \t\t\t ; Declaracao Const Char em [ " + to_string(actualMemoryPosition) + " ]\n";
+        assemblyDec += "\tdb " + stringValue + ", 1 \t\t\t ; Declaracao Const Char em [" + to_string(actualMemoryPosition) + "]\n";
     }
     else if (type == ConstType::INT)
     {
@@ -537,6 +539,7 @@ long getCodeExpConst(string stringValue, int type)
         }
         else if (type == ConstType::CHAR)
         {
+            cout << to_string(actualMemoryPosition) << endl;
             assemblyCmd += "\n\t; -- CONST CHAR -- \n";
             assemblyCmd += "\tmov AL, " + stringValue + " \t\t\t ; Move Char imediato para registrador\n";
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t ; Move registrador para memoria temporaria\n";
@@ -1574,7 +1577,7 @@ void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
 void getCodeAtribCharAndChar(long addr1, long addr2)
 {
     assemblyCmd += "\n\t; -- ATRIB CHAR := CHAR -- \n";
-    assemblyCmd += "\tmov AL, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificadorg da memoria\n";
+    assemblyCmd += "\tmov AL, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , AL \t\t\t ; Salva valor do registrador no endereco do ID\n";
     assemblyCmd += "\t; -- END ATRIB CHAR := CHAR -- \n";
 }
@@ -1645,17 +1648,17 @@ void getCodeReadInt(long addr)
     assemblyCmd += "\tmov EAX, 0 \t\t\t ; Acumulador\n";
     assemblyCmd += "\tmov EBX, 0 \t\t\t ; Caractere\n";
     assemblyCmd += "\tmov ECX, 10 \t\t\t ; Base 10\n";
-    assemblyCmd += "\tmov DX, 1 \t\t\t ; Sinal\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t ; Sinal\n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; End. buffer\n";
     assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
     assemblyCmd += "\tcmp BL, \'-\' \t\t\t ; Sinal - ?\n";
     assemblyCmd += "\tjne " + label0 + " \t\t\t ; Se dif -, Salta\n";
-    assemblyCmd += "\tmov DX, -1 \t\t\t ; Senão, armazena -\n";
+    assemblyCmd += "\tmov RDX, -1 \t\t\t ; Senão, armazena -\n";
     assemblyCmd += "\tadd RSI, 1 \t\t\t ; Inc. ponteiro string\n";
     assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
 
     assemblyCmd += "" + label0 + ":\n";
-    assemblyCmd += "\tpush DX \t\t\t ; Empilha sinal\n";
+    assemblyCmd += "\tpush RDX \t\t\t ; Empilha sinal\n";
     assemblyCmd += "\tmov EDX, 0 \t\t\t ; Reg. multiplicação\n";
 
     assemblyCmd += "" + label1 + ":\n";
@@ -1888,6 +1891,12 @@ void getCodeConditionWhile(long addr, string labelFalse)
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do while\n";
 }
 
+/**
+ * @brief Generate code for init of while 
+ *
+ * @param string labelFalse (Label end of while)
+ * @param string labelLoop (Label begin of while)
+ */
 void getCodeInitWhile(string &labelFalse, string &labelLoop)
 {
     // Label end of while

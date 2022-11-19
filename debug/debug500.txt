@@ -1,0 +1,31 @@
+int n, i1, i2, res;
+/*char op;*/
+
+/*while(true){
+    write("Digite o primeiro numero inteiro: ");
+    readln(i1);
+    write("Digite a operacao (+,-,*,d,m,/): ");
+    readln(op);
+    write("Digite o primeiro numero inteiro: ");
+    readln(i2);
+    if((op = 'd') || (op ='m') && (i2 = 0)) writeln("Operacao por 9");
+    else {
+        if (op = '+') res := i1 + i2;
+        else if (op = '-') res := i1 - i2;
+        else if (op = '*') res := i1 * i2;
+        else if (op = 'd') res := i1 div i2;
+        else if (op = 'm') res := i1 mod i2;
+        else if (op = '/') res := int(i1 / i2);
+    }
+
+    writeln("Resultado: ", res);
+}
+*/
+
+    /*write("Digite o primeiro numero inteiro: ");*/
+    /*readln(i1);*/
+    /*write("Digite o primeiro numero inteiro: ");*/
+    /*readln(i2);
+    res := i1 + i2;*/
+
+    writeln(10);

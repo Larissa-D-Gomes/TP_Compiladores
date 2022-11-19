@@ -551,6 +551,17 @@ void getCodeConditionWhile(long addr, string labelFalse);
  */
 void getCodeCloseBlockWhile(string labelFalse, string labelLoop);
 
+/**
+ * @brief Generate code for init of while 
+ *
+ * @param string labelFalse (Label end of while)
+ * @param string labelLoop (Label begin of while)
+ */
 void getCodeInitWhile(string &labelFalse, string &labelLoop);
 
+/**
+ * @brief Generate code for begin of a while block
+ *
+ * @param addr address of a boolean expression
+ */
 void getCodeConditionWhile(long addr);

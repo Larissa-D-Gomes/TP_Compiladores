@@ -293,7 +293,7 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-            deconstRet = DECONST(true);
+            deconstRet = DECONST(false);
 
             // Semantic Action 8
             if (type == ConstType::INT && deconstRet.type != ConstType::INT)
@@ -414,7 +414,7 @@ void SyntaxAnalyzer::DEC()
             if (this->token == Alphabet::ATRIB)
             {
                 matchToken(Alphabet::ATRIB);
-                deconstRet = DECONST(true);
+                deconstRet = DECONST(false);
 
                 // Semantic Action 8
                 if (type == ConstType::INT && deconstRet.type != ConstType::INT)
@@ -668,6 +668,8 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
         if (isNewConst)
         {
             deconstRet.addr = getCodeDeconst(hasMinnus,  deconstRet.type, this->regLex.lexeme);
+        } else{
+            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
@@ -1076,9 +1078,10 @@ ExpressionReturn SyntaxAnalyzer::T()
 
     if (hasMinus)
     {
+        assemblyCmd += "\tmov EAX, 0 \t\t\t ; Zera EAX\n ";
         assemblyCmd += "\tmov EAX, [M + " + to_string(rRet.addr) + "] \t\t\t; Move o valor da memoria para o registrador EAX\n";
         assemblyCmd += "\tneg EAX \t\t\t; Nega o valor do registrador EAX\n";
-        assemblyCmd += "\tmov [M + " + to_string(rRet.addr) + "], EAX \t\t\t; Guarda valor negado no endereco original\n";
+        assemblyCmd += "\tmov [ M + " + to_string(rRet.addr) + "], EAX \t\t\t; Guarda valor negado no endereco original\n";
     }
 
     tRet = rRet;
@@ -1617,7 +1620,7 @@ void SyntaxAnalyzer::parser()
 
     S();
 
-    if(isToUsePeephole)
+    if(!isToUsePeephole)
     {
         peephole();
     }

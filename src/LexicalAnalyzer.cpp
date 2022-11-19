@@ -28,6 +28,8 @@
 
 using namespace std;
 
+//bool isReadingString = false;
+
 /**
  * @brief Execute state 0 transition actions
  *
@@ -80,6 +82,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         // Go from state 0 to state 7
         transitionReturn.nextState = 7;
         transitionReturn.lexemeConcat = lexeme + c;
+        //isReadingString = false;
     }
     // String constants path
     else if (c == '\"')
@@ -87,6 +90,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         // Go from state 0 to state 9
         transitionReturn.nextState = 9;
         transitionReturn.lexemeConcat = lexeme + c;
+        //isReadingString = true;
     }
     // Div operator or Comments path
     else if (c == '/')
@@ -452,6 +456,7 @@ TransitionReturn stateEightTransition(string lexeme, char c)
         // Create lexical register to CHAR CONSTANT
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::CHAR, 1);
         transitionReturn.lexicalReg = lexicalRegister;
+        //isReadingString = false;
     }
     // Throw exception when character was not identified
     else
@@ -493,6 +498,7 @@ TransitionReturn stateNineTransition(string lexeme, char c)
         // Create lexical register to STRING CONSTANT
         LexicalRegister lexicalRegister(transitionReturn.lexemeConcat, Alphabet::CONSTANT, null, ConstType::STRING, 256);
         transitionReturn.lexicalReg = lexicalRegister;
+        //isReadingString = false;
     }
     // Throw exception when string was not identified
     else
@@ -838,7 +844,10 @@ LexicalRegister lexicalAnalyzer()
     {
         if (cursor != eof)
         {
-            c = tolower(program[cursor++]);
+            //if(!isReadingString)
+            //{
+                c = tolower(program[cursor++]);
+            //}
 
             if (!isValidChar(c))
             {
