@@ -154,7 +154,7 @@ void getCodeWriteInt(long addr)
     string label1 = getNextAssemblyLabel();
     string label2 = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov eax, [ M + " + to_string(addr) + "] \t\t\t; inteiro a ser ;convertido\n";
+    assemblyCmd += "\tmov eax, [ M + " + to_string(addr) + " ] \t\t\t; inteiro a ser ;convertido\n";
     assemblyCmd += "\tmov rsi, M + " + to_string(actualMemoryPosition) + " \t\t\t ; end. string ou temp.\n";
     assemblyCmd += "\tmov rcx, 0 \t\t\t ; contador pilha\n";
     assemblyCmd += "\tmov rdi, 0 \t\t\t ; tam. string convertido\n";
@@ -199,7 +199,7 @@ void getCodeWriteFloat(long addr)
     string label4 = getNextAssemblyLabel();
 
     assemblyCmd += "; WRITE FLOAT\n";
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + "] \t\t\t;real a ser convertido\n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t;real a ser convertido\n";
     assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t; end. temporário\n";
     assemblyCmd += "\tmov RCX, 0 \t\t\t;contador pilha\n";
     assemblyCmd += "\tmov rdi, 6 \t\t\t;precisao 6 casas compart\n";
@@ -256,9 +256,9 @@ void getCodeWriteFloat(long addr)
     assemblyCmd += "\tmov dl, 0 \t\t\t;fim string, opcional\n";
     assemblyCmd += "\tmov [RSI], dl \t\t\t;escreve caractere\n";
     assemblyCmd += "\tmov rdx, RSI ;calc tam str convertido\n";
-    assemblyCmd += "\tmov rbx, M+" + to_string(actualMemoryPosition) + "\n";
+    assemblyCmd += "\tmov rbx, M + " + to_string(actualMemoryPosition) + "\n";
     assemblyCmd += "\tsub rdx, rbx \t\t\t;tam=RSI-M-buffer.end\n";
-    assemblyCmd += "\tmov RSI, M+" + to_string(actualMemoryPosition) + " \t\t\t; endereço do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t; endereço do buffer\n";
 
     assemblyCmd += "\tmov RAX, 1 ; Chamada para saída\n";
     assemblyCmd += "\tmov RDI, 1 ; Chamada para tela\n";
@@ -1107,7 +1107,7 @@ long getCodeAccessStringPosition(long addrString, long addrIndex)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\tmov EBX, [ M +" + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
     assemblyCmd += "\tadd EBX, M + " + to_string(addrString) + " \t\t\t ; Soma indice com valor de memoria da string\n";
     assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
 
@@ -1126,7 +1126,7 @@ long getCodeAccessStringPosition(long addrString, long addrIndex)
  */
 void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
 {
-    assemblyCmd += "\tmov EAX, [ M +" + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
     assemblyCmd += "\tmov EBX, M + " + to_string(addrAtrib) + " \t\t\t ; Move endereco de memoria da string para registrador RSI\n";
     assemblyCmd += "\tmov ECX, M + " + to_string(addrID) + " \t\t\t ; Move endereco de memoria da string para registrador RSI\n";
     assemblyCmd += "\tadd EAX, ECX \t\t\t ; Adiciona indice ao endereco inicial da memoria\n";
@@ -1142,8 +1142,8 @@ void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
  */
 void getCodeAtribIntAndInt(long addr1, long addr2)
 {
-    assemblyCmd += "\tmov EAX, [ M +" + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmov [M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
+    assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
 }
 
 /**
@@ -1153,8 +1153,8 @@ void getCodeAtribIntAndInt(long addr1, long addr2)
  */
 void getCodeAtribFloatAndFloat(long addr1, long addr2)
 {
-    assemblyCmd += "\tmovss XMM0, [ M +" + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmovss [M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
 }
 
 /**
@@ -1164,7 +1164,7 @@ void getCodeAtribFloatAndFloat(long addr1, long addr2)
  */
 void getCodeAtribFloatAndInt(long addr1, long addr2)
 {
-    assemblyCmd += "\tmov RAX, [ M +" + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
+    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte int para float\n";
@@ -1207,8 +1207,8 @@ void getCodeAtribStringAndString(long addr1, long addr2)
  */
 void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
 {
-    assemblyCmd += "\tmov EAX, [ M +" + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmov [M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
+    assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
 }
 
 /**
@@ -1218,7 +1218,7 @@ void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
  */
 void getCodeAtribCharAndChar(long addr1, long addr2)
 {
-    assemblyCmd += "\tmov AL, [ M +" + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificadorg da memoria\n";
+    assemblyCmd += "\tmov AL, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificadorg da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , AL \t\t\t ; Salva valor do registrador no endereco do ID\n";
 }
 
@@ -1235,7 +1235,7 @@ void getCodeReadStr(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M+" + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
@@ -1275,7 +1275,7 @@ void getCodeReadInt(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M+" + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
@@ -1315,7 +1315,7 @@ void getCodeReadInt(long addr)
     assemblyCmd += "\tneg EAX \t\t\t;mult. sinal\n";
 
     assemblyCmd += labelEnd + ":\n";
-    assemblyCmd += "\tmov [M+" + to_string(addr) + "], EAX \t\t\t; Carrega o valor para o indentificador\n";
+    assemblyCmd += "\tmov [ M + " + to_string(addr) + " ], EAX \t\t\t; Carrega o valor para o indentificador\n";
 }
 
 /**
@@ -1336,7 +1336,7 @@ void getCodeReadFloat(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M+" + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
@@ -1350,7 +1350,7 @@ void getCodeReadFloat(long addr)
     assemblyCmd += "\tcvtsi2ss XMM3, RCX \t\t\t;base 10\n";
     assemblyCmd += "\tmovss XMM2, XMM3 \t\t\t;potência de 10\n";
     assemblyCmd += "\tmov RDX, 1 \t\t\t;sinal\n";
-    assemblyCmd += "\tmov RSI, M+" + to_string(buffer) + "\t\t\t;end. buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + "\t\t\t;end. buffer\n";
     assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
     assemblyCmd += "\tcmp BL, '-' \t\t\t;sinal - ?\n";
     assemblyCmd += "\tjne " + label0+ "\t\t\t;se dif -, salta\n";
@@ -1395,7 +1395,7 @@ void getCodeReadFloat(long addr)
     assemblyCmd += "\tmulss XMM0,XMM1 \t\t\t;mult. sinal\n";
 
     assemblyCmd += labelEnd + ":\n";
-    assemblyCmd += "\tmovss [M+" + to_string(addr) + "], XMM0 \t\t\t; Carrega o valor para o indentificador\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(addr) + " ], XMM0 \t\t\t; Carrega o valor para o indentificador\n";
 }
 
 /**
@@ -1412,7 +1412,7 @@ void getCodeReadChar(long addr)
     string cleanBufferLabel = getNextAssemblyLabel();
 
     //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M+" + to_string(addr) + " ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 1 ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 ; Leitura do teclado\n";
@@ -1421,7 +1421,7 @@ void getCodeReadChar(long addr)
     assemblyCmd += "; Limpa o buffer para a proxima leitura\n";
     assemblyCmd += cleanBufferLabel + ":\n";
     assemblyCmd += "\tmov RDX, 1; Tamanho do buffer\n";
-    assemblyCmd += "\tmov RSI, M+" + to_string(buffer) + " ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RAX, 0 ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 ; Leitura do teclado\n";
     assemblyCmd += "\tsyscall\n\n";
@@ -1508,7 +1508,7 @@ string getCodeOpenIf(long addr){
     // Label false condition
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov EAX, [ M   +" + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do if\n";
 
@@ -1533,7 +1533,7 @@ void getCodeCloseBlockIf(string label){
 string getCodeOpenElse(long addr){
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov EAX, [ M   +" + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Comparacao com booleano false\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for falso pular bloco do if\n";
 
@@ -1553,7 +1553,7 @@ void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop){
     labelLoop = getNextAssemblyLabel();
 
     assemblyCmd += labelLoop + ": \n";
-    assemblyCmd += "\tmov EAX, [ M   +" + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do while\n";
 
