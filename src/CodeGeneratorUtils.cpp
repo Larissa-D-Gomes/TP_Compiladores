@@ -54,9 +54,9 @@ void memoryAlocation(long memSize)
 
 /**
  * @brief Get current temp position and alloc for next use
- * 
- * @param memSize 
- * @return int 
+ *
+ * @param memSize
+ * @return int
  */
 int newTemp(int memSize)
 {
@@ -68,7 +68,7 @@ int newTemp(int memSize)
 
 /**
  * @brief Reset memory temp count
- * 
+ *
  */
 void resetTempCounter()
 {
@@ -77,8 +77,8 @@ void resetTempCounter()
 
 /**
  * @brief Get the Next Assembly Label object
- * 
- * @return string 
+ *
+ * @return string
  */
 string getNextAssemblyLabel()
 {
@@ -87,7 +87,7 @@ string getNextAssemblyLabel()
 
 /**
  * @brief Get the memory size for const type
- * 
+ *
  * @param type const type
  * @return long size in bytes
  */
@@ -107,213 +107,290 @@ long getTypeMemSize(int type)
 }
 
 // **** WRITE SECTION ****
-
+/**
+ * @brief Write assembly code for write String
+ *
+ * @param addr Expression address to be write
+ */
 void getCodeWriteStr(long addr)
 {
-    assemblyCmd += "\t;  WRITE STRING\n\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " ; Copiando endereço da string para um registrador de índice\n";
-    assemblyCmd += "\tmov RDX, 0 ; contador de caracteres = 0\n\n";
-
+    // Labels
     string labelStartLoop = getNextAssemblyLabel();
-    string labeEndLoop = getNextAssemblyLabel();
+    string labelEndLoop = getNextAssemblyLabel();
+
+    assemblyCmd += "\n\t; -- WRITE STRING -- \n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
+    assemblyCmd += "\tmov RDX, 0 \t\t\t ; contador de caracteres = 0\n";
 
     // Begin of loop to calculate the length of the string
     assemblyCmd += "\t; Loop para calcular tamanho da string\n";
-    assemblyCmd += labelStartLoop + ": ; Inicio do loop\n";
-    assemblyCmd += "\tmov AL, [RSI] ; Leitura de caracter na posicao rax da memória\n";
-    assemblyCmd += "\tcmp AL, 0 ; Verificação de flag de fim de string\n";
-    assemblyCmd += "\tje " + labeEndLoop + " \n ; Se caracter lido = flag de fim de string finalizar loop\n";
+    assemblyCmd += labelStartLoop + ": \t\t\t ; Inicio do loop\n";
+    assemblyCmd += "\tmov AL, [RSI] \t\t\t ; Leitura de caractere na posicao rax da memória\n";
+    assemblyCmd += "\tcmp AL, 0 \t\t\t ; Verificação de flag de fim de string\n";
+    assemblyCmd += "\tje " + labelEndLoop + " \t\t\t ; Se caractere lido = flag de fim de string finalizar loop\n";
 
-    assemblyCmd += "\tadd RDX, 1 ; Incrementando numero de caracteres\n";
-    assemblyCmd += "\tadd RSI, 1 ; Incrementando indice da string\n";
-    assemblyCmd += "\tjmp " + labelStartLoop + "  ; Se caracter lido != flag de fim de string continuar loop\n";
+    assemblyCmd += "\tadd RDX, 1 \t\t\t ; Incrementando numero de caracteres\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementando indice da string\n";
+    assemblyCmd += "\tjmp " + labelStartLoop + "  ; Se caractere lido != flag de fim de string continuar loop\n";
 
     // End of loop
-    assemblyCmd += labeEndLoop + ": ; Fim do loop\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " ; Copiando endereco inicial da string\n";
-    assemblyCmd += "\tmov RAX, 1 ; Chamada para saída\n";
-    assemblyCmd += "\tmov RDI, 1 ; Chamada para tela\n";
+    assemblyCmd += labelEndLoop + ": ; Fim do loop\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Copiando endereço inicial da string\n";
+    assemblyCmd += "\tmov RAX, 1 \t\t\t ; Chamada para saída\n";
+    assemblyCmd += "\tmov RDI, 1 \t\t\t ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
+    assemblyCmd += "\t; -- END WRITE STRING -- \n";
 }
 
+/**
+ * @brief Write assembly code for write Char
+ *
+ * @param addr Expression address to be write
+ */
 void getCodeWriteChar(long addr)
 {
-    assemblyCmd += "\t;  WRITE CHAR\n\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " ; Copiando endereço do character para um registrador de índice\n";
-    assemblyCmd += "\tmov RDX, 1 ; Quantidade de caracteres imprimiveis \n\n";
+    assemblyCmd += "\n\t; -- WRITE CHAR --\n\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Copiando endereço do character para um registrador de índice\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t ; Quantidade de caracteres imprimíveis \n";
 
-    assemblyCmd += "\tmov RAX, 1 ; Chamada para saída\n";
-    assemblyCmd += "\tmov RDI, 1 ; Chamada para tela\n";
+    assemblyCmd += "\tmov RAX, 1 \t\t\t ; Chamada para saída\n";
+    assemblyCmd += "\tmov RDI, 1 \t\t\t ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
+    assemblyCmd += "\t; -- END WRITE CHAR --\n\n";
 }
 
+/**
+ * @brief Write assembly code for write Int
+ *
+ * @param addr Expression address to be write
+ */
 void getCodeWriteInt(long addr)
 {
+    // Get new temporary memory position
     long actualMemoryPosition = newTemp(ConstType::STRING);
+
+    // Labels
     string label0 = getNextAssemblyLabel();
     string label1 = getNextAssemblyLabel();
     string label2 = getNextAssemblyLabel();
+    string labelStartLoop = getNextAssemblyLabel();
+    string labelEndLoop = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov eax, [ M + " + to_string(addr) + " ] \t\t\t; inteiro a ser ;convertido\n";
-    assemblyCmd += "\tmov rsi, M + " + to_string(actualMemoryPosition) + " \t\t\t ; end. string ou temp.\n";
-    assemblyCmd += "\tmov rcx, 0 \t\t\t ; contador pilha\n";
-    assemblyCmd += "\tmov rdi, 0 \t\t\t ; tam. string convertido\n";
-    assemblyCmd += "\tcmp eax, 0 \t\t\t ; verifica sinal\n";
-    assemblyCmd += "\tjge " + label0 + " \t\t\t ; salta se número positivo\n";
-    assemblyCmd += "\tmov bl, \'-\' \t\t\t ; senão, escreve sinal –\n";
-    assemblyCmd += "\tmov [rsi], bl\n";
-    assemblyCmd += "\tadd rsi, 1 \t\t\t ; incrementa índice\n";
-    assemblyCmd += "\tadd rdi, 1 \t\t\t ; incrementa tamanho\n";
-    assemblyCmd += "\tneg eax \t\t\t;toma módulo do número\n";
+    assemblyCmd += "\n\t; -- WRITE INT --\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Inteiro a ser ;convertido\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; End. string ou temp.\n";
+    assemblyCmd += "\tmov RCX, 0 \t\t\t ; Contador pilha\n";
+    assemblyCmd += "\tmov RDI, 0 \t\t\t ; Tam. string convertido\n";
+    assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Verifica sinal\n";
+    assemblyCmd += "\tjge " + label0 + " \t\t\t ; Salta se número positivo\n";
+    assemblyCmd += "\tmov BL, \'-\' \t\t\t ; Senão, escreve sinal –\n";
+    assemblyCmd += "\tmov [RSI], BL\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa índice\n";
+    assemblyCmd += "\tadd RDI, 1 \t\t\t ; Incrementa tamanho\n";
+    assemblyCmd += "\tneg EAX \t\t\t ; Toma módulo do número\n";
     assemblyCmd += "\t" + label0 + ":\n";
-    assemblyCmd += "\tmov ebx, 10 \t\t\t;divisor\n";
+    assemblyCmd += "\tmov EBX, 10 \t\t\t ; Divisor\n";
     assemblyCmd += "\t" + label1 + ":\n";
-    assemblyCmd += "\tadd rcx, 1 \t\t\t;incrementa contador\n";
-    assemblyCmd += "\tcdq \t\t\t;estende edx:eax p/ div.\n";
-    assemblyCmd += "\tidiv ebx \t\t\t;divide edx;eax por ebx\n";
-    assemblyCmd += "\tpush dx \t\t\t;empilha valor do resto\n";
-    assemblyCmd += "\tcmp eax, 0 \t\t\t;verifica se quoc. é 0\n";
-    assemblyCmd += "\tjne " + label1 + " \t\t\t;se não é 0, continua\n";
-    assemblyCmd += "\tadd rdi,rcx \t\t\t;atualiza tam. string\n";
-    assemblyCmd += "\t;agora, desemp. os valores e escreve o string\n";
+    assemblyCmd += "\tadd RCX, 1 \t\t\t ; Incrementa contador\n";
+    assemblyCmd += "\tcdq \t\t\t ; Estende EDX:EAX p/ div.\n";
+    assemblyCmd += "\tidiv EBX \t\t\t ; Divide EDX;EAX por EBX\n";
+    assemblyCmd += "\tpush DX \t\t\t ; Empilha valor do resto\n";
+    assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Verifica se quoc. é 0\n";
+    assemblyCmd += "\tjne " + label1 + " \t\t\t ; Se não é 0, continua\n";
+    assemblyCmd += "\tadd RDI, RCX \t\t\t ; Atualiza tam. string\n";
+    assemblyCmd += "\t; Agora, desemp. os valores e escreve o string\n";
     assemblyCmd += "\t" + label2 + ":\n";
-    assemblyCmd += "\tpop dx \t\t\t ;desempilha valor\n";
-    assemblyCmd += "\tadd dl, \'0\' \t\t\t ;transforma em caractere\n";
-    assemblyCmd += "\tmov [rsi], dl \t\t\t ;escreve caractere\n";
-    assemblyCmd += "\tadd rsi, 1 \t\t\t ;incrementa base\n";
-    assemblyCmd += "\tsub rcx, 1 \t\t\t ;decrementa contador\n";
-    assemblyCmd += "\tcmp rcx, 0 \t\t\t ;verifica pilha vazia\n";
-    assemblyCmd += "\tjne " + label2  + "\t\t\t ;se não pilha vazia, loop\n";
+    assemblyCmd += "\tpop DX \t\t\t ; Desempilha valor\n";
+    assemblyCmd += "\tadd DL, \'0\' \t\t\t ; Transforma em caractere\n";
+    assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\tsub RCX, 1 \t\t\t ; Decrementa contador\n";
+    assemblyCmd += "\tcmp RCX, 0 \t\t\t ; Verifica pilha vazia\n";
+    assemblyCmd += "\tjne " + label2 + "\t\t\t ; Se não pilha vazia, loop\n";
 
-    getCodeWriteStr(actualMemoryPosition);
+    // WRITE STRING CODE
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
+    assemblyCmd += "\tmov RDX, 0 \t\t\t ; contador de caracteres = 0\n";
+
+    // Begin of loop to calculate the length of the string
+    assemblyCmd += "\t; Loop para calcular tamanho da string\n";
+    assemblyCmd += labelStartLoop + ": \t\t\t ; Inicio do loop\n";
+    assemblyCmd += "\tmov AL, [RSI] \t\t\t ; Leitura de caractere na posicao rax da memória\n";
+    assemblyCmd += "\tcmp AL, 0 \t\t\t ; Verificação de flag de fim de string\n";
+    assemblyCmd += "\tje " + labelEndLoop + " \t\t\t ; Se caractere lido = flag de fim de string finalizar loop\n";
+
+    assemblyCmd += "\tadd RDX, 1 \t\t\t ; Incrementando numero de caracteres\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementando indice da string\n";
+    assemblyCmd += "\tjmp " + labelStartLoop + "  ; Se caractere lido != flag de fim de string continuar loop\n";
+
+    // End of loop
+    assemblyCmd += labelEndLoop + ": ; Fim do loop\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; Copiando endereço inicial da string\n";
+    assemblyCmd += "\tmov RAX, 1 \t\t\t ; Chamada para saída\n";
+    assemblyCmd += "\tmov RDI, 1 \t\t\t ; Chamada para tela\n";
+    assemblyCmd += "\tsyscall\n";
+
+    assemblyCmd += "\t; -- END WRITE INT --\n";
 }
 
+/**
+ * @brief Write assembly code for write Float
+ *
+ * @param addr Expression address to be write
+ */
 void getCodeWriteFloat(long addr)
 {
+    // Get new temporary memory position
     long actualMemoryPosition = newTemp(ConstType::STRING);
 
+    // Labels
     string label0 = getNextAssemblyLabel();
     string label1 = getNextAssemblyLabel();
     string label2 = getNextAssemblyLabel();
     string label3 = getNextAssemblyLabel();
     string label4 = getNextAssemblyLabel();
 
-    assemblyCmd += "; WRITE FLOAT\n";
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t;real a ser convertido\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t; end. temporário\n";
-    assemblyCmd += "\tmov RCX, 0 \t\t\t;contador pilha\n";
-    assemblyCmd += "\tmov rdi, 6 \t\t\t;precisao 6 casas compart\n";
-    assemblyCmd += "\tmov rbx, 10 \t\t\t;divisor\n";
-    assemblyCmd += "\tcvtsi2ss xmm2, rbx \t\t\t;divisor real\n";
-    assemblyCmd += "\tsubss xmm1, xmm1 \t\t\t;zera registrador\n";
-    assemblyCmd += "\tcomiss xmm0, xmm1 \t\t\t;verifica sinal\n";
-    assemblyCmd += "\tjae " + label0 + " \t\t\t;salta se número positivo\n";
-    assemblyCmd += "\tmov dl, \'-\' \t\t\t;senão, escreve sinal –\n";
-    assemblyCmd += "\tmov [RSI], dl\n";
-    assemblyCmd += "\tmov rdx, -1 \t\t\t;Carrega -1 em RDX\n";
-    assemblyCmd += "\tcvtsi2ss xmm1, rdx \t\t\t;Converte para real\n";
-    assemblyCmd += "\tmulss xmm0, xmm1 \t\t\t;Toma módulo\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa índice\n";
-    assemblyCmd += label0  + ": \n";
-    assemblyCmd += "\troundss xmm1, xmm0, 0b0011 \t\t\t;parte inteira xmm1\n";
-    assemblyCmd += "\tsubss xmm0, xmm1 \t\t\t;parte frac xmm0\n";
-    assemblyCmd += "\tcvtss2si rax, xmm1 \t\t\t;convertido para int\n";
-    assemblyCmd += "\t;converte parte inteira que está em rax\n";
-    assemblyCmd +=  label1  + ": \n";
-    assemblyCmd += "\tadd RCX, 1 \t\t\t;incrementa contador\n";
-    assemblyCmd += "\tcdq \t\t\t;estende edx:eax p/ div.\n";
-    assemblyCmd += "\tidiv ebx \t\t\t;divide edx;eax por ebx\n";
-    assemblyCmd += "\tpush dx \t\t\t;empilha valor do resto\n";
-    assemblyCmd += "\tcmp eax, 0 \t\t\t;verifica se quoc. é 0\n";
-    assemblyCmd += "\tjne " + label1 + " \t\t\t;se não é 0, continuasub rdi, RCX \t\t\t;decrementa precisao\n";
-    assemblyCmd += "\t;agora, desemp valores e escreve parte int\n";
+    assemblyCmd += "\n\t; -- WRITE FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t ; Real a ser convertido\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; End. temporário\n";
+    assemblyCmd += "\tmov RCX, 0 \t\t\t ; Contador pilha\n";
+    assemblyCmd += "\tmov RDI, 6 \t\t\t ; Precisão 6 casas compart\n";
+    assemblyCmd += "\tmov RBX, 10 \t\t\t ; Divisor\n";
+    assemblyCmd += "\tcvtsi2ss XMM2, RBX \t\t\t ; Divisor real\n";
+    assemblyCmd += "\tsubss XMM1, XMM1 \t\t\t ; Zera registrador\n";
+    assemblyCmd += "\tcomiss XMM0, XMM1 \t\t\t ; Verifica sinal\n";
+    assemblyCmd += "\tjae " + label0 + " \t\t\t ; Salta se número positivo\n";
+    assemblyCmd += "\tmov DL, \'-\' \t\t\t; Senão, escreve sinal –\n";
+    assemblyCmd += "\tmov [RSI], DL\n";
+    assemblyCmd += "\tmov RDX, -1 \t\t\t ; Carrega -1 em RDX\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RDX \t\t\t ; Converte para real\n";
+    assemblyCmd += "\tmulss XMM0, XMM1 \t\t\t ; Toma módulo\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa índice\n";
+    assemblyCmd += label0 + ": \n";
+    assemblyCmd += "\troundss XMM1, XMM0, 0b0011 \t\t\t ; Parte inteira XMM1\n";
+    assemblyCmd += "\tsubss XMM0, XMM1 \t\t\t ; Parte frac XMM0\n";
+    assemblyCmd += "\tcvtss2si rax, XMM1 \t\t\t ; Convertido para int\n";
+    assemblyCmd += "\t; Converte parte inteira que está em rax\n";
+    assemblyCmd += label1 + ": \n";
+    assemblyCmd += "\tadd RCX, 1 \t\t\t ; Incrementa contador\n";
+    assemblyCmd += "\tcdq \t\t\t ; Estende EDX:EAX p/ div.\n";
+    assemblyCmd += "\tidiv EBX \t\t\t ; Divide EDX;EAX por EBX\n";
+    assemblyCmd += "\tpush DX \t\t\t ; Empilha valor do resto\n";
+    assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Verifica se quoc. é 0\n";
+    assemblyCmd += "\tjne " + label1 + " \t\t\t ; Se não é 0, continua\n";
+    assemblyCmd += "\tsub RDI, RCX \t\t\t;decrementa precisao\n";
+    assemblyCmd += "\t; Agora, desemp valores e escreve parte int\n";
     assemblyCmd += label2 + ":\n";
-    assemblyCmd += "\tpop dx \t\t\t;desempilha valor\n";
-    assemblyCmd += "\tadd dl, \'0\' \t\t\t;transforma em caractere\n";
-    assemblyCmd += "\tmov [RSI], dl \t\t\t;escreve caractere\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa base\n";
-    assemblyCmd += "\tsub RCX, 1 \t\t\t;decrementa contador\n";
-    assemblyCmd += "\tcmp RCX, 0 \t\t\t;verifica pilha vazia\n";
-    assemblyCmd += "\tjne " + label2 + " \t\t\t;se não pilha vazia, loop\n";
-    assemblyCmd += "\tmov dl, \'.\' \t\t\t;escreve ponto decimal\n";
-    assemblyCmd += "\tmov [RSI], dl\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa base\n";
-    assemblyCmd += "\t\t\t;converte parte fracionaria que está em xmm0\n";
+    assemblyCmd += "\tpop DX \t\t\t ; Desempilha valor\n";
+    assemblyCmd += "\tadd DL, \'0\' \t\t\t ; Transforma em caractere\n";
+    assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\tsub RCX, 1 \t\t\t ; Decrementa contador\n";
+    assemblyCmd += "\tcmp RCX, 0 \t\t\t ; Verifica pilha vazia\n";
+    assemblyCmd += "\tjne " + label2 + " \t\t\t ; Se não pilha vazia, loop\n";
+    assemblyCmd += "\tmov DL, \'.\' \t\t\t ; Escreve ponto decimal\n";
+    assemblyCmd += "\tmov [RSI], DL\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\t; Converte parte fracionaria que está em XMM0\n";
     assemblyCmd += label3 + ":\n";
-    assemblyCmd += "\tcmp rdi, 0 \t\t\t;verifica precisao\n";
-    assemblyCmd += "\tjle " + label4 + " \t\t\t;terminou precisao ?\n";
-    assemblyCmd += "\tmulss xmm0,xmm2 \t\t\t;desloca para esquerda\n";
-    assemblyCmd += "\troundss xmm1,xmm0,0b0011 \t\t\t;parte inteira xmm1\n";
-    assemblyCmd += "\tsubss xmm0,xmm1 \t\t\t;atualiza xmm0\n";
-    assemblyCmd += "\tcvtss2si rdx, xmm1\t\t\t ;convertido para int\n";
-    assemblyCmd += "\tadd dl, \'0\' \t\t\t;transforma em caractere\n";
-    assemblyCmd += "\tmov [RSI], dl \t\t\t;escreve caractere\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa base\n";
-    assemblyCmd += "\tsub rdi, 1 \t\t\t;decrementa precisao\n";
+    assemblyCmd += "\tcmp RDI, 0 \t\t\t ; Verifica precisao\n";
+    assemblyCmd += "\tjle " + label4 + " \t\t\t ; Terminou precisao ?\n";
+    assemblyCmd += "\tmulss XMM0,XMM2 \t\t\t ; Desloca para esquerda\n";
+    assemblyCmd += "\troundss XMM1,XMM0,0b0011 \t\t\t ; Parte inteira XMM1\n";
+    assemblyCmd += "\tsubss XMM0,XMM1 \t\t\t ; Atualiza XMM0\n";
+    assemblyCmd += "\tcvtss2si RDX, XMM1\t\t\t ; Convertido para int\n";
+    assemblyCmd += "\tadd DL, \'0\' \t\t\t ; Transforma em caractere\n";
+    assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\tsub RDI, 1 \t\t\t ; Decrementa precisão\n";
     assemblyCmd += "\tjmp " + label3 + "\n";
-    assemblyCmd += "\t\t\t; impressão\n";
+    assemblyCmd += "\t; Impressão\n";
     assemblyCmd += label4 + ":\n";
-    assemblyCmd += "\tmov dl, 0 \t\t\t;fim string, opcional\n";
-    assemblyCmd += "\tmov [RSI], dl \t\t\t;escreve caractere\n";
-    assemblyCmd += "\tmov rdx, RSI ;calc tam str convertido\n";
-    assemblyCmd += "\tmov rbx, M + " + to_string(actualMemoryPosition) + "\n";
-    assemblyCmd += "\tsub rdx, rbx \t\t\t;tam=RSI-M-buffer.end\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t; endereço do buffer\n";
+    assemblyCmd += "\tmov DL, 0 \t\t\t ; Fim string, opcional\n";
+    assemblyCmd += "\tmov [RSI], DL \t\t\t ; Escreve caractere\n";
+    assemblyCmd += "\tmov RDX, RSI ; Calc tam str convertido\n";
+    assemblyCmd += "\tmov RBX, M + " + to_string(actualMemoryPosition) + " \n";
+    assemblyCmd += "\tsub RDX, RBX \t\t\t ; Tam=RSI-M-buffer.end\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t; Endereço do buffer\n";
 
     assemblyCmd += "\tmov RAX, 1 ; Chamada para saída\n";
     assemblyCmd += "\tmov RDI, 1 ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
+    assemblyCmd += "\t; -- END WRITE FLOAT -- \n";
 }
 
+/**
+ * @brief Write assembly code for write Boolean
+ *
+ * @param addr Expression address to be write
+ */
 void getCodeWriteBoolean(long addr)
 {
+    // Labels
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
-    
-    if(addrStringTrue == null)
+
+    // Verify if true and false is already declared on .data section
+    // And if not, do it
+    if (addrStringTrue == null)
     {
         addrStringTrue = nextFreePosition;
-        assemblyDec += "\tdb \"true\" ,0\t\t\t; Declaracao String EXP em [" + to_string(addrStringTrue) + "]\n";
-        // Memory Allocation in data area
+        assemblyDec += "\tdb \"true\" , 0 \t\t\t ; Declaração String TRUE em [" + to_string(addrStringTrue) + "]\n";
+        // Memory Allocation in data area for "true"
         memoryAlocation(5);
 
         addrStringFalse = nextFreePosition;
-        assemblyDec += "\tdb \"false\" ,0\t\t\t; Declaracao String EXP em [" + to_string(addrStringFalse) + "]\n";
-        // Memory Allocation in data area
+        assemblyDec += "\tdb \"false\" , 0 \t\t\t ; Declaração String FALSE em [" + to_string(addrStringFalse) + "]\n";
+        // Memory Allocation in data area for "false"
         memoryAlocation(6);
     }
 
-    assemblyCmd += "\tmov EAX , [ M + " + to_string(addr) + " ]\t\t\t; Carrega valor de boolean\n";
-    assemblyCmd += "\tcmp EAX , 0 \t\t\t; Se boolean for falso\n";
+    assemblyCmd += "\n\t; -- WRITE BOOLEAN -- \n";
+    assemblyCmd += "\tmov EAX , [ M + " + to_string(addr) + " ] \t\t\t ; Carrega valor de boolean\n";
+    assemblyCmd += "\tcmp EAX , 0 \t\t\t ; Se boolean for falso\n";
     assemblyCmd += "\tjne " + labelTrue + "\t\t\t; Se boolean for verdadeiro -> label true\n";
+    assemblyCmd += "\n\t; -- END WRITE BOOLEAN -- \n";
+
     // Print false
     getCodeWriteStr(addrStringFalse);
     assemblyCmd += "\tjmp " + labelEnd + "\t\t\t; Jump end\n";
 
+    // Print true
     assemblyCmd += labelTrue + ": \n";
     getCodeWriteStr(addrStringTrue);
 
     assemblyCmd += labelEnd + ": \n";
 }
 
+/**
+ * @brief Write assembly code for line break
+ *
+ */
 void getCodeWriteLineBr()
 {
+    // Alloc temp memory for buffer (1 byte)
     long buffer = newTemp(ConstType::CHAR);
 
+    assemblyCmd += "\t; -- LINE BREAK -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + "\n";
-    assemblyCmd += "\tmov [RSI], byte 10 ; Move caracter quebra de linha para o endereço armazenado em RSI\n";
-    assemblyCmd += "\tmov RDX,1 \t\t\t; ou buffer.tam\n";
-    assemblyCmd += "\tmov RAX, 1 \t\t\t; chamada para saida\n";
-    assemblyCmd += "\tmov RDI, 1 \t\t\t; saida para tela\n";
+    assemblyCmd += "\tmov [RSI], byte 10 \t\t\t ; Move caracter quebra de linha para o endereço armazenado em RSI\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t; Ou buffer.tam\n";
+    assemblyCmd += "\tmov RAX, 1 \t\t\t; Chamada para saida\n";
+    assemblyCmd += "\tmov RDI, 1 \t\t\t; Saida para tela\n";
     assemblyCmd += "\tsyscall\n";
-
+    assemblyCmd += "\t; -- END LINE BREAK -- \n";
 }
 
+/**
+ * @brief Write assembly code for write type
+ *
+ * @param addr Expression address to be write
+ * @param type ConsType value to print
+ */
 void getCodeWrite(long addr, int type)
 {
     if (type == ConstType::STRING)
     {
-        cout << to_string(addr) << endl;
         getCodeWriteStr(addr);
     }
     else if (type == ConstType::CHAR)
@@ -334,28 +411,40 @@ void getCodeWrite(long addr, int type)
     }
 }
 
+// **** DECONST SECTION ****
+
+/**
+ * @brief Write assembly code for DECONST grammar variable
+ *
+ * @param hasMinnus If the number is negative
+ * @param type Const.type
+ * @param stringValue Const.lex
+ * @return long Memory position of const value
+ */
 long getCodeDeconst(bool hasMinnus, int type, string stringValue)
 {
+    // Alloc free memory
     long actualMemoryPosition = nextFreePosition;
 
     if (type == ConstType::CHAR)
     {
-        assemblyDec += "\tdb " + stringValue + ", 1\t\t\t; Declaracao Const Char em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += "\tdb " + stringValue + ", 1 \t\t\t ; Declaracao Const Char em [ " + to_string(actualMemoryPosition) + " ]\n";
     }
     else if (type == ConstType::INT)
     {
         assemblyDec += "\tdd ";
 
+        // - CONST
         if (hasMinnus)
         {
             assemblyDec += "-";
         }
 
-        assemblyDec += stringValue + "\t\t\t; Declaracao Const Inteiro em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += stringValue + " \t\t\t ; Declaracao Const Inteiro em [ " + to_string(actualMemoryPosition) + " ]\n";
     }
     else if (type == ConstType::STRING)
     {
-        assemblyDec += "\tdb " + stringValue + ",0\t\t\t; Declaracao Const String em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += "\tdb " + stringValue + ",0 \t\t\t ; Declaracao Const String em [ " + to_string(actualMemoryPosition) + " ]\n";
     }
     else if (type == ConstType::FLOAT)
     {
@@ -371,7 +460,7 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue)
             assemblyDec += '0';
         }
 
-        assemblyDec += stringValue + "\t\t\t; Declaracao Const Float em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += stringValue + "\t\t\t; Declaracao Const Float em [ " + to_string(actualMemoryPosition) + " ]\n";
     }
     else if (type == ConstType::BOOLEAN)
     {
@@ -383,31 +472,43 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue)
         {
             stringValue = "1";
         }
-        assemblyDec += "\tdd " + stringValue + "\t\t\t; Declaracao Const Boolean em [" + to_string(actualMemoryPosition) + "]\n";
+        assemblyDec += "\tdd " + stringValue + "\t\t\t; Declaracao Const Boolean em [ " + to_string(actualMemoryPosition) + " ]\n";
     }
 
-    if(type != ConstType::STRING){
+    // Alloc string size if type is String
+    if (type != ConstType::STRING)
+    {
         memoryAlocation(getTypeMemSize(type));
-    } else {
+    }
+    else
+    {
         memoryAlocation(stringValue.length() - 1);
     }
-    
 
     return actualMemoryPosition;
 }
 
+// **** M SECTION ****
+/**
+ * @brief Write assembly code for Const value in M  grammar variable
+ *
+ * @param stringValue Const.lex
+ * @param type Const.type
+ * @return long Memory position allocated
+ */
 long getCodeExpConst(string stringValue, int type)
 {
     long actualMemoryPosition;
 
+    // If type is String, main memory is allocated
     if (type == ConstType::STRING)
     {
         actualMemoryPosition = nextFreePosition;
-        cout << "Alocacao pos " << actualMemoryPosition << endl;
-        assemblyDec += "\tdb " + stringValue + ",0\t\t\t; Declaracao String EXP em [" + to_string(actualMemoryPosition) + "]\n";
-        // Memory Allocation in data area
+        assemblyDec += "\tdb " + stringValue + ", 0 \t\t\t ; Declaracao String M em [ " + to_string(actualMemoryPosition) + " ]\n";
+        // Memory Allocation in data area for String
         memoryAlocation(stringValue.length() - 1);
     }
+    // If type is Float, main memory is allocated
     else if (type == ConstType::FLOAT)
     {
         actualMemoryPosition = nextFreePosition;
@@ -418,23 +519,28 @@ long getCodeExpConst(string stringValue, int type)
             assemblyDec += " 0";
         }
 
-        assemblyDec += stringValue + "\t\t\t; Declaracao Float EXP em [" + to_string(actualMemoryPosition) + "]\n";
-        // Memory Allocation in data area
+        assemblyDec += stringValue + " \t\t\t ; Declaracao Float M em [ " + to_string(actualMemoryPosition) + " ]\n";
+        // Memory Allocation in data area for Float
         memoryAlocation(getTypeMemSize(type));
     }
+    // For others types, temporary memory is allocated
     else
     {
         actualMemoryPosition = assemblyTempCount;
 
         if (type == ConstType::INT)
         {
-            assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t; Move Inteiro imediato para registrador\n";
-            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+            assemblyCmd += "\n\t; -- CONST INT -- \n";
+            assemblyCmd += "\tmov EAX, " + stringValue + " \t\t\t ; Move Inteiro imediato para registrador\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move registrador para memoria temporaria\n";
+            assemblyCmd += "\t; -- END CONST INT -- \n";
         }
         else if (type == ConstType::CHAR)
         {
-            assemblyCmd += "\tmov AL, " + stringValue + "\t\t\t; Move Char imediato para registrador\n";
-            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+            assemblyCmd += "\n\t; -- CONST CHAR -- \n";
+            assemblyCmd += "\tmov AL, " + stringValue + " \t\t\t ; Move Char imediato para registrador\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t ; Move registrador para memoria temporaria\n";
+            assemblyCmd += "\t; -- END CONST CHAR -- \n";
         }
         else if (type == ConstType::BOOLEAN)
         {
@@ -447,487 +553,674 @@ long getCodeExpConst(string stringValue, int type)
                 stringValue = "1";
             }
 
-            assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t; Move Boolean imediado para registrador eax\n";
-            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Move registrador para posicao atual de memoria em [" + to_string(actualMemoryPosition) + "]\n";
+            assemblyCmd += "\n\t; -- CONST BOOLEAN -- \n";
+            assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t ; Move Boolean imediado para registrador EAX\n";
+            assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move valor do registrador para memoria temporaria\n";
+            assemblyCmd += "\t; -- END CONST BOOLEAN -- \n";
         }
+
+        // Temporary Memory alloc
         newTemp(getTypeMemSize(type));
     }
 
     return actualMemoryPosition;
 }
 
+/**
+ * @brief Write assembly code for NOT Exp in M grammar variable
+ *
+ * @param addr Expression address to be write
+ * @param type Expression type
+ * @return long Temporary memory position
+ */
 long getCodeNotExp(long addr, int type)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor da memoria para o registrador \n";
-    assemblyCmd += "\tneg EAX \t\t\t; Nega o valor que esta no registrador\n";
-    assemblyCmd += "\tadd EAX, 1 \t\t\t; Nega o valor que esta no registrador\n";
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Move o valor do registrador para a posicao de memoria [" + to_string(actualMemoryPosition) + "]\n";
+    assemblyCmd += "\n\t; -- NOT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Move o valor da memoria para o registrador \n";
+    assemblyCmd += "\tneg EAX \t\t\t ; Nega o valor que esta no registrador\n";
+    assemblyCmd += "\tadd EAX, 1 \t\t\t ; Nega o valor que esta no registrador\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move o valor do registrador para memoria temporaria\n";
+    assemblyCmd += "\t; -- END NOT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(type));
 
     return actualMemoryPosition;
 }
 
-// R OPERATIONS
+/**
+ * @brief Write assembly code for String Position
+ *
+ * @param addrString String addr
+ * @param addrIndex Index of string
+ * @return long Temporary memory position for index value
+ */
+long getCodeAccessStringPosition(long addrString, long addrIndex)
+{
+    long actualMemoryPosition = assemblyTempCount;
+
+    assemblyCmd += "\n\t; -- STRING POSITION -- \n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
+    assemblyCmd += "\tadd EBX, M + " + to_string(addrString) + " \t\t\t ; Soma indice com valor de memoria da string\n";
+    assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
+
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva character em temporario\n";
+    assemblyCmd += "\t; -- END STRING POSITION -- \n";
+
+    // Temporary Memory alloc
+    newTemp(getTypeMemSize(ConstType::CHAR));
+
+    return actualMemoryPosition;
+}
+
+/**
+ * @brief Generate code for casting command - float(int) || int(float)
+ *
+ * @param addr Address of the variable to be converted
+ * @param convType Type to be converted
+ * @return long Converted number temporary position
+ */
+long getCodeCasting(long addr, int convType)
+{
+
+    long actualMemoryPosition = assemblyTempCount;
+
+    // Casting float -> int
+    if (convType == ConstType::INT)
+    {
+
+        assemblyCmd += "\n\t; -- CASTING INT -- \n";
+        assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
+        assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
+        assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
+
+        assemblyCmd += "\tcvtss2si RAX, XMM0 \t\t\t; Converte int para float\n";
+        assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], RAX \t\t\t ; Salva valor convertido para temporario\n";
+        assemblyCmd += "\t; -- END CASTING INT -- \n";
+
+        // Temporary Memory alloc
+        newTemp(getTypeMemSize(ConstType::INT));
+
+        // Casting int -> float
+    }
+    else if (convType == ConstType::FLOAT)
+    {
+
+        assemblyCmd += "\n\t; -- CASTING FLOAT -- \n";
+        assemblyCmd += "\tmov EAX, 0 ; Zera o EAX\n";
+        assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
+        assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
+        assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+        assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
+        assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte float para int\n";
+        assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva valor convertido para temporario\n";
+        assemblyCmd += "\t; -- END CASTING FLOAT -- \n";
+
+        // Temporary Memory alloc
+        newTemp(getTypeMemSize(ConstType::FLOAT));
+    }
+
+    return actualMemoryPosition;
+}
+
+// **** R SECTION ****
+
 /**
  * @brief Generate code for times operation for two float
- * variables
+ * variables - (FLOAT * FLOAT)
  *
- * @param long float 1 address and float 2 address
- * @return long temporary variable address
+ * @param addr1 Float 1 address
+ * @param addr2 Float 2 address
+ * @return long Temporary variable address
  */
 long getCodeTimesOperationtForFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
-    assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float1 * float2\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\n\t; -- FLOAT * FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para registrador\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para registrador\n";
 
+    assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t ; Float1 * Float2\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT * FLOAT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for times operation for one float and one integer
- * variables
+ * variables - (INT * FLOAT) || (FLOAT * INT)
  *
- * @param long float address and integer address
- * @return long temporary variable address
+ * @param addr1 Float address
+ * @param addr2 Integer address
+ * @return long Temporary variable address
  */
 long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
+
+    assemblyCmd += "\n\t; -- FLOAT * INT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
 
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
-    assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t; float * float(int)\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int para float\n";
+    assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t ; Float * Float(int)\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT * INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for times operation for two int
- * variables
+ * variables - (INT * INT)
  *
- * @param long int 1 address and int 2 address
- * @return long temporary variable address
+ * @param addr1 Int 1 address
+ * @param addr2 Int 2 address
+ * @return long Temporary variable address
  */
 long getCodeTimesOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
 
-    assemblyCmd += "\timul EBX \t\t\t; int1 * int2\n";
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\n\t; -- INT * INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador \n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador \n";
 
+    assemblyCmd += "\timul EBX \t\t\t ; Int1 * Int2\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT * INT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for div operation for two int
- * variables
+ * variables - (INT DIV INT)
  *
- * @param long int 1 address and int 2 address
- * @return long temporary variable address
+ * @param addr1 Int 1 address
+ * @param addr2 Int 2 address
+ * @return long Temporary variable address
  */
 long getCodeDivOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
 
-    assemblyCmd += "\tidiv EBX \t\t\t; int1 div int2\n";
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\n\t; -- INT DIV INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador \n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador \n";
 
+    assemblyCmd += "\tidiv EBX \t\t\t ; int1 div int2\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT DIV INT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for divide operation for two float
- * variables
+ * variables - (FLOAT / FLOAT)
  *
- * @param long float 1 address and float 2 address
- * @return long temporary variable address
+ * @param addr1 Float 1 address
+ * @param addr2 Float 2 address
+ * @return long Temporary variable address
  */
 long getCodeDivideOperationtForFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
-    assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float1 / float2\n";
+    assemblyCmd += "\n\t; -- FLOAT / FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para registrador\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para registrador\n";
+
+    assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t; float1 / float2\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT / FLOAT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
- * @brief Generate code for divide operation for one float and one integer
- * variables
+ * @brief Generate code for divide operation for two float
+ * variables - (FLOAT / INT)
  *
- * @param long float address and integer address
- * @return long temporary variable address
+ * @param addr1 Float address
+ * @param addr2 Int address
+ * @return long Temporary variable address
  */
 long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
-    // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
-    assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float / float(int)\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
+    assemblyCmd += "\n\t; -- FLOAT / INT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
+    // Type conversion
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int para float\n";
+    assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float / float(int)\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT / INT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
- * @brief Generate code for divide operation for one float and one integer
- * variables
+ * @brief Generate code for divide operation for int and float
+ * variables - (INT / FLOAT)
  *
- * @param long integer address and float address
- * @return long temporary variable address
+ * @param addr1 Int address
+ * @param addr2 Float address
+ * @return long Temporary variable address
  */
 long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
-    // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int para float\n";
-    assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int) / float\n";
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
 
+    assemblyCmd += "\n\t; -- INT / FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
+    // Type conversion
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t ; Expande int para float\n";
+    assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float(int) / float\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT / FLOAT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for divide operation for two int
- * variables
+ * variables - (INT / INT)
  *
- * @param long int 1 address and int 2 address
- * @return long temporary variable address
+ * @param addr1 Int 1 address
+ * @param addr2 Int 2 address
+ * @return long Temporary variable address
  */
 long getCodeDivideOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    // Type conversion
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
-    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int1 para float1\n";
+    assemblyCmd += "\n\t; -- INT / INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t ; Expande int1 para float1\n";
 
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int2 para float2\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int2 para float2\n";
 
-    assemblyCmd += "\tdivss XMM0, XMM1  \t\t\t; float(int1) / float(int2)\n";
+    assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float(int1) / float(int2)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT / INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for mod operation for two int
- * variables
+ * variables - (INT MOD INT)
  *
- * @param long int 1 address and int 2 address
- * @return long temporary variable address
+ * @param addr1 int 1 address
+ * @param addr2 int 2 address
+ * @return long Temporary variable address
  */
 long getCodeModOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
 
-    assemblyCmd += "\tidiv EBX \t\t\t; int1 mod int2\n";
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EDX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\n\t; -- INT MOD INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para o registrador\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para o registrador\n";
 
+    assemblyCmd += "\tidiv EBX \t\t\t ; int1 mod int2\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EDX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT MOD INT -- \n";
+
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
+
     return actualMemoryPosition;
 }
 
-// T OPERATIONS
+// **** T SECTION ****
+
 /**
  * @brief Generate code for plus and minnus operation for floats
- * variables
+ * variables - (FLOAT +- FLOAT)
  *
- * @param long float address and float address
- * @return long temporary variable address
+ * @param addr1 float 1 address
+ * @param addr2 float 2 address
+ * @param operation Compare operation
+ * @return long Temporary variable address
  */
 long getCodePlusMinnusForFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
+
+    assemblyCmd += "\n\t; -- FLOAT (+|-) FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para registrador\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para registrador\n";
 
     // +
     if (operation == Alphabet::PLUS)
     {
-        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1 + float2\n";
+        assemblyCmd += "\taddss XMM0, XMM1 \t\t\t ; float1 + float2\n";
     }
     // -
     else
     {
-        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1 - float2\n";
+        assemblyCmd += "\tsubss XMM0, XMM1 \t\t\t ; float1 - float2\n";
     }
 
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT (+|-) FLOAT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for plus and minnus operation for float and int
- * variables
+ * variables - (FLOAT +- INT)
  *
- * @param long float address and float address
- * @return long temporary variable address
+ * @param addr1 float 1 address
+ * @param addr2 float 2 address
+ * @param operation Compare operation
+ * @return long Temporary variable address
  */
 long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
 
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em EAX\n";
+    assemblyCmd += "\n\t; -- FLOAT (+|-) INT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para o registrador\n";
+
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int para float\n";
 
     // +
     if (operation == Alphabet::PLUS)
     {
-        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1 + float2(int)\n";
+        assemblyCmd += "\taddss XMM0, XMM1 \t\t\t ; float1 + float2(int)\n";
     }
     // -
     else
     {
-        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1 - float2(int)\n";
+        assemblyCmd += "\tsubss XMM0, XMM1 \t\t\t ; float1 - float2(int)\n";
     }
 
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT (+|-) INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for plus and minnus operation for int and float
- * variables
+ * variables - (INT +- FLOAT)
  *
- * @param long float address and float address
- * @return long temporary variable address
+ * @param addr1 Float 1 address
+ * @param addr2 Float 2 address
+ * @param operation Compare operation
+ * @return long Temporary variable address
  */
 long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+
+    assemblyCmd += "\n\t; -- INT (+|-) FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para o registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em RAX\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, EAX \t\t\t ; Expande int para float\n";
 
     // +
     if (operation == Alphabet::PLUS)
     {
-        assemblyCmd += "\taddss XMM0, XMM1  \t\t\t; float1(int) + float2\n";
+        assemblyCmd += "\taddss XMM0, XMM1 \t\t\t ; float1(int) + float2\n";
     }
     // -
     else
     {
-        assemblyCmd += "\tsubss XMM0, XMM1  \t\t\t; float1(int) - float2\n";
+        assemblyCmd += "\tsubss XMM0, XMM1 \t\t\t ; float1(int) - float2\n";
     }
 
-    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT (+|-) FLOAT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
+
     return actualMemoryPosition;
 }
 
 /**
  * @brief Generate code for plus and minnus operation for ints
- * variables
+ * variables - (INT +- INT)
  *
- * @param long float address and float address
- * @return long temporary variable address
+ * @param addr1 Int 1 address
+ * @param addr2 Int 2 address
+ * @param operation Compare operation
+ * @return long Temporary variable address
  */
 long getCodePlusMinnusForInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+
+    assemblyCmd += "\n\t; -- INT (+|-) INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador\n";
 
     // +
     if (operation == Alphabet::PLUS)
     {
-        assemblyCmd += "\tadd EAX, EBX  \t\t\t; int1 + int2\n";
+        assemblyCmd += "\tadd EAX, EBX \t\t\t ; int1 + int2\n";
     }
     // -
     else
     {
-        assemblyCmd += "\tsub EAX, EBX  \t\t\t; int1 - int2\n";
+        assemblyCmd += "\tsub EAX, EBX \t\t\t ; int1 - int2\n";
     }
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT (+|-) INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
+
     return actualMemoryPosition;
 }
 
 /**
- * @brief Generate code for logic OR between booleans
+ * @brief Generate code for logic OR between booleans - (BOOLEAN || BOOLEAN)
  *
- * @param long float address and float address
- * @return long temporary variable address
+ * @param addr1 Boolean 1 address
+ * @param addr2 Boolean 2 address
+ * @return long Temporary variable address
  */
 long getCodeForOR(long addr1, long addr2)
 {
-
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de boolean 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de boolean 2 da memoria para o registrador EBX\n";
+
+    assemblyCmd += "\n\t; -- OR -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de boolean 1 da memoria para registrador\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de boolean 2 da memoria para registrador\n";
     // Not boolean 1
-    assemblyCmd += "\tneg EAX \t\t\t; EAX = !EAX\n";
-    assemblyCmd += "\tadd EAX, 1 \t\t\t; EAX = !EAX\n";
+    assemblyCmd += "\tneg EAX \t\t\t ; EAX = !EAX\n";
+    assemblyCmd += "\tadd EAX, 1 \t\t\t ; EAX = !EAX\n";
     // Not boolean 2
-    assemblyCmd += "\tneg EBX \t\t\t; EBX = !EBX\n";
-    assemblyCmd += "\tadd EBX, 1 \t\t\t; EBX = !EBX\n";
+    assemblyCmd += "\tneg EBX \t\t\t ; EBX = !EBX\n";
+    assemblyCmd += "\tadd EBX, 1 \t\t\t ; EBX = !EBX\n";
     // Not boolean 1 And Not boolean 2
-    assemblyCmd += "\timul EBX \t\t\t; !EAX AND !EBX\n";
+    assemblyCmd += "\timul EBX \t\t\t ; !EAX AND !EBX\n";
     //  Not (Not boolean 1 And Not boolean 2) = Boolean 1 Or Boolean 2
-    assemblyCmd += "\tneg EAX \t\t\t; !(!EAX AND !EBX) = EAX OR EBX\n";
-    assemblyCmd += "\tadd EAX, 1 \t\t\t; !(!EAX AND !EBX) = EAX OR EBX\n";
+    assemblyCmd += "\tneg EAX \t\t\t ; !(!EAX AND !EBX) = EAX OR EBX\n";
+    assemblyCmd += "\tadd EAX, 1 \t\t\t ; !(!EAX AND !EBX) = EAX OR EBX\n";
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END OR -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
-// EXP OPERATIONS
+// **** EXP SECTION ****
+
 /**
- * @brief Get the compare code between floats
- * 
- * @param operation comparation operation
- * @return string assembly code for compare operation
+ * @brief Get the compare code between floats - (FLOAT >|>=|=|<=|<|!= FLOAT)
+ *
+ * @param operation Comparation operation
+ * @return string Assembly code for compare operation
  */
 void getCmpCodeFloat(int operation)
+{
+    // Labels
+    string labelTrue = getNextAssemblyLabel();
+    string labelEnd = getNextAssemblyLabel();
+
+    assemblyCmd += "\tcomiss XMM0, XMM1 \t\t\t ; Compara float1 com float2\n";
+
+    // =
+    if (operation == Alphabet::EQUAL)
+    {
+        assemblyCmd += "\tje " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 = float2\n";
+    }
+    // >
+    else if (operation == Alphabet::GREATERTHAN)
+    {
+        assemblyCmd += "\tja " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 > float2\n";
+    }
+    // >=
+    else if (operation == Alphabet::GREATEREQUAL)
+    {
+        assemblyCmd += "\tjae " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 >= float2\n";
+    }
+    // <
+    else if (operation == Alphabet::LESSTHAN)
+    {
+        assemblyCmd += "\tjb " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 < float2\n";
+    }
+    // <=
+    else if (operation == Alphabet::LESSEQUAL)
+    {
+        assemblyCmd += "\tjbe " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 <= float2\n";
+    }
+    // !=
+    else if (operation == Alphabet::NOTEQUAL)
+    {
+        assemblyCmd += "\tjne " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se float1 != float2\n";
+    }
+
+    assemblyCmd += "\tmov EAX, 0 \t\t\t ; Define registrador como falso\n";
+    assemblyCmd += "\tjmp " + labelEnd;
+
+    assemblyCmd += "\n" + labelTrue + ":\n";
+    assemblyCmd += "\tmov EAX, 1 \t\t\t ; Define registrador como true\n";
+
+    assemblyCmd += labelEnd + ":\n";
+}
+
+/**
+ * @brief Get the compare code between ints - (INT >|>=|=|<=|<|!= INT)
+ *
+ * @param operation Comparation operation
+ * @return string Assembly code for compare operation
+ */
+void getCmpCodeInt(int operation)
 {
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    assemblyCmd += "\tcomiss XMM0, XMM1  \t\t\t; compara float1 com float2\n";
+    assemblyCmd += "\tcmp EAX, EBX \t\t\t ; Compara int1 com int2\n";
     // =
     if (operation == Alphabet::EQUAL)
     {
-        assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 = float2\n";
+        assemblyCmd += "\tje " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 = int2\n";
     }
     // >
     else if (operation == Alphabet::GREATERTHAN)
     {
-        assemblyCmd += "\tja " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 > float2\n";
+        assemblyCmd += "\tjg " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 > int2\n";
     }
     // >=
     else if (operation == Alphabet::GREATEREQUAL)
     {
-        assemblyCmd += "\tjae " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 >= float2\n";
+        assemblyCmd += "\tjge " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 >= int2\n";
     }
     // <
     else if (operation == Alphabet::LESSTHAN)
     {
-        assemblyCmd += "\tjb " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 < float2\n";
+        assemblyCmd += "\tjl " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 < int2\n";
     }
     // <=
     else if (operation == Alphabet::LESSEQUAL)
     {
-        assemblyCmd += "\tjbe " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 <= float2\n";
+        assemblyCmd += "\tjle " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 <= int2\n";
     }
     // !=
     else if (operation == Alphabet::NOTEQUAL)
     {
-        assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se float1 != float2\n";
+        assemblyCmd += "\tjne " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 != int2\n";
     }
 
-    assemblyCmd += "\tmov EAX, 0 ; Define registrador como falso\n";
+    assemblyCmd += "\tmov EAX, 0 \t\t\t ; Define registrador como falso\n";
     assemblyCmd += "\tjmp " + labelEnd;
 
     assemblyCmd += "\n" + labelTrue + ":\n";
-    assemblyCmd += "\tmov EAX, 1 ; Define registrador como true\n";
+    assemblyCmd += "\tmov EAX, 1 \t\t\t ; Define registrador como true\n";
 
     assemblyCmd += labelEnd + ":\n";
-
 }
 
 /**
- * @brief Get the compare code between ints
- * 
- * @param operation comparation operation
- * @return string assembly code for compare operation
+ * @brief Get the assembly compare code between Chars - (CHAR >|>=|=|<=|<|!= CHAR)
+ *
+ * @param addr1 Char 1 address
+ * @param addr2 Char 2 address
+ * @param operation Comparation operation
+ * @return long Temporary variable address
  */
-void getCmpCodeInt(int operation){
-    string labelTrue = getNextAssemblyLabel();
-    string labelEnd = getNextAssemblyLabel();
-
-    assemblyCmd += "\tcmp EAX, EBX  \t\t\t; compara int1 com int2\n";
-    // =
-    if (operation == Alphabet::EQUAL)
-    {
-        assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 = int2\n";
-    }
-    // >
-    else if (operation == Alphabet::GREATERTHAN)
-    {
-        assemblyCmd += "\tjg " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 > int2\n";
-    }
-    // >=
-    else if (operation == Alphabet::GREATEREQUAL)
-    {
-        assemblyCmd += "\tjge " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 >= int2\n";
-    }
-    // <
-    else if (operation == Alphabet::LESSTHAN)
-    {
-        assemblyCmd += "\tjl " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 < int2\n";
-    }
-    // <=
-    else if (operation == Alphabet::LESSEQUAL)
-    {
-        assemblyCmd += "\tjle " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 <= int2\n";
-    }
-    // !=
-    else if (operation == Alphabet::NOTEQUAL)
-    {
-        assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 != int2\n";
-    }
-
-    assemblyCmd += "\tmov EAX, 0 ; Define registrador como falso\n";
-    assemblyCmd += "\tjmp " + labelEnd;
-
-    assemblyCmd += "\n" + labelTrue + ":\n";
-    assemblyCmd += "\tmov EAX, 1 ; Define registrador como true\n";
-
-    assemblyCmd += labelEnd + ":\n";
-}
-
 long getCodeCmpForCharAndChar(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
@@ -935,138 +1228,198 @@ long getCodeCmpForCharAndChar(long addr1, long addr2, int operation)
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov AL, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de char 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov BL, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de char 2 da memoria para o registrador EBX\n";
+    assemblyCmd += "\n\t; -- CHAR CMP CHAR -- \n";
+    assemblyCmd += "\tmov AL, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de char 1 da memoria para registrador\n";
+    assemblyCmd += "\tmov BL, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de char 2 da memoria para registrador\n";
     assemblyCmd += "\tcmp AL, BL \t\t\t ; compara caracteres\n";
 
     if (operation == Alphabet::EQUAL)
     {
-        assemblyCmd += "\tje " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 = int2\n";
+        assemblyCmd += "\tje " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 = int2\n";
     }
     // >
     else if (operation == Alphabet::GREATERTHAN)
     {
-        assemblyCmd += "\tjg " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 > int2\n";
+        assemblyCmd += "\tjg " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 > int2\n";
     }
     // >=
     else if (operation == Alphabet::GREATEREQUAL)
     {
-        assemblyCmd += "\tjge " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 >= int2\n";
+        assemblyCmd += "\tjge " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 >= int2\n";
     }
     // <
     else if (operation == Alphabet::LESSTHAN)
     {
-        assemblyCmd += "\tjl " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 < int2\n";
+        assemblyCmd += "\tjl " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 < int2\n";
     }
     // <=
     else if (operation == Alphabet::LESSEQUAL)
     {
-        assemblyCmd += "\tjle " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 <= int2\n";
+        assemblyCmd += "\tjle " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 <= int2\n";
     }
     // !=
     else if (operation == Alphabet::NOTEQUAL)
     {
-        assemblyCmd += "\tjne " + labelTrue + "\t\t\t; salta para " + labelTrue + " se int1 != int2\n";
+        assemblyCmd += "\tjne " + labelTrue + "\t\t\t ; Salta para " + labelTrue + " se int1 != int2\n";
     }
 
-    assemblyCmd += "\tmov EAX, 0 ; Define registrador como falso\n";
+    assemblyCmd += "\tmov EAX, 0 \t\t\t ; Define registrador como falso\n";
     assemblyCmd += "\tjmp " + labelEnd;
 
     assemblyCmd += "\n" + labelTrue + ":\n";
-    assemblyCmd += "\tmov EAX, 1 ; Define registrador como true\n";
+    assemblyCmd += "\tmov EAX, 1 \t\t\t ; Define registrador como true\n";
 
     assemblyCmd += labelEnd + ":\n";
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END CHAR CMP CHAR -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
+/**
+ * @brief Get the assembly compare code between Ints - (INT >|>=|=|<=|<|!= INT)
+ *
+ * @param addr1 Int 1 address
+ * @param addr2 Int 2 address
+ * @param operation Comparation operation
+ * @return long Temporary variable address
+ */
 long getCodeCmpForIntAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int 1 da memoria para o registrador EAX\n";
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int 2 da memoria para o registrador EBX\n";
+
+    assemblyCmd += "\n\t; -- INT " + tokenToString(operation) + " INT -- \n";
+    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador\n";
+
     getCmpCodeInt(operation);
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT " + tokenToString(operation) + " INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
+/**
+ * @brief Get the assembly compare code between Int and Float - (INT >|>=|=|<=|<|!= FLOAT)
+ *
+ * @param addr1 Int address
+ * @param addr2 Float address
+ * @param operation Comparation operation
+ * @return long Temporary variable address
+ */
 long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de int da memoria para o registrador EAX\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+
+    assemblyCmd += "\n\t; -- INT " + tokenToString(operation) + " FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
+    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Expande int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t ; Expande int para float\n";
+
     getCmpCodeFloat(operation);
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END INT " + tokenToString(operation) + " FLOAT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
+/**
+ * @brief Get the assembly compare code between Float and Int - (FLOAT >|>=|=|<=|<|!= INT)
+ *
+ * @param addr1 Float address
+ * @param addr2 Int address
+ * @param operation Comparation operation
+ * @return long Temporary variable address
+ */
 long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
 
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+    assemblyCmd += "\n\t; -- FLOAT " + tokenToString(operation) + " INT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador \n";
+    assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
+
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor\n";
     // Type conversion
-    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t; Converte int para float\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Converte int para float\n";
     getCmpCodeFloat(operation);
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT " + tokenToString(operation) + " INT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
+/**
+ * @brief Get the assembly compare code between Floats - (FLOAT >|>=|=|<=|<|!= FLOAT)
+ *
+ * @param addr1 Float 1 addr
+ * @param addr2 Float 2 addr
+ * @param operation Comparation operation
+ * @return long Temporary variable address
+ */
 long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para o registrador XMM0\n";
-    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para o registrador XMM1\n";
+    assemblyCmd += "\n\t; -- FLOAT " + tokenToString(operation) + " FLOAT -- \n";
+    assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para o registrador XMM0\n";
+    assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
     getCmpCodeFloat(operation);
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t;  Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ;  Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END FLOAT " + tokenToString(operation) + " FLOAT -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
-
 /**
- * @brief Generate code for compare 
+ * @brief Get the assembly compare code between Strings - (STRING = STRING)
  *
- * @param long addr1 (string 1), long addr2 (string 2), int operation
- * @return long address of boolean result
+ * @param addr1 String 1 address
+ * @param addr2 String 2 address
+ * @param operation Comparation operation
+ * @return long Temporary variable address
  */
 long getCodeCmpForStringAndString(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
+    // Labels
     string labelStartLoop = getNextAssemblyLabel();
     string labelEndLoop = getNextAssemblyLabel();
     string labelFalse = getNextAssemblyLabel();
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
+    assemblyCmd += "\n\t; -- STRING " + tokenToString(operation) + " STRING -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr1) + " ; \t\t\t Movendo string1 da memória para registrador\n";
     assemblyCmd += "\tmov RDI, M + " + to_string(addr2) + " ; \t\t\t Movendo string2 da memória para registrador\n";
 
     assemblyCmd += labelStartLoop + ": \t\t\t ; Inicio do loop\n";
-    assemblyCmd += "\tmov AL, [RSI] \t\t\t ; Leitura de caracter na posicao RAX da memória\n";
-    assemblyCmd += "\tmov BL, [RDI] \t\t\t ; Leitura de caracter na posicao RBX da memória\n";
+    assemblyCmd += "\tmov AL, [RSI] \t\t\t ; Leitura de caracter na posicao RSI da memória\n";
+    assemblyCmd += "\tmov BL, [RDI] \t\t\t ; Leitura de caracter na posicao RDI da memória\n";
     assemblyCmd += "\tcmp AL, 0 \t\t\t ; Verificação de flag de fim de string\n";
     assemblyCmd += "\tje " + labelEndLoop + " \n \t\t\t ; Se caracter lido = flag de fim de string finalizar loop\n";
 
@@ -1079,106 +1432,103 @@ long getCodeCmpForStringAndString(long addr1, long addr2, int operation)
     assemblyCmd += labelEndLoop + ":  \t\t\t ; Fim do loop\n";
     assemblyCmd += "\tcmp BL, 0  \t\t\t ; Verificação de flag de fim de string\n";
 
-    assemblyCmd += "\tje " + labelTrue + " \n  \t\t\t ; Se caracter lido = flag de fim de string finalizar loop\n";
+    assemblyCmd += "\tje " + labelTrue + " \t\t\t ; Se caracter lido = flag de fim de string finalizar loop\n";
 
     assemblyCmd += "\n" + labelFalse + ":\n";
-    assemblyCmd += "\tmov EAX, 0  \t\t\t ; Define registrador como falso\n";
+    assemblyCmd += "\tmov EAX, 0 \t\t\t ; Define registrador como falso\n";
     assemblyCmd += "\tjmp " + labelEnd;
 
     assemblyCmd += "\n" + labelTrue + ":\n";
-    assemblyCmd += "\tmov EAX, 1  \t\t\t ; Define registrador como true\n";
+    assemblyCmd += "\tmov EAX, 1 \t\t\t ; Define registrador como true\n";
 
     assemblyCmd += labelEnd + ":\n";
 
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva resultado em temporario\n";
+    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
+    assemblyCmd += "\t; -- END STRING " + tokenToString(operation) + " STRING -- \n";
 
+    // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
+
     return actualMemoryPosition;
 }
 
-/**
- * @brief Generate code for access a char in a string position
- *
- * @param long addrID (address of string), 
- *             long addrIndex (address of the index value)
- * @return char address
- */
-long getCodeAccessStringPosition(long addrString, long addrIndex)
-{
-    long actualMemoryPosition = assemblyTempCount;
-
-    assemblyCmd += "\tmov EBX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
-    assemblyCmd += "\tadd EBX, M + " + to_string(addrString) + " \t\t\t ; Soma indice com valor de memoria da string\n";
-    assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
-
-    assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t; Salva character em temporario\n";
-
-    newTemp(getTypeMemSize(ConstType::CHAR));
-    return actualMemoryPosition;
-}
+// **** ATRIB SECTION ****
 
 /**
- * @brief Generate code for atribuition of char to a string position
+ * @brief Generate code for atribuition of char to a string position - (STRING[X] := CHAR)
  *
- * @param long addrID (address of string that will receive the value), 
- *             long addrIndex (address of the index value), 
- *             long addrAtrib (address of chat contains the value)
+ * @param addrID address of string that will receive the value
+ * @param addrIndex address of the index value
+ * @param addrAtrib address of chat contains the value
  */
 void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
 {
+    assemblyCmd += "\n\t; -- ATRIB STRING POS := CHAR -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
-    assemblyCmd += "\tmov EBX, M + " + to_string(addrAtrib) + " \t\t\t ; Move endereco de memoria da string para registrador RSI\n";
-    assemblyCmd += "\tmov ECX, M + " + to_string(addrID) + " \t\t\t ; Move endereco de memoria da string para registrador RSI\n";
+    assemblyCmd += "\tmov EBX, M + " + to_string(addrAtrib) + " \t\t\t ; Move endereco de memoria da string para registrador\n";
+    assemblyCmd += "\tmov ECX, M + " + to_string(addrID) + " \t\t\t ; Move endereco de memoria da string para registrador\n";
     assemblyCmd += "\tadd EAX, ECX \t\t\t ; Adiciona indice ao endereco inicial da memoria\n";
-    assemblyCmd += "\tmov BL, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
+    assemblyCmd += "\tmov BL, [EBX] \t\t\t ; Escreve valor de caracter para o registrador\n";
 
     assemblyCmd += "\tmov [ EAX ], BL \t\t\t; Salva character no endereco do identificador\n";
+    assemblyCmd += "\t; -- END ATRIB STRING POS := CHAR -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of int to int
+ * @brief Generate code for atribuition of int to int - (INT := INT)
  *
- * @param long addr1 (address of int that will receive the value), long addr2 (address of int contains the value)
+ * @param addr1 ID address (address of int that will receive the value)
+ * @param addr2 EXP address (address of int contains the value)
  */
 void getCodeAtribIntAndInt(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB INT := INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\t; -- END ATRIB INT := INT -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of floar to float
+ * @brief Generate code for atribuition of float to float - (FLOAT := FLOAT)
  *
- * @param long addr1 (address of float that will receive the value), long addr2 (address of float contains the value)
+ * @param addr1 ID address (address of float that will receive the value)
+ * @param addr2 EXP address (address of float contains the value)
  */
 void getCodeAtribFloatAndFloat(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB FLOAT := FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\t; -- END ATRIB FLOAT := FLOAT -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of int to float
+ * @brief Generate code for atribuition of int to float - (FLOAT := INT)
  *
- * @param long addr1 (address of string that will receive the value), long addr2 (address of string contains the value)
+ * @param addr1 ID address (address of float that will receive the value)
+ * @param addr2 EXP address (address of int contains the value)
  */
 void getCodeAtribFloatAndInt(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB FLOAT := INT -- \n";
     assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
+    assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em RAX\n";
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte int para float\n";
 
     assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ], XMM0 \t\t\t;  Salva resultado no endereco do identificador\n";
+    assemblyCmd += "\t; -- END ATRIB FLOAT := INT -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of string to string
+ * @brief Generate code for atribuition of string to string - (STRING := STRING)
  *
- * @param long addr1 (address of string that will receive the value), long addr2 (address of string contains the value)
+ * @param addr1 ID address (address of string that will receive the value)
+ * @param addr2 EXP address (address of string contains the value)
  */
 void getCodeAtribStringAndString(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB STRING := STRING -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr1) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
     assemblyCmd += "\tmov RDI, M + " + to_string(addr2) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
 
@@ -1198,28 +1548,35 @@ void getCodeAtribStringAndString(long addr1, long addr2)
 
     // End of loop
     assemblyCmd += labeEndLoop + ": ; Fim do loop\n";
+    assemblyCmd += "\t; -- END ATRIB STRING := STRING -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of boolean to boolean
+ * @brief Generate code for atribuition of boolean to boolean - (BOOLEAN := BOOLEAN)
  *
- * @param long addr1 (address of boolean that will receive the value), long addr2 (address of boolean contains the value)
+ * @param addr1 ID address (address of boolean that will receive the value)
+ * @param addr2 EXP address (address of boolean contains the value)
  */
 void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB BOOLEAN := BOOLEAN -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\t; -- END ATRIB BOOLEAN := BOOLEAN -- \n";
 }
 
 /**
- * @brief Generate code for atribuition of char to char
+ * @brief Generate code for atribuition of char to char - (CHAR := CHAR)
  *
- * @param long addr1 (address of char that will receive the value), long addr2 (address of char contains the value)
+ * @param addr1 ID address (address of char that will receive the value)
+ * @param addr2 EXP address (address of char contains the value)
  */
 void getCodeAtribCharAndChar(long addr1, long addr2)
 {
+    assemblyCmd += "\n\t; -- ATRIB CHAR := CHAR -- \n";
     assemblyCmd += "\tmov AL, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificadorg da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , AL \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\t; -- END ATRIB CHAR := CHAR -- \n";
 }
 
 // **** READ SECTION ****
@@ -1227,15 +1584,16 @@ void getCodeAtribCharAndChar(long addr1, long addr2)
 /**
  * @brief Generate code for read string command
  *
- * @param long addr (address of the string variable to receive the read value)
+ * @param addr (address of the string variable to receive the read value)
  */
 void getCodeReadStr(long addr)
 {
     string labelLoop = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
+    // Init assembly code read (input)
+    assemblyCmd += "\n\t; -- READ STR -- \n";
+    assemblyCmd += "\tmov RSI, M+" + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
@@ -1246,9 +1604,9 @@ void getCodeReadStr(long addr)
     assemblyCmd += "\tsub RAX, 1\n";
 
     assemblyCmd += labelLoop + ":\n";
-    assemblyCmd += "\tmov DL, [RSI] \t\t\t ; Move caractere para DL\n";
+    assemblyCmd += "\tmov DL, [RSI] \t\t\t ; Move caractere para \n";
     assemblyCmd += "\tcmp DL, byte 10 \t\t\t ; Compara com quebra de linha\n";
-    assemblyCmd += "\tje " + labelEnd + " \t\t\t ; Se for quebra de linha salta\n";
+    assemblyCmd += "\tje " + labelEnd + " \t\t\t ; Se for quebra de linha Salta\n";
     assemblyCmd += "\tcmp RSI, RAX\n";
     assemblyCmd += "\tje " + labelEnd + "\n";
     assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa endereco da String\n";
@@ -1257,6 +1615,7 @@ void getCodeReadStr(long addr)
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmov DL, 0 \t\t\t ; Substitui quebra de linha por fim de string\n";
     assemblyCmd += "\tmov [RSI], DL \t\t\t ; Move fim de string para o identificador\n";
+    assemblyCmd += "\t; -- END READ STR -- \n";
 }
 
 /**
@@ -1265,8 +1624,8 @@ void getCodeReadStr(long addr)
  * @param long addr (address of the int variable to receive the read value)
  */
 void getCodeReadInt(long addr)
-{  
-    //Generete a new temporary (12 bytes)
+{
+    // Generete a new temporary (12 bytes)
     long buffer = newTemp(12);
 
     string label0 = getNextAssemblyLabel();
@@ -1274,48 +1633,50 @@ void getCodeReadInt(long addr)
     string label2 = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    //Init assembly code read (input)
+    // Init assembly code read (input)
+    assemblyCmd += "\n\t; -- READ INT -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
     assemblyCmd += "\tsyscall\n\n";
 
-    //processing string reading to int number
-    assemblyCmd += "\tmov EAX, 0 \t\t\t;acumulador\n";
-    assemblyCmd += "\tmov EBX, 0 \t\t\t;caractere\n";
-    assemblyCmd += "\tmov ECX, 10 \t\t\t;base 10\n";
-    assemblyCmd += "\tmov DX, 1 \t\t\t;sinal\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t;end. buffer\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
-    assemblyCmd += "\tcmp BL, \'-\' \t\t\t;sinal - ?\n";
-    assemblyCmd += "\tjne " + label0 + " \t\t\t;se dif -, salta\n";
-    assemblyCmd += "\tmov DX, -1 \t\t\t;senão, armazena -\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;inc. ponteiro string\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
+    // Processing string reading to int number
+    assemblyCmd += "\tmov EAX, 0 \t\t\t ; Acumulador\n";
+    assemblyCmd += "\tmov EBX, 0 \t\t\t ; Caractere\n";
+    assemblyCmd += "\tmov ECX, 10 \t\t\t ; Base 10\n";
+    assemblyCmd += "\tmov DX, 1 \t\t\t ; Sinal\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; End. buffer\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
+    assemblyCmd += "\tcmp BL, \'-\' \t\t\t ; Sinal - ?\n";
+    assemblyCmd += "\tjne " + label0 + " \t\t\t ; Se dif -, Salta\n";
+    assemblyCmd += "\tmov DX, -1 \t\t\t ; Senão, armazena -\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Inc. ponteiro string\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
 
     assemblyCmd += "" + label0 + ":\n";
-    assemblyCmd += "\tpush DX \t\t\t;empilha sinal\n";
-    assemblyCmd += "\tmov EDX, 0 \t\t\t;reg. multiplicação\n";
+    assemblyCmd += "\tpush DX \t\t\t ; Empilha sinal\n";
+    assemblyCmd += "\tmov EDX, 0 \t\t\t ; Reg. multiplicação\n";
 
     assemblyCmd += "" + label1 + ":\n";
-    assemblyCmd += "\tcmp BL, 0Ah \t\t\t;verifica fim string\n";
-    assemblyCmd += "\tje " + label2 + " \t\t\t;salta se fim string\n";
-    assemblyCmd += "\timul ECX \t\t\t;mult. EAX por 10\n";
-    assemblyCmd += "\tsub BL, \'0\' \t\t\t;converte caractere\n";
-    assemblyCmd += "\tadd EAX, EBX \t\t\t;soma valor caractere\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa base\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
-    assemblyCmd += "\tjmp " + label1 + " \t\t\t;loop\n";
+    assemblyCmd += "\tcmp BL, 0Ah \t\t\t ; Verifica fim string\n";
+    assemblyCmd += "\tje " + label2 + " \t\t\t ; Salta se fim string\n";
+    assemblyCmd += "\timul ECX \t\t\t ; Mult. EAX por 10\n";
+    assemblyCmd += "\tsub BL, \'0\' \t\t\t ; Converte caractere\n";
+    assemblyCmd += "\tadd EAX, EBX \t\t\t ; Soma valor caractere\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
+    assemblyCmd += "\tjmp " + label1 + " \t\t\t; Loop\n";
 
     assemblyCmd += label2 + ":\n";
-    assemblyCmd += "\tpop CX \t\t\t;desempilha sinal\n";
+    assemblyCmd += "\tpop CX \t\t\t ; Desempilha sinal\n";
     assemblyCmd += "\tcmp CX, 0\n";
     assemblyCmd += "\tjg " + labelEnd + "\n";
-    assemblyCmd += "\tneg EAX \t\t\t;mult. sinal\n";
+    assemblyCmd += "\tneg EAX \t\t\t ; Mult. sinal\n";
 
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr) + " ], EAX \t\t\t; Carrega o valor para o indentificador\n";
+    assemblyCmd += "\t; -- END READ INT -- \n";
 }
 
 /**
@@ -1325,77 +1686,79 @@ void getCodeReadInt(long addr)
  */
 void getCodeReadFloat(long addr)
 {
-    //Generete a new temporary (12 bytes)
+    // Generete a new temporary (12 bytes)
     long buffer = newTemp(12);
 
-    //Declaration of labels
+    // Declaration of labels
     string label0 = getNextAssemblyLabel();
     string label1 = getNextAssemblyLabel();
     string label2 = getNextAssemblyLabel();
     string label3 = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    //Init assembly code read (input)
+    // Init assembly code read (input)
+    assemblyCmd += "\n\t; -- READ FLOAT -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
     assemblyCmd += "\tsyscall\n\n";
 
-    //processing string reading to float number
-    assemblyCmd += "\tmov RAX, 0 \t\t\t;acumul. parte int. em RAX\n";
-    assemblyCmd += "\tsubss XMM0, XMM0 \t\t\t;acumul. parte frac.\n";
-    assemblyCmd += "\tmov RBX, 0 \t\t\t;caractere\n";
-    assemblyCmd += "\tmov RCX, 10 \t\t\t;base 10\n";
-    assemblyCmd += "\tcvtsi2ss XMM3, RCX \t\t\t;base 10\n";
-    assemblyCmd += "\tmovss XMM2, XMM3 \t\t\t;potência de 10\n";
-    assemblyCmd += "\tmov RDX, 1 \t\t\t;sinal\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + "\t\t\t;end. buffer\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
-    assemblyCmd += "\tcmp BL, '-' \t\t\t;sinal - ?\n";
-    assemblyCmd += "\tjne " + label0+ "\t\t\t;se dif -, salta\n";
-    assemblyCmd += "\tmov RDX, -1 \t\t\t;senão, armazena -\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;inc. ponteiro string\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
+    // processing string reading to float number
+    assemblyCmd += "\tmov RAX, 0 \t\t\t ; Acumul. parte int. em RAX\n";
+    assemblyCmd += "\tsubss XMM0, XMM0 \t\t\t ; Acumul. parte frac.\n";
+    assemblyCmd += "\tmov RBX, 0 \t\t\t ; Caractere\n";
+    assemblyCmd += "\tmov RCX, 10 \t\t\t ; Base 10\n";
+    assemblyCmd += "\tcvtsi2ss XMM3, RCX \t\t\t ; Base 10\n";
+    assemblyCmd += "\tmovss XMM2, XMM3 \t\t\t ; Potência de 10\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t ; Sinal\n";
+    assemblyCmd += "\tmov RSI, M+" + to_string(buffer) + "\t\t\t ; End. buffer\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
+    assemblyCmd += "\tcmp BL, '-' \t\t\t ; Sinal - ?\n";
+    assemblyCmd += "\tjne " + label0 + "\t\t\t ; Se dif -, Salta\n";
+    assemblyCmd += "\tmov RDX, -1 \t\t\t ; Senão, armazena -\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Inc. ponteiro string\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
 
-    assemblyCmd += label0+ ":\n";
-    assemblyCmd += "\tpush RDX \t\t\t;empilha sinal\n";
-    assemblyCmd += "\tmov RDX, 0 \t\t\t;reg. multiplicação\n";
+    assemblyCmd += label0 + ":\n";
+    assemblyCmd += "\tpush RDX \t\t\t ; Empilha sinal\n";
+    assemblyCmd += "\tmov RDX, 0 \t\t\t ; Reg. multiplicação\n";
 
     assemblyCmd += label1 + ":\n";
-    assemblyCmd += "\tcmp BL, 0Ah \t\t\t;verifica fim string\n";
-    assemblyCmd += "\tje "+ label2 + " \t\t\t;salta se fim string\n";
-    assemblyCmd += "\tcmp BL, \'.\' \t\t\t;senão verifica ponto\n";
-    assemblyCmd += "\tje " + label3 + "\t\t\t;salta se ponto\n";
-    assemblyCmd += "\timul ECX \t\t\t;mult. eax por 10\n";
-    assemblyCmd += "\tsub BL, \'0\' \t\t\t;converte caractere\n";
-    assemblyCmd += "\tadd EAX, EBX \t\t\t;soma valor caractere\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;incrementa base\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
-    assemblyCmd += "\tjmp " + label1 + "\t\t\t;loop\n";
+    assemblyCmd += "\tcmp BL, 0Ah \t\t\t ; Verifica fim string\n";
+    assemblyCmd += "\tje " + label2 + " \t\t\t ; Salta se fim string\n";
+    assemblyCmd += "\tcmp BL, \'.\' \t\t\t ; Senão verifica ponto\n";
+    assemblyCmd += "\tje " + label3 + "\t\t\t ; Salta se ponto\n";
+    assemblyCmd += "\timul ECX \t\t\t ; Mult. EAX por 10\n";
+    assemblyCmd += "\tsub BL, \'0\' \t\t\t ; Converte caractere\n";
+    assemblyCmd += "\tadd EAX, EBX \t\t\t ; Soma valor caractere\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Incrementa base\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
+    assemblyCmd += "\tjmp " + label1 + "\t\t\t ; Loop\n";
 
     assemblyCmd += label3 + ":\n";
-    assemblyCmd += "\t;calcula parte fracionária em xmm0\n";
-    assemblyCmd += "\tadd RSI, 1 \t\t\t;inc. ponteiro string\n";
-    assemblyCmd += "\tmov BL, [RSI] \t\t\t;carrega caractere\n";
-    assemblyCmd += "\tcmp BL, 0Ah \t\t\t;*verifica fim string\n";
-    assemblyCmd += "\tje " + label2 + "\t\t\t;salta se fim string\n";
-    assemblyCmd += "\tsub BL, \'0\' \t\t\t;converte caractere\n";
-    assemblyCmd += "\tcvtsi2ss XMM1,RBX \t\t\t;conv real\n";
-    assemblyCmd += "\tdivss XMM1,XMM2 \t\t\t;transf. casa decimal\n";
-    assemblyCmd += "\taddss XMM0,XMM1 \t\t\t;soma acumul.\n";
-    assemblyCmd += "\tmulss XMM2,XMM3 \t\t\t;atualiza potência\n";
-    assemblyCmd += "\tjmp " + label3 + "\t\t\t;loop\n";
+    assemblyCmd += "\t; Calcula parte fracionária em XMM0\n";
+    assemblyCmd += "\tadd RSI, 1 \t\t\t ; Inc. ponteiro string\n";
+    assemblyCmd += "\tmov BL, [RSI] \t\t\t ; Carrega caractere\n";
+    assemblyCmd += "\tcmp BL, 0Ah \t\t\t ; Verifica fim string\n";
+    assemblyCmd += "\tje " + label2 + "\t\t\t ; Salta se fim string\n";
+    assemblyCmd += "\tsub BL, \'0\' \t\t\t ; Converte caractere\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RBX \t\t\t ; Conv real\n";
+    assemblyCmd += "\tdivss XMM1, XMM2 \t\t\t ; Transf. casa decimal\n";
+    assemblyCmd += "\taddss XMM0, XMM1 \t\t\t ; Soma acumul.\n";
+    assemblyCmd += "\tmulss XMM2, XMM3 \t\t\t ; Atualiza potência\n";
+    assemblyCmd += "\tjmp " + label3 + "\t\t\t ; Loop\n";
     assemblyCmd += label2 + ":\n";
 
-    assemblyCmd += "\tcvtsi2ss XMM1,RAX \t\t\t;conv parte inteira\n";
-    assemblyCmd += "\taddss XMM0,XMM1 \t\t\t;soma parte frac.\n";
-    assemblyCmd += "\tpop RCX \t\t\t;desempilha sinal\n";
-    assemblyCmd += "\tcvtsi2ss XMM1,RCX \t\t\t;conv sinal\n";
-    assemblyCmd += "\tmulss XMM0,XMM1 \t\t\t;mult. sinal\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Conv parte inteira\n";
+    assemblyCmd += "\taddss XMM0, XMM1 \t\t\t ; Soma parte frac.\n";
+    assemblyCmd += "\tpop RCX \t\t\t ; Desempilha sinal\n";
+    assemblyCmd += "\tcvtsi2ss XMM1, RCX \t\t\t ; Conv sinal\n";
+    assemblyCmd += "\tmulss XMM0, XMM1 \t\t\t ; Mult. sinal\n";
 
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmovss [ M + " + to_string(addr) + " ], XMM0 \t\t\t; Carrega o valor para o indentificador\n";
+    assemblyCmd += "\t; -- END READ FLOAT -- \n";
 }
 
 /**
@@ -1405,30 +1768,31 @@ void getCodeReadFloat(long addr)
  */
 void getCodeReadChar(long addr)
 {
-    //Generete a new temporary (1 byte)
+    // Generete a new temporary (1 byte)
     long buffer = newTemp(1);
 
     string labelEnd = getNextAssemblyLabel();
     string cleanBufferLabel = getNextAssemblyLabel();
 
-    //Init assembly code read (input)
-    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " ; Salva o endereco do buffer\n";
-    assemblyCmd += "\tmov RDX, 1 ; Tamanho do buffer\n";
-    assemblyCmd += "\tmov RAX, 0 ; Chamada para leitura\n";
-    assemblyCmd += "\tmov RDI, 0 ; Leitura do teclado\n";
+    // Init assembly code read (input)
+    assemblyCmd += "\n\t; -- READ CHAR -- \n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t ; Tamanho do buffer\n";
+    assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
+    assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
     assemblyCmd += "\tsyscall\n\n";
 
     assemblyCmd += "; Limpa o buffer para a proxima leitura\n";
     assemblyCmd += cleanBufferLabel + ":\n";
-    assemblyCmd += "\tmov RDX, 1; Tamanho do buffer\n";
-    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " ; Salva o endereco do buffer\n";
-    assemblyCmd += "\tmov RAX, 0 ; Chamada para leitura\n";
-    assemblyCmd += "\tmov RDI, 0 ; Leitura do teclado\n";
+    assemblyCmd += "\tmov RDX, 1 \t\t\t ; Tamanho do buffer\n";
+    assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
+    assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
+    assemblyCmd += "\tmov RDI, 0 \t\t\t ; Leitura do teclado\n";
     assemblyCmd += "\tsyscall\n\n";
     assemblyCmd += "\tmov AL,[ M + " + to_string(buffer) + " ]\n";
-    assemblyCmd += "\tcmp AL, 0xA  ; Verifica se e nova linha\n";
-    assemblyCmd += "\tjne " + cleanBufferLabel + "; Le o proximo se nao for nova linha\n\n";
-
+    assemblyCmd += "\tcmp AL, 0xA \t\t\t ; Verifica se e nova linha\n";
+    assemblyCmd += "\tjne " + cleanBufferLabel + "\t\t\t ; Le o proximo se nao for nova linha\n\n";
+    assemblyCmd += "\t; -- END READ CHAR -- \n";
 }
 
 /**
@@ -1438,7 +1802,6 @@ void getCodeReadChar(long addr)
  */
 void getCodeRead(long addr, int type)
 {
-    
     if (type == ConstType::STRING)
     {
         getCodeReadStr(addr);
@@ -1453,50 +1816,11 @@ void getCodeRead(long addr, int type)
     }
     else if (type == ConstType::FLOAT)
     {
-      getCodeReadFloat(addr);
+        getCodeReadFloat(addr);
     }
 }
 
-/**
- * @brief Generate code for casting command
- *
- * @param long addr (address of the variable to be converted), int convType (type to be converted)
- * @return long convert number temporary position
- */
-long getCodeCasting(long addr, int convType){
-    
-    long actualMemoryPosition = assemblyTempCount;
-
-    // Casting int -> float
-    if(convType == ConstType::INT){
-
-        assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
-        assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
-        assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
-        
-        assemblyCmd += "\tcvtss2si RAX, XMM0 \t\t\t; Converte int para float\n";
-        assemblyCmd += "\tmov [ M + " +  to_string(actualMemoryPosition) + " ], RAX \t\t\t ; Salva valor convertido para temporario\n";
-
-
-        newTemp(getTypeMemSize(ConstType::INT));
-
-    // Casting float -> int
-    } else if (convType == ConstType::FLOAT){
-
-        assemblyCmd += "\tmov EAX, 0 ; Zera o EAX\n";
-        assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
-        assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
-        assemblyCmd += "\tcdqe \t\t\t; Expandindo o sinal de valor em RAX\n";
-        assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
-        assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte float para int\n";
-        assemblyCmd += "\tmovss [ M + " +  to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva valor convertido para temporario\n";
-
-        newTemp(getTypeMemSize(ConstType::FLOAT));
-
-    }
-
-    return actualMemoryPosition;
-}
+// **** IF SECTION ****
 
 /**
  * @brief Generate code for begin of a if block
@@ -1504,11 +1828,14 @@ long getCodeCasting(long addr, int convType){
  * @param long addr (address of the boolean expression used in if condition)
  * @return string end of if label
  */
-string getCodeOpenIf(long addr){
+string getCodeOpenIf(long addr)
+{
+
     // Label false condition
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\n\t; -- IF -- \n";
+    assemblyCmd += "\tmov EAX, [ M  + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do if\n";
 
@@ -1520,8 +1847,10 @@ string getCodeOpenIf(long addr){
  *
  * @param string end of if label
  */
-void getCodeCloseBlockIf(string label){
+void getCodeCloseBlockIf(string label)
+{
     assemblyCmd += label + ": \t\t\t ; fecha bloco do if\n";
+    assemblyCmd += "\t; -- END IF -- \n";
 }
 
 /**
@@ -1530,33 +1859,41 @@ void getCodeCloseBlockIf(string label){
  * @param long addr (address of the boolean expression used in if condition)
  * @return string end of else label
  */
-string getCodeOpenElse(long addr){
+string getCodeOpenElse(long addr)
+{
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\n\t; -- ELSE -- \n";
+    assemblyCmd += "\tmov EAX, [ M   + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Comparacao com booleano false\n";
-    assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for falso pular bloco do if\n";
+    assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for falso pular bloco do else\n";
+    assemblyCmd += "\t; -- END ELSE -- \n";
 
     return labelFalse;
 }
 
+// **** WHILE SECTION ****
+
 /**
  * @brief Generate code for begin of a while block
  *
- * @param long addr (address of a boolean expression), string& (Label end of while) 
- * and string& labelLoop (Label begin of while)
+ * @param addr address of a boolean expression
+ * @param labelFalse Label end of while
+ * @param labelLoop Label begin of while
  */
-void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop){
-    // Label end of while 
+void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop)
+{
+
+    // Label end of while
     labelFalse = getNextAssemblyLabel();
     // Label begin of while
     labelLoop = getNextAssemblyLabel();
 
-    assemblyCmd += labelLoop + ": \n";
-    assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\n\t; -- WHILE -- \n";
+    assemblyCmd += labelLoop + ":  \t\t\t ; inicio while \n";
+    assemblyCmd += "\tmov EAX, [ M  + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do while\n";
-
 }
 
 /**
@@ -1564,8 +1901,9 @@ void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop){
  *
  * @param string labelFalse (Label end of while) and string labelLoop (Label begin of while)
  */
-void getCodeCloseBlockWhile(string labelFalse, string labelLoop){
-    assemblyCmd += "\tjmp " + labelLoop + "\t\t\t; Realiza o loop do while\n";
+void getCodeCloseBlockWhile(string labelFalse, string labelLoop)
+{
+    assemblyCmd += "\tjmp " + labelLoop + "\t\t\t ; Realiza o loop do while\n";
     assemblyCmd += labelFalse + ": \t\t\t ; Fim do while \n";
+    assemblyCmd += "\t; -- END WHILE -- \n";
 }
-

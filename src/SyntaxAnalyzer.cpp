@@ -1494,10 +1494,8 @@ list<string> split(string s, string delimiter)
 
     list<string> splitRet;
 
-    // while != end of string
+    // While != end of string
     while (pos != string::npos) {
-        token = s.substr(0, pos);
-        //cout << token << endl;
         // Slipt delimiter
         splitRet.push_back(s.substr(0, pos));
 
@@ -1506,8 +1504,8 @@ list<string> split(string s, string delimiter)
         // Finding next apperance of delimiter
         pos = s.find(delimiter);
     }
-    splitRet.push_back(s);
 
+    splitRet.push_back(s);
     return splitRet;
 }
 
@@ -1610,10 +1608,9 @@ void SyntaxAnalyzer::parser()
     this->token = this->regLex.token;
 
     assembly += "section .data                 ; Sessão de dados\n";
-    assembly += "M:                            ; Rotulo para demarcar o\n";
-    assembly += "                              ; inicio da sessao de dados\n";
+    assembly += "M:                            ; Rotulo para demarcar o inicio da sessao de dados\n";
     assembly += "\tresb 0x10000              ; Reserva de temporarios\n";
-    assembly += "   ; ***Definicoes de variaveis e constantes\n";
+    assembly += "; *** Definicoes de variaveis e constantes ***\n";
 
     S();
 
@@ -1627,7 +1624,7 @@ void SyntaxAnalyzer::parser()
     assembly += "section .text                 ; Sessao de codigo\n";
     assembly += "global _start                 ; Ponto inicial do programa\n";
     assembly += "_start:                       ; Inicio do programa\n";
-    assembly += "   ; ***Comandos\n";
+    assembly += "; *** Comandos *** \n";
     assembly += assemblyCmd;
     assembly += "; Halt\n";
     assembly += "mov rax, 60                   ; Chamada de saida\n";
