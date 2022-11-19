@@ -36,7 +36,7 @@ L2: ; Fim do loop
 	; -- END CONST INT -- 
 
 	; -- STRING POSITION -- 
-	mov EBX, [ M +0 ] 			 ; Recupera valor de indice da string da memoria
+	mov EBX, [ M + 0 ] 			 ; Recupera valor de indice da string da memoria
 	add EBX, M + 65536 			 ; Soma indice com valor de memoria da string
 	mov EAX, [EBX] 			 ; Escreve valor de caracter para o registrador AL
 	mov [ M + 4 ], EAX 			 ; Salva character em temporario
@@ -144,7 +144,7 @@ L6:
 
 	; -- ATRIB INT := INT -- 
 	mov EAX, [ M + 7 ] 			 ; Recupera valor do identificador da memoria
-	mov [M + 65810 ] , EAX 			 ; Salva valor do registrador no endereco do ID
+	mov [ M + 65810 ] , EAX 			 ; Salva valor do registrador no endereco do ID
 	; -- END ATRIB INT := INT -- 
 
 	; -- WRITE FLOAT -- 
@@ -391,6 +391,7 @@ L28: ; Fim do loop
 	; -- END LINE BREAK -- 
 L23: 			 ; fecha bloco do if
 	; -- END IF -- 
+
 ; Halt
 mov rax, 60                   ; Chamada de saida
 mov rdi, 0                    ; Codigo de saida sem erros

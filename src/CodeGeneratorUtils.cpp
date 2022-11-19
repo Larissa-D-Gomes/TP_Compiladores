@@ -602,7 +602,7 @@ long getCodeAccessStringPosition(long addrString, long addrIndex)
     long actualMemoryPosition = assemblyTempCount;
 
     assemblyCmd += "\n\t; -- STRING POSITION -- \n";
-    assemblyCmd += "\tmov EBX, [ M +" + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
+    assemblyCmd += "\tmov EBX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
     assemblyCmd += "\tadd EBX, M + " + to_string(addrString) + " \t\t\t ; Soma indice com valor de memoria da string\n";
     assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
 
@@ -1484,7 +1484,7 @@ void getCodeAtribIntAndInt(long addr1, long addr2)
 {
     assemblyCmd += "\n\t; -- ATRIB INT := INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmov [M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
     assemblyCmd += "\t; -- END ATRIB INT := INT -- \n";
 }
 
@@ -1498,7 +1498,7 @@ void getCodeAtribFloatAndFloat(long addr1, long addr2)
 {
     assemblyCmd += "\n\t; -- ATRIB FLOAT := FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmovss [M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
     assemblyCmd += "\t; -- END ATRIB FLOAT := FLOAT -- \n";
 }
 
@@ -1561,7 +1561,7 @@ void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
 {
     assemblyCmd += "\n\t; -- ATRIB BOOLEAN := BOOLEAN -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
-    assemblyCmd += "\tmov [M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
+    assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
     assemblyCmd += "\t; -- END ATRIB BOOLEAN := BOOLEAN -- \n";
 }
 
@@ -1864,7 +1864,7 @@ string getCodeOpenElse(long addr)
     string labelFalse = getNextAssemblyLabel();
 
     assemblyCmd += "\n\t; -- ELSE -- \n";
-    assemblyCmd += "\tmov EAX, [ M   +" + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\tmov EAX, [ M   + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Comparacao com booleano false\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for falso pular bloco do else\n";
     assemblyCmd += "\t; -- END ELSE -- \n";

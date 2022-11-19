@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <string>
+#include <list>
 
 #include "headers/SyntaxAnalyzer.hpp"
 #include "headers/LexicalRegister.hpp"
@@ -27,6 +28,7 @@
 
 #define finalState -1
 #define null -999
+#define isToUsePeephole true
 
 using namespace std;
 
@@ -1480,6 +1482,120 @@ ExpressionReturn SyntaxAnalyzer::M()
 }
 
 /**
+ * @brief Split a string s using a delimiter
+ *
+ * @param string s, string delimiter
+ * @return list<string> split itens
+ */
+list<string> split(string s, string delimiter) 
+{
+    // Finding first apperance of delimiter
+    int pos = s.find(delimiter);
+
+    list<string> splitRet;
+
+    // While != end of string
+    while (pos != string::npos) {
+        // Slipt delimiter
+        splitRet.push_back(s.substr(0, pos));
+
+        // Deleting analised substring
+        s.erase(0, pos + delimiter.length());
+        // Finding next apperance of delimiter
+        pos = s.find(delimiter);
+    }
+
+    splitRet.push_back(s);
+    return splitRet;
+}
+
+/**
+ * @brief check if the source of line 1 is the same as the destination of line 2
+ * 
+ * @param string splitReturnLine1P1 (string 1 arg 1), string splitReturnLine1P2 (string 1 arg 2), 
+ *        string splitReturnLine2P1 (string 2 arg 1), string splitReturnLine2P2 (string 2 arg 2)
+ */
+bool verifyParamEqPeephole(string splitReturnLine1P1, string splitReturnLine1P2, 
+                              string splitReturnLine2P1, string splitReturnLine2P2){
+
+    return splitReturnLine1P1.length() == 9 && splitReturnLine2P2.length() >= 9 &&
+           splitReturnLine2P1.length() == 3 && splitReturnLine1P2.length() >= 3 &&
+           splitReturnLine1P1[0] == splitReturnLine2P2[0] &&
+           splitReturnLine1P1[1] == splitReturnLine2P2[1] &&
+           splitReturnLine1P1[2] == splitReturnLine2P2[2] &&
+           splitReturnLine1P1[3] == splitReturnLine2P2[3] &&
+           splitReturnLine1P1[4] == splitReturnLine2P2[4] &&
+           splitReturnLine1P1[5] == splitReturnLine2P2[5] &&
+           splitReturnLine1P1[6] == splitReturnLine2P2[6] &&
+           splitReturnLine1P1[7] == splitReturnLine2P2[7] &&
+           splitReturnLine1P1[8] == splitReturnLine2P2[8] &&
+           splitReturnLine2P1[0] == splitReturnLine1P2[0] &&
+           splitReturnLine2P1[1] == splitReturnLine1P2[1] &&
+           splitReturnLine2P1[2] == splitReturnLine1P2[2];
+}
+
+/**
+ * @brief Peephole assembly optimization
+ */
+void peephole()
+{
+    list<string> splitReturn = split(assemblyCmd, "\n");
+    int n = splitReturn.size();
+    // Iterator string [i - 1]
+    list<string>::iterator it1 = splitReturn.begin();
+
+    // Iterator string [i]
+    list<string>::iterator it2 = splitReturn.begin();
+    ++it2;
+    string line1;
+    string line2;
+
+    assemblyCmd = "";
+    assemblyCmd = *it1 + "\n";;
+
+    for(int i = 1; i < n; i++){
+       // cout << *it1 << endl;
+        line1 = *it1;
+        line2 = *it2;
+
+        // Checking if both lines are mov commands
+        if(line1[1] == 'm' && line1[2] == 'o' && line1[3] == 'v' && 
+           line2[1] == 'm' && line2[2] == 'o' && line2[3] == 'v')
+        {   
+            // Removing [\tmov ]
+            line1 = line1.substr(5, line1.length());
+            line2 = line2.substr(5, line2.length());
+            
+            // Separating mov arguments
+            list<string> splitReturnLine1 = split(line1, ", ");
+            list<string>::iterator it3 = splitReturnLine1.begin();
+            list<string> splitReturnLine2 = split(line2, ", ");
+            list<string>::iterator it4 = splitReturnLine2.begin();
+
+            string splitReturnLine1P1 = *it3;
+            it3++;
+            string splitReturnLine1P2 = *it3;
+
+            string splitReturnLine2P1 = *it4;
+            it4++;
+            string splitReturnLine2P2 = *it4;
+
+            // Checking if the source of line 1 is the same as the destination of line 2
+            if(verifyParamEqPeephole(splitReturnLine1P1, splitReturnLine1P2, splitReturnLine2P1, splitReturnLine2P2))
+            {
+                // Removing line 2 of the assembly
+                it1++;
+                it2++;
+            }
+        }
+
+        assemblyCmd += *it2 + "\n";
+        it1++;
+        it2++; 
+    }
+}
+
+/**
  * @brief Initial Syntax Analyzer call
  */
 void SyntaxAnalyzer::parser()
@@ -1498,6 +1614,11 @@ void SyntaxAnalyzer::parser()
 
     S();
 
+    if(isToUsePeephole)
+    {
+        peephole();
+    }
+
     assembly += assemblyDec;
 
     assembly += "section .text                 ; Sessao de codigo\n";
@@ -1510,3 +1631,5 @@ void SyntaxAnalyzer::parser()
     assembly += "mov rdi, 0                    ; Codigo de saida sem erros\n";
     assembly += "syscall                       ; Chama o kernel\n";
 }
+
+
