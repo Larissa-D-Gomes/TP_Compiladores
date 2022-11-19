@@ -541,9 +541,8 @@ string getCodeOpenElse(long addr);
  *
  * @param addr address of a boolean expression
  * @param labelFalse Label end of while
- * @param labelLoop Label begin of while
  */
-void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop);
+void getCodeConditionWhile(long addr, string labelFalse);
 
 /**
  * @brief Generate code for end of while block
@@ -551,3 +550,7 @@ void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop);
  * @param string labelFalse (Label end of while) and string labelLoop (Label begin of while)
  */
 void getCodeCloseBlockWhile(string labelFalse, string labelLoop);
+
+void getCodeInitWhile(string &labelFalse, string &labelLoop);
+
+void getCodeConditionWhile(long addr);

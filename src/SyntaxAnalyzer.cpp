@@ -188,6 +188,7 @@ bool SyntaxAnalyzer::checkFirstM()
            this->token == Alphabet::TRUE ||
            this->token == Alphabet::FALSE;
 }
+
 /**
  * @brief Variable S of the L Language Grammar
  */
@@ -207,6 +208,7 @@ void SyntaxAnalyzer::S()
     }
     matchToken(EOF);
 }
+
 /**
  * @brief Variable DEC of the L Language Grammar
  */
@@ -665,7 +667,7 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
 
         if (isNewConst)
         {
-            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type);
+            deconstRet.addr = getCodeDeconst(hasMinnus,  deconstRet.type, this->regLex.lexeme);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
@@ -690,13 +692,14 @@ void SyntaxAnalyzer::CMD() // Language commands
     if (this->token == Alphabet::WHILE) // WHILE(){}
     {
         matchToken(Alphabet::WHILE);
-        parRet = PAR();
-
+        
         string labelFalse;
         string labelLoop;
-
+        getCodeInitWhile(labelFalse, labelLoop);
+        
+        parRet = PAR();
         // Code open while      
-        getCodeOpenWhile(parRet.addr, labelFalse, labelLoop);
+        getCodeConditionWhile(parRet.addr, labelFalse);
 
         // Semantic Action 28
         if (parRet.type != ConstType::BOOLEAN)

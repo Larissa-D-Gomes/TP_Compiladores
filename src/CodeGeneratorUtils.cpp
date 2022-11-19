@@ -1879,11 +1879,17 @@ string getCodeOpenElse(long addr)
  *
  * @param addr address of a boolean expression
  * @param labelFalse Label end of while
- * @param labelLoop Label begin of while
  */
-void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop)
+void getCodeConditionWhile(long addr, string labelFalse)
 {
+    assemblyCmd += "\n\t; -- CMP WHILE -- \n";
+    assemblyCmd += "\tmov EAX, [ M  + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
+    assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
+    assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do while\n";
+}
 
+void getCodeInitWhile(string &labelFalse, string &labelLoop)
+{
     // Label end of while
     labelFalse = getNextAssemblyLabel();
     // Label begin of while
@@ -1891,9 +1897,6 @@ void getCodeOpenWhile(long addr, string &labelFalse, string &labelLoop)
 
     assemblyCmd += "\n\t; -- WHILE -- \n";
     assemblyCmd += labelLoop + ":  \t\t\t ; inicio while \n";
-    assemblyCmd += "\tmov EAX, [ M  + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
-    assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
-    assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do while\n";
 }
 
 /**
