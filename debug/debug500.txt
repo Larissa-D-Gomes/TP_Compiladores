@@ -1,7 +1,7 @@
 int n, i1, i2, res;
-/*char op;*/
+char op;
 
-/*while(true){
+while(true){
     write("Digite o primeiro numero inteiro: ");
     readln(i1);
     write("Digite a operacao (+,-,*,d,m,/): ");
@@ -20,7 +20,6 @@ int n, i1, i2, res;
 
     writeln("Resultado: ", res);
 }
-*/
 
     /*write("Digite o primeiro numero inteiro: ");*/
     /*readln(i1);*/

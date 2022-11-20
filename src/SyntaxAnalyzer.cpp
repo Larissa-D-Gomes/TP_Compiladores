@@ -669,7 +669,7 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
         {
             deconstRet.addr = getCodeDeconst(hasMinnus,  deconstRet.type, this->regLex.lexeme);
         } else{
-            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type);
+            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type, hasMinnus);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
@@ -1471,7 +1471,7 @@ ExpressionReturn SyntaxAnalyzer::M()
         // Semantic Action 11
         mRet.type = regLex.constType;
 
-        mRet.addr = getCodeExpConst(regLex.lexeme, regLex.constType);
+        mRet.addr = getCodeExpConst(regLex.lexeme, regLex.constType, false);
         mRet.type = regLex.constType;
 
         matchToken(Alphabet::CONSTANT);

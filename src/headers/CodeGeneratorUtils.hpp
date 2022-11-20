@@ -159,7 +159,7 @@ long getCodeDeconst(bool hasMinnus, int type, string stringValue);
  * @param type Const.type
  * @return long Memory position allocated
  */
-long getCodeExpConst(string lexeme, int const);
+long getCodeExpConst(string lexeme, int type, bool hasMinnus);
 
 /**
  * @brief Write assembly code for NOT Exp in M grammar variable
