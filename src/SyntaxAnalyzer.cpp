@@ -28,7 +28,7 @@
 
 #define finalState -1
 #define null -999
-#define isToUsePeephole true
+#define isToUsePeephole false
 
 using namespace std;
 
@@ -1505,6 +1505,7 @@ void peephole()
 {
     list<string> splitReturn = split(assemblyCmd, "\n");
     int n = splitReturn.size();
+    
     // Iterator string [i - 1]
     list<string>::iterator it1 = splitReturn.begin();
 
@@ -1526,29 +1527,33 @@ void peephole()
            line2[1] == 'm' && line2[2] == 'o' && line2[3] == 'v')
         {   
             // Removing [\tmov ]
-            line1 = line1.substr(5, line1.length());
-            line2 = line2.substr(5, line2.length());
-            
-            // Separating mov arguments
-            list<string> splitReturnLine1 = split(line1, ", ");
-            list<string>::iterator it3 = splitReturnLine1.begin();
-            list<string> splitReturnLine2 = split(line2, ", ");
-            list<string>::iterator it4 = splitReturnLine2.begin();
-
-            string splitReturnLine1P1 = *it3;
-            it3++;
-            string splitReturnLine1P2 = *it3;
-
-            string splitReturnLine2P1 = *it4;
-            it4++;
-            string splitReturnLine2P2 = *it4;
-
-            // Checking if the source of line 1 is the same as the destination of line 2
-            if(verifyParamEqPeephole(splitReturnLine1P1, splitReturnLine1P2, splitReturnLine2P1, splitReturnLine2P2))
+            if(line1.length() > 5 && line2.length() > 5)
             {
-                // Removing line 2 of the assembly
-                it1++;
-                it2++;
+                line1 = line1.substr(5, line1.length());
+                line2 = line2.substr(5, line2.length());
+            
+                // Separating mov arguments
+                list<string> splitReturnLine1 = split(line1, ", ");
+                list<string>::iterator it3 = splitReturnLine1.begin();
+                list<string> splitReturnLine2 = split(line2, ", ");
+                list<string>::iterator it4 = splitReturnLine2.begin();
+
+                string splitReturnLine1P1 = *it3;
+                it3++;
+                string splitReturnLine1P2 = *it3;
+
+                string splitReturnLine2P1 = *it4;
+                it4++;
+                string splitReturnLine2P2 = *it4;
+
+                // Checking if the source of line 1 is the same as the destination of line 2
+                if(verifyParamEqPeephole(splitReturnLine1P1, splitReturnLine1P2, splitReturnLine2P1, splitReturnLine2P2))
+                {
+                    // Removing line 2 of the assembly
+                    it1++;
+                    it2++;
+                    i++;
+                }
             }
         }
 
@@ -1577,7 +1582,7 @@ void SyntaxAnalyzer::parser()
 
     S();
 
-    if(!isToUsePeephole)
+    if(isToUsePeephole)
     {
         peephole();
     }

@@ -118,7 +118,6 @@ void getCodeWriteStr(long addr)
     string labelStartLoop = getNextAssemblyLabel();
     string labelEndLoop = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- WRITE STRING -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
     assemblyCmd += "\tmov RDX, 0 \t\t\t ; contador de caracteres = 0\n";
 
@@ -141,7 +140,6 @@ void getCodeWriteStr(long addr)
     assemblyCmd += "\tmov RAX, 1 \t\t\t ; Chamada para saída\n";
     assemblyCmd += "\tmov RDI, 1 \t\t\t ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
-    assemblyCmd += "\t; -- END WRITE STRING -- \n";
 }
 
 /**
@@ -329,11 +327,9 @@ void getCodeWriteBoolean(long addr)
         memoryAlocation(6);
     }
 
-    assemblyCmd += "\n\t; -- WRITE BOOLEAN -- \n";
     assemblyCmd += "\tmov EAX , [ M + " + to_string(addr) + " ] \t\t\t ; Carrega valor de boolean\n";
     assemblyCmd += "\tcmp EAX , 0 \t\t\t ; Se boolean for falso\n";
     assemblyCmd += "\tjne " + labelTrue + "\t\t\t; Se boolean for verdadeiro -> label true\n";
-    assemblyCmd += "\n\t; -- END WRITE BOOLEAN -- \n";
 
     // Print false
     getCodeWriteStr(addrStringFalse);
@@ -517,7 +513,6 @@ long getCodeExpConst(string stringValue, int type, bool hasMinnus)
 
         if (type == ConstType::INT)
         {
-            assemblyCmd += "\n\t; -- CONST INT -- \n";
 
             assemblyCmd += "\tmov EAX, " + stringValue + " \t\t\t ; Move Inteiro imediato para registrador\n";
             
@@ -530,7 +525,6 @@ long getCodeExpConst(string stringValue, int type, bool hasMinnus)
         }
         else if (type == ConstType::CHAR)
         {
-            assemblyCmd += "\n\t; -- CONST CHAR -- \n";
             assemblyCmd += "\tmov AL, " + stringValue + " \t\t\t ; Move Char imediato para registrador\n";
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t ; Move registrador para memoria temporaria\n";
         }
@@ -545,7 +539,6 @@ long getCodeExpConst(string stringValue, int type, bool hasMinnus)
                 stringValue = "1";
             }
 
-            assemblyCmd += "\n\t; -- CONST BOOLEAN -- \n";
             assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t ; Move Boolean imediado para registrador EAX\n";
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move valor do registrador para memoria temporaria\n";
         }
@@ -568,7 +561,6 @@ long getCodeNotExp(long addr, int type)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- NOT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t ; Move o valor da memoria para o registrador \n";
     assemblyCmd += "\tneg EAX \t\t\t ; Nega o valor que esta no registrador\n";
     assemblyCmd += "\tadd EAX, 1 \t\t\t ; Nega o valor que esta no registrador\n";
@@ -591,7 +583,6 @@ long getCodeAccessStringPosition(long addrString, long addrIndex)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- STRING POSITION -- \n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
     assemblyCmd += "\tadd EBX, M + " + to_string(addrString) + " \t\t\t ; Soma indice com valor de memoria da string\n";
     assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
@@ -620,7 +611,6 @@ long getCodeCasting(long addr, int convType)
     if (convType == ConstType::INT)
     {
 
-        assemblyCmd += "\n\t; -- CASTING INT -- \n";
         assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
         assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de float da memoria para o registrador XMM0\n";
         assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
@@ -635,7 +625,6 @@ long getCodeCasting(long addr, int convType)
     else if (convType == ConstType::FLOAT)
     {
 
-        assemblyCmd += "\n\t; -- CASTING FLOAT -- \n";
         assemblyCmd += "\tmov EAX, 0 ; Zera o EAX\n";
         assemblyCmd += "\tmov RAX, 0 ; Zera o RAX\n";
         assemblyCmd += "\tmov EAX, [ M + " + to_string(addr) + " ] \t\t\t; Move o valor de int da memoria para o registrador RAX\n";
@@ -665,7 +654,6 @@ long getCodeTimesOperationtForFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT * FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para registrador\n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para registrador\n";
 
@@ -690,7 +678,6 @@ long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT * INT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
@@ -717,7 +704,6 @@ long getCodeTimesOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT * INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador \n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador \n";
 
@@ -741,7 +727,6 @@ long getCodeDivOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT DIV INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador \n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador \n";
 
@@ -766,7 +751,6 @@ long getCodeDivideOperationtForFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT / FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de float 1 da memoria para registrador\n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de float 2 da memoria para registrador\n";
 
@@ -791,7 +775,6 @@ long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT / INT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
@@ -818,7 +801,6 @@ long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT / FLOAT -- \n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
@@ -845,7 +827,6 @@ long getCodeDivideOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT / INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em EAX\n";
     assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t ; Expande int1 para float1\n";
@@ -875,7 +856,6 @@ long getCodeModOperationtForInt(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT MOD INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para o registrador\n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para o registrador\n";
 
@@ -902,7 +882,6 @@ long getCodePlusMinnusForFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT (+|-) FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para registrador\n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para registrador\n";
 
@@ -938,7 +917,6 @@ long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT (+|-) INT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para o registrador\n";
 
@@ -978,7 +956,6 @@ long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT (+|-) FLOAT -- \n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para o registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em RAX\n";
@@ -1017,7 +994,6 @@ long getCodePlusMinnusForInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT (+|-) INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador\n";
 
@@ -1050,7 +1026,6 @@ long getCodeForOR(long addr1, long addr2)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- OR -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de boolean 1 da memoria para registrador\n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de boolean 2 da memoria para registrador\n";
     // Not boolean 1
@@ -1195,7 +1170,6 @@ long getCodeCmpForCharAndChar(long addr1, long addr2, int operation)
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- CHAR CMP CHAR -- \n";
     assemblyCmd += "\tmov AL, [ M + " + to_string(addr1) + " ] \t\t\t; Move o valor de char 1 da memoria para registrador\n";
     assemblyCmd += "\tmov BL, [ M + " + to_string(addr2) + " ] \t\t\t; Move o valor de char 2 da memoria para registrador\n";
     assemblyCmd += "\tcmp AL, BL \t\t\t ; compara caracteres\n";
@@ -1258,14 +1232,12 @@ long getCodeCmpForIntAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT " + tokenToString(operation) + " INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int 1 da memoria para registrador\n";
     assemblyCmd += "\tmov EBX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int 2 da memoria para registrador\n";
 
     getCmpCodeInt(operation);
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT " + tokenToString(operation) + " INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1285,7 +1257,6 @@ long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- INT " + tokenToString(operation) + " FLOAT -- \n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float da memoria para registrador\n";
     assemblyCmd += "\tmov RAX, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor\n";
@@ -1295,7 +1266,6 @@ long getCodeCmpForIntAndFloat(long addr1, long addr2, int operation)
     getCmpCodeFloat(operation);
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT " + tokenToString(operation) + " FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1315,7 +1285,6 @@ long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT " + tokenToString(operation) + " INT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float da memoria para registrador \n";
     assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de int da memoria para registrador\n";
 
@@ -1325,7 +1294,6 @@ long getCodeCmpForFloatAndInt(long addr1, long addr2, int operation)
     getCmpCodeFloat(operation);
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT " + tokenToString(operation) + " INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1345,14 +1313,12 @@ long getCodeCmpForFloatAndFloat(long addr1, long addr2, int operation)
 {
     long actualMemoryPosition = assemblyTempCount;
 
-    assemblyCmd += "\n\t; -- FLOAT " + tokenToString(operation) + " FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr1) + " ] \t\t\t ; Move o valor de float 1 da memoria para o registrador XMM0\n";
     assemblyCmd += "\tmovss XMM1, [ M + " + to_string(addr2) + " ] \t\t\t ; Move o valor de float 2 da memoria para o registrador XMM1\n";
 
     getCmpCodeFloat(operation);
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT " + tokenToString(operation) + " FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1379,7 +1345,6 @@ long getCodeCmpForStringAndString(long addr1, long addr2, int operation)
     string labelTrue = getNextAssemblyLabel();
     string labelEnd = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- STRING " + tokenToString(operation) + " STRING -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr1) + " ; \t\t\t Movendo string1 da memória para registrador\n";
     assemblyCmd += "\tmov RDI, M + " + to_string(addr2) + " ; \t\t\t Movendo string2 da memória para registrador\n";
 
@@ -1410,7 +1375,6 @@ long getCodeCmpForStringAndString(long addr1, long addr2, int operation)
     assemblyCmd += labelEnd + ":\n";
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END STRING " + tokenToString(operation) + " STRING -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1429,7 +1393,6 @@ long getCodeCmpForStringAndString(long addr1, long addr2, int operation)
  */
 void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
 {
-    assemblyCmd += "\n\t; -- ATRIB STRING POS := CHAR -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addrIndex) + " ] \t\t\t ; Recupera valor de indice da string da memoria\n";
     assemblyCmd += "\tmov EBX, M + " + to_string(addrAtrib) + " \t\t\t ; Move endereco de memoria da string para registrador\n";
     assemblyCmd += "\tmov ECX, M + " + to_string(addrID) + " \t\t\t ; Move endereco de memoria da string para registrador\n";
@@ -1437,7 +1400,6 @@ void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
     assemblyCmd += "\tmov BL, [EBX] \t\t\t ; Escreve valor de caracter para o registrador\n";
 
     assemblyCmd += "\tmov [ EAX ], BL \t\t\t; Salva character no endereco do identificador\n";
-    assemblyCmd += "\t; -- END ATRIB STRING POS := CHAR -- \n";
 }
 
 /**
@@ -1448,10 +1410,8 @@ void getCodeAtribStringPos(long addrID, long addrIndex, long addrAtrib)
  */
 void getCodeAtribIntAndInt(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB INT := INT -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
-    assemblyCmd += "\t; -- END ATRIB INT := INT -- \n";
 }
 
 /**
@@ -1462,10 +1422,8 @@ void getCodeAtribIntAndInt(long addr1, long addr2)
  */
 void getCodeAtribFloatAndFloat(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB FLOAT := FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ] , XMM0 \t\t\t ; Salva valor do registrador no endereco do ID\n";
-    assemblyCmd += "\t; -- END ATRIB FLOAT := FLOAT -- \n";
 }
 
 /**
@@ -1476,14 +1434,12 @@ void getCodeAtribFloatAndFloat(long addr1, long addr2)
  */
 void getCodeAtribFloatAndInt(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB FLOAT := INT -- \n";
     assemblyCmd += "\tmov RAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tcdqe \t\t\t ; Expandindo o sinal de valor em RAX\n";
     // Type conversion
     assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte int para float\n";
 
     assemblyCmd += "\tmovss [ M + " + to_string(addr1) + " ], XMM0 \t\t\t;  Salva resultado no endereco do identificador\n";
-    assemblyCmd += "\t; -- END ATRIB FLOAT := INT -- \n";
 }
 
 /**
@@ -1786,7 +1742,6 @@ string getCodeOpenIf(long addr)
     // Label false condition
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- IF -- \n";
     assemblyCmd += "\tmov EAX, [ M  + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 1 \t\t\t ; Comparacao com booleano verdadeiro\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for verdadeiro pular bloco do if\n";
