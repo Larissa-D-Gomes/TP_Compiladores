@@ -19,21 +19,21 @@ Abaixo está descrito a documentação do trabalho, descrevendo o funcionamento 
 #### `1.` Analisador Léxico
 Segue abaixo o autômato finito determinístico que representa o Analisador Léxico do compilador:
 
-![Imagem que mostra o autômato do Analisador Léxico do compilador](https://drive.google.com/file/d/15vmWZ1AbF8sg4jwpHHwqavoAgViSDA0k/view?usp=sharing)
+![image](https://user-images.githubusercontent.com/65674658/203069954-dc8857c0-ec06-41c1-831b-9a04f7752f31.png)
 
 #### `2.` Analisador Sintático
 
 Segue abaixo a gramática da Linguagem L utilizada no Analizador Sintático do compilador:
 
-![Imagem que mostra a gramática do Analisador Sintático do compilador](https://drive.google.com/file/d/1JakZ_YdHZbyRMjesZIEDHun2i6d-78dy/view?usp=sharing)
+![image](https://user-images.githubusercontent.com/65674658/203070012-ac2a2180-48fc-46b3-928a-df9f372b35ff.png)
 
 #### `3.` Tradução de Código
 
 Segue abaixo a gramática com ações semânticas e de geração de código do compilador:
 
-![Imagem que mostra a gramática do Analisador Semântico do compilador](https://drive.google.com/file/d/1-jup7iTSqr8z4FluxB6CiYIunB3LNpSH/view?usp=sharing)
+![image](https://user-images.githubusercontent.com/65674658/203070049-59a9a725-e420-4efa-9a1a-1fce74b375b3.png)
 
-![Imagem que mostra as ações semânticas e geração de código do compilador](https://drive.google.com/file/d/17Z5REKWg0IUhC7DDDK7gPk3L4NMSnDz8/view?usp=sharing)
+![image](https://user-images.githubusercontent.com/65674658/203070092-5a1d2c50-0262-4144-8792-074f0c6d26ba.png)
 
 ---
 ### Build Project
