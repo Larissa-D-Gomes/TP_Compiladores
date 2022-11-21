@@ -1,0 +1,4 @@
+write(30.43);
+writeln(20.12);
+writeln(-20.12);
+writeln(-289.13);

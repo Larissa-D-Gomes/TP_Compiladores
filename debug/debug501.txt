@@ -1,0 +1,20 @@
+float n, f1, f2, res;
+char OP;
+
+while(true){
+    write("DIGITE O PRIMEIRO NUMERO REAL: ");
+    readln(f1);
+    write("Digite a operacao (+,-,*,/): ");
+    readln(op);
+    write("Digite o primeiro numero real: ");
+    readln(f2);
+    if((OP = 'D') || (OP ='m') && (f2 = 0)) writeln("Operacao por 0");
+    else {
+        if (op = '+') res := f1 + f2;
+        else if (op = '-') res := f1 - f2;
+        else if (op = '*') res := f1 * f2;
+        else if (op = '/') res := f1 / f2;
+    }
+
+    writeln("Resultado: ", res);
+}

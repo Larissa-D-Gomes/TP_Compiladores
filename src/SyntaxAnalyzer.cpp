@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <string>
+#include <list>
 
 #include "headers/SyntaxAnalyzer.hpp"
 #include "headers/LexicalRegister.hpp"
@@ -27,6 +28,7 @@
 
 #define finalState -1
 #define null -999
+#define isToUsePeephole false
 
 using namespace std;
 
@@ -46,8 +48,6 @@ SyntaxAnalyzer::SyntaxAnalyzer()
  */
 void SyntaxAnalyzer::matchToken(int expectedToken)
 {
-    cout << "AnalisadorLexico: [" << tokenToString(this->token) << "] Esperado na Gramatica: [" << tokenToString(expectedToken) << "]" << endl;
-
     // Verify if read token by LexicalAnalyzer matches the expected token by L Language Grammar
     if (this->token == expectedToken)
     {
@@ -186,6 +186,7 @@ bool SyntaxAnalyzer::checkFirstM()
            this->token == Alphabet::TRUE ||
            this->token == Alphabet::FALSE;
 }
+
 /**
  * @brief Variable S of the L Language Grammar
  */
@@ -205,6 +206,7 @@ void SyntaxAnalyzer::S()
     }
     matchToken(EOF);
 }
+
 /**
  * @brief Variable DEC of the L Language Grammar
  */
@@ -274,7 +276,6 @@ void SyntaxAnalyzer::DEC()
         }
         else
         {
-            cout << "(1.1)" << endl;
             throwDeclaredID(this->regLex.lexeme);
         }
 
@@ -289,12 +290,11 @@ void SyntaxAnalyzer::DEC()
         if (this->token == Alphabet::ATRIB)
         {
             matchToken(Alphabet::ATRIB);
-            deconstRet = DECONST(true);
+            deconstRet = DECONST(false);
 
             // Semantic Action 8
             if (type == ConstType::INT && deconstRet.type != ConstType::INT)
             {
-                cout << "(8.1-1)" << endl;
                 throwIncompatibleType();
             }
             // ATRIB INT X INT
@@ -305,7 +305,6 @@ void SyntaxAnalyzer::DEC()
             //Throw exception if type ID is diferent of type ID (return)[float or int]
             if (type == ConstType::FLOAT && (deconstRet.type != ConstType::INT && deconstRet.type != ConstType::FLOAT))
             {
-                cout << "(8.1-2)" << endl;
                 throwIncompatibleType();
             }
             // ATRIB FLOAT X FLOAT
@@ -321,7 +320,6 @@ void SyntaxAnalyzer::DEC()
             //Throw exception if type ID is diferent of type ID (return)[string]
             if (type == ConstType::STRING && deconstRet.type != ConstType::STRING)
             {
-                cout << "(8.1-3)" << endl;
                 throwIncompatibleType();
             }
             // ATRIB STRING
@@ -332,7 +330,6 @@ void SyntaxAnalyzer::DEC()
             //Throw exception if type ID is diferent of type ID (return) [boolean]
             if (type == ConstType::BOOLEAN && deconstRet.type != ConstType::BOOLEAN)
             {
-                cout << "(8.1-4)" << endl;
                 throwIncompatibleType();
             }
             // ATRIB BOOLEAN X BOOLEAN
@@ -343,7 +340,6 @@ void SyntaxAnalyzer::DEC()
             //Throw exception if type ID is diferent of type ID (return) [char]
             if (type == ConstType::CHAR && deconstRet.type != ConstType::CHAR)
             {
-                cout << "(8.1-5)" << endl;
                 throwIncompatibleType();
             }
             // ATRIB CHAR
@@ -410,12 +406,11 @@ void SyntaxAnalyzer::DEC()
             if (this->token == Alphabet::ATRIB)
             {
                 matchToken(Alphabet::ATRIB);
-                deconstRet = DECONST(true);
+                deconstRet = DECONST(false);
 
                 // Semantic Action 8
                 if (type == ConstType::INT && deconstRet.type != ConstType::INT)
                 {
-                    cout << "(8-1)" << endl;
                     throwIncompatibleType();
                 }
                 // ATRIB INT X INT
@@ -426,7 +421,6 @@ void SyntaxAnalyzer::DEC()
                  //Throw exception if type ID is diferent of type ID (return)[float or int]
                 if (type == ConstType::FLOAT && (deconstRet.type != ConstType::INT && deconstRet.type != ConstType::FLOAT))
                 {
-                    cout << "(8-2)" << endl;
                     throwIncompatibleType();
                 }
                 // ATRIB FLOAT X FLOAT
@@ -442,7 +436,6 @@ void SyntaxAnalyzer::DEC()
                 //Throw exception if type ID is diferent of type ID (return)[string]
                 if (type == ConstType::STRING && deconstRet.type != ConstType::STRING)
                 {
-                    cout << "(8-3)" << endl;
                     throwIncompatibleType();
                 }
                 // ATRIB STRING X STRING
@@ -453,7 +446,6 @@ void SyntaxAnalyzer::DEC()
                 //Throw exception if type ID is diferent of type ID (return) [boolean]
                 if (type == ConstType::BOOLEAN && deconstRet.type != ConstType::BOOLEAN)
                 {
-                    cout << "(8-4)" << endl;
                     throwIncompatibleType();
                 }
                 // ATRIB BOOLEAN X BOOLEAN
@@ -464,7 +456,6 @@ void SyntaxAnalyzer::DEC()
                  //Throw exception if type ID is diferent of type ID (return) [char]
                 if (type == ConstType::CHAR && deconstRet.type != ConstType::CHAR)
                 {
-                    cout << "(8-5)" << endl;
                     throwIncompatibleType();
                 }
                 // ATRIB CHAR
@@ -517,13 +508,11 @@ void SyntaxAnalyzer::ATR()
     // Semantic Action 3
     if (symbolTable->getType(regLex.lexeme) == null)
     {
-        cout << "(3.1)" << endl;
         throwNotDeclaredID(regLex.lexeme);
     }
 
     if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST)
     {
-        cout << "(3.1)" << endl;
         throwIncompatibleClass(regLex.lexeme);
     }
 
@@ -539,7 +528,6 @@ void SyntaxAnalyzer::ATR()
         // Semantic Action 31
         if (typeID != ConstType::STRING)
         {
-            cout << "(31)" << endl;
             throwIncompatibleType();
         }
 
@@ -550,7 +538,6 @@ void SyntaxAnalyzer::ATR()
 
         if (exp1Ret.type != ConstType::INT)
         {
-            cout << "(9)" << endl;
             throwIncompatibleType();
         }
 
@@ -566,7 +553,6 @@ void SyntaxAnalyzer::ATR()
     // Semantic Action 33
     if (isStringPos && expRet.type != ConstType::CHAR)
     {
-        cout << "(33)" << endl;
         throwIncompatibleType();
     }
     // ATRIB CHAR
@@ -579,7 +565,6 @@ void SyntaxAnalyzer::ATR()
     if (typeID == ConstType::INT && expRet.type != ConstType::INT)
     {
         // Incompatible type
-        cout << "(10-1)" << endl;
         throwIncompatibleType();
     }
     // ATRIB INT X INT
@@ -591,7 +576,6 @@ void SyntaxAnalyzer::ATR()
     if (typeID == ConstType::FLOAT && (expRet.type != ConstType::FLOAT && expRet.type != ConstType::INT))
     {
         // Incompatible type
-        cout << "(10-2)" << endl;
         throwIncompatibleType();
     }
     // ATRIB FLOAT X FLOAT
@@ -608,7 +592,6 @@ void SyntaxAnalyzer::ATR()
     if (!isStringPos && typeID == ConstType::STRING && expRet.type != ConstType::STRING)
     {
         // Incompatible type
-        cout << "(10-3)" << endl;
         throwIncompatibleType();
     }
     // ATRIB STRING
@@ -620,7 +603,6 @@ void SyntaxAnalyzer::ATR()
     if (typeID == ConstType::BOOLEAN && expRet.type != ConstType::BOOLEAN)
     {
         // Incompatible type
-        cout << "(10-4)" << endl;
         throwIncompatibleType();
     }
     // ATRIB BOOLEAN X BOOLEAN
@@ -632,7 +614,6 @@ void SyntaxAnalyzer::ATR()
     if (typeID == ConstType::CHAR && expRet.type != ConstType::CHAR)
     {
         // Incompatible type
-        cout << "(10-5)" << endl;
         throwIncompatibleType();
     }
     // ATRIB CHAR
@@ -663,14 +644,15 @@ ExpressionReturn SyntaxAnalyzer::DECONST(bool isNewConst)
 
         if (isNewConst)
         {
-            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type);
+            deconstRet.addr = getCodeDeconst(hasMinnus,  deconstRet.type, this->regLex.lexeme);
+        } else{
+            deconstRet.addr = getCodeExpConst(this->regLex.lexeme, deconstRet.type, hasMinnus);
         }
         matchToken(Alphabet::CONSTANT); // CONSTANT
     }
     // Semantic Action 30
     if (hasMinnus && (deconstRet.type != ConstType::INT && deconstRet.type != ConstType::FLOAT))
     {
-        cout << "(30)" << endl;
         throwIncompatibleType();
     }
 
@@ -688,18 +670,18 @@ void SyntaxAnalyzer::CMD() // Language commands
     if (this->token == Alphabet::WHILE) // WHILE(){}
     {
         matchToken(Alphabet::WHILE);
-        parRet = PAR();
-
+        
         string labelFalse;
         string labelLoop;
-
+        getCodeInitWhile(labelFalse, labelLoop);
+        
+        parRet = PAR();
         // Code open while      
-        getCodeOpenWhile(parRet.addr, labelFalse, labelLoop);
+        getCodeConditionWhile(parRet.addr, labelFalse);
 
         // Semantic Action 28
         if (parRet.type != ConstType::BOOLEAN)
         {
-            cout << "(28-1)" << endl;
             throwIncompatibleType();
         }
 
@@ -716,7 +698,6 @@ void SyntaxAnalyzer::CMD() // Language commands
         // Semantic Action 28
         if (parRet.type != ConstType::BOOLEAN)
         {
-            cout << "(28-2)" << endl;
             throwIncompatibleType();
         }
 
@@ -751,21 +732,18 @@ void SyntaxAnalyzer::CMD() // Language commands
         // Semantic Action 6
         if (symbolTable->getType(regLex.lexeme) == null)
         {
-            cout << "(6)" << endl;
             throwNotDeclaredID(regLex.lexeme);
         }
 
         // Semantic Action 39
         if (symbolTable->getType(regLex.lexeme) == ConstType::BOOLEAN)
         {
-            cout << "(39)" << endl;
             throwIncompatibleType();
         }
 
         // Semantic Action 40
         if (symbolTable->getClass(regLex.lexeme) == ClassType::CONST)
         {
-            cout << "(40)" << endl;
             throwIncompatibleClass(regLex.lexeme);
         }
 
@@ -873,13 +851,11 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     // CHAR OPERATIONS
     if (T.type == ConstType::CHAR && T1.type != ConstType::CHAR)
     {
-        cout << "(26-1)" << endl;
         throwIncompatibleType();
     }
     //Throws exception if type ID is diferent of return type [char]
     else if (T.type != ConstType::CHAR && T1.type == ConstType::CHAR)
     {
-        cout << "(26-2)" << endl;
         throwIncompatibleType();
     }
     else if ((T.type == ConstType::CHAR && T1.type == ConstType::CHAR))
@@ -889,25 +865,21 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     // INT X FLOAT OPERATIONS
     else if (T.type == ConstType::INT && (T1.type != ConstType::INT && T1.type != ConstType::FLOAT))
     {
-        cout << "(26-3)" << endl;
         throwIncompatibleType();
     }
     //Throws exception if type ID is diferent of return type [int or float]
     else if ((T.type != ConstType::INT && T.type != ConstType::FLOAT) && T1.type == ConstType::INT)
     {
-        cout << "(26-4)" << endl;
         throwIncompatibleType();
     }
     //Throws exception if type ID is diferent of return type [float]
     else if (T.type == ConstType::FLOAT && (T1.type != ConstType::INT && T1.type != ConstType::FLOAT))
     {
-        cout << "(26-5)" << endl;
         throwIncompatibleType();
     }
     //Throws exception if type ID is diferent of return type [int or float]
     else if ((T.type != ConstType::INT && T.type != ConstType::FLOAT) && T1.type == ConstType::FLOAT)
     {
-        cout << "(26-6)" << endl;
         throwIncompatibleType();
     }
     else if (T.type == ConstType::INT && T1.type == ConstType::INT)
@@ -929,20 +901,17 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     //Throws exception if the user is trying make any operation with string diferent of "equal"
     else if ((T.type == ConstType::STRING || T1.type == ConstType::STRING) && operation != Alphabet::EQUAL)
     {
-        cout << "(26-7)" << endl;
         throwIncompatibleType();
     }
     //Throws exception if type ID is diferent of return type [string]
     else if (T.type == ConstType::STRING && T1.type != ConstType::STRING)
     {
-        cout << "(26-8)" << endl;
         throwIncompatibleType();
     }
 
     //Throws exception if type ID is diferent of return type [string]
     else if (T.type != ConstType::STRING && T1.type == ConstType::STRING)
     {
-        cout << "(26-9)" << endl;
         throwIncompatibleType();
     }
 
@@ -954,7 +923,6 @@ ExpressionReturn SyntaxAnalyzer::verifyTypesForT(ExpressionReturn T, ExpressionR
     // B//Throws exception if type ID is diferent of return type [string]
     else if (T.type == ConstType::BOOLEAN || T1.type == ConstType::BOOLEAN)
     {
-        cout << "(26-10)" << endl;
         throwIncompatibleType();
     }
     return tRet;
@@ -1065,15 +1033,25 @@ ExpressionReturn SyntaxAnalyzer::T()
     if (isPlusOrMinus && (rRet.type != ConstType::INT && rRet.type != ConstType::FLOAT))
     {
         // ERROR: Incompatible types
-        cout << "(35)" << endl;
         throwIncompatibleType();
     }
-
+    // If has minus on expression
     if (hasMinus)
-    {
-        assemblyCmd += "\tmov EAX, [M + " + to_string(rRet.addr) + "] \t\t\t; Move o valor da memoria para o registrador EAX\n";
-        assemblyCmd += "\tneg EAX \t\t\t; Nega o valor do registrador EAX\n";
-        assemblyCmd += "\tmov [M + " + to_string(rRet.addr) + "], EAX \t\t\t; Guarda valor negado no endereco original\n";
+    {   
+        if(rRet.type == ConstType::INT)
+        {
+            assemblyCmd += "\tmov EAX, 0 \t\t\t ; Zera EAX\n ";
+            assemblyCmd += "\tmov EAX, [ M + " + to_string(rRet.addr) + " ] \t\t\t; Move o valor da memoria para o registrador EAX\n";
+            assemblyCmd += "\tneg EAX \t\t\t; Nega o valor do registrador EAX\n";
+            assemblyCmd += "\tmov [ M + " + to_string(rRet.addr) + " ], EAX \t\t\t; Guarda valor negado no endereco original\n";
+        }
+        else if (rRet.type == ConstType::FLOAT){
+            assemblyCmd += "\tmovss XMM0, [ M + " + to_string(rRet.addr) + "] \t\t\t; Move o valor da memoria para o registrador XMM0\n";
+            assemblyCmd += "\tmovss XMM1, XMM0 \t\t\t; Move o valor de XMM0 para XMM1\n";
+            assemblyCmd += "\tsubss XMM0, XMM0 \t\t\t; Nega o valor do registrador XMM0 (XMM0 - XMM0) \n";
+            assemblyCmd += "\tsubss XMM0, XMM1 \t\t\t; Nega o valor do registrador XMM0 (0 - XMM1) \n";
+            assemblyCmd += "\tmovss [ M + " + to_string(rRet.addr) + " ], XMM0 \t\t\t; Guarda valor negado no endereco original\n";
+        }
     }
 
     tRet = rRet;
@@ -1106,7 +1084,6 @@ ExpressionReturn SyntaxAnalyzer::T()
         {
             if ((tRet.type != ConstType::INT && tRet.type != ConstType::FLOAT) || (r1Ret.type != ConstType::INT && r1Ret.type != ConstType::FLOAT))
             {
-                cout << "(24-1)" << endl;
                 throwIncompatibleType();
             }
             else
@@ -1139,7 +1116,6 @@ ExpressionReturn SyntaxAnalyzer::T()
         {
             if (tRet.type != ConstType::BOOLEAN || r1Ret.type != ConstType::BOOLEAN)
             {
-                cout << "(24-2)" << endl;
                 throwIncompatibleType();
             }
             else
@@ -1176,7 +1152,6 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         if ((M.type != ConstType::INT && M.type != ConstType::FLOAT) ||
             (M1.type != ConstType::INT && M1.type != ConstType::FLOAT))
         {
-            cout << "(22-1)" << endl;
             throwIncompatibleType();
         }
 
@@ -1209,7 +1184,6 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         // Div operation needs two int operators
         if (M.type != ConstType::INT || M1.type != ConstType::INT)
         {
-            cout << "(22-2)" << endl;
             throwIncompatibleType();
         }
 
@@ -1223,7 +1197,6 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         if ((M.type != ConstType::INT && M.type != ConstType::FLOAT) ||
             (M1.type != ConstType::INT && M1.type != ConstType::FLOAT))
         {
-            cout << "(22-3.0)" << endl;
             throwIncompatibleType();
         }
 
@@ -1258,7 +1231,6 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         // of boolean
         if (M.type != ConstType::BOOLEAN || M1.type != ConstType::BOOLEAN)
         {
-            cout << "(22-3.1)" << endl;
             throwIncompatibleType();
         }
         rRet.addr = getCodeTimesOperationtForInt(M.addr, M1.addr);
@@ -1270,7 +1242,6 @@ ExpressionReturn SyntaxAnalyzer::rGetReturn(ExpressionReturn M, ExpressionReturn
         // of int
         if (M.type != ConstType::INT || M1.type != ConstType::INT)
         {
-            cout << "(22-4)" << endl;
             throwIncompatibleType();
         }
         rRet.addr = getCodeModOperationtForInt(M.addr, M1.addr);
@@ -1368,7 +1339,6 @@ ExpressionReturn SyntaxAnalyzer::M()
         // Semantic Action 19
         if (m1Ret.type != ConstType::BOOLEAN)
         {
-            cout << "(19)" << endl;
             throwIncompatibleType();
         }
         else
@@ -1397,7 +1367,6 @@ ExpressionReturn SyntaxAnalyzer::M()
         // Semantic Action 17
         if (expRet.type != ConstType::INT && expRet.type != ConstType::FLOAT)
         {
-            cout << "(17)" << endl;
             throwIncompatibleType();
         }
 
@@ -1424,7 +1393,6 @@ ExpressionReturn SyntaxAnalyzer::M()
         // Semantic Action 3
         if (lexID == null)
         {
-            cout << "(3.2)" << endl;
             throwNotDeclaredID(regLex.lexeme);
         }
 
@@ -1434,7 +1402,6 @@ ExpressionReturn SyntaxAnalyzer::M()
             // Semantic Action 31
             if (lexID != ConstType::STRING)
             {
-                cout << "(31)" << endl;
                 throwIncompatibleType();
             }
 
@@ -1445,7 +1412,6 @@ ExpressionReturn SyntaxAnalyzer::M()
 
             if (expRet.type != ConstType::INT)
             {
-                cout << "(9)" << endl;
                 throwIncompatibleType();
             }
 
@@ -1463,7 +1429,7 @@ ExpressionReturn SyntaxAnalyzer::M()
         // Semantic Action 11
         mRet.type = regLex.constType;
 
-        mRet.addr = getCodeExpConst(regLex.lexeme, regLex.constType);
+        mRet.addr = getCodeExpConst(regLex.lexeme, regLex.constType, false);
         mRet.type = regLex.constType;
 
         matchToken(Alphabet::CONSTANT);
@@ -1480,6 +1446,124 @@ ExpressionReturn SyntaxAnalyzer::M()
 }
 
 /**
+ * @brief Split a string s using a delimiter
+ *
+ * @param string s, string delimiter
+ * @return list<string> split itens
+ */
+list<string> split(string s, string delimiter) 
+{
+    // Finding first apperance of delimiter
+    int pos = s.find(delimiter);
+
+    list<string> splitRet;
+
+    // While != end of string
+    while (pos != string::npos) {
+        // Slipt delimiter
+        splitRet.push_back(s.substr(0, pos));
+
+        // Deleting analised substring
+        s.erase(0, pos + delimiter.length());
+        // Finding next apperance of delimiter
+        pos = s.find(delimiter);
+    }
+
+    splitRet.push_back(s);
+    return splitRet;
+}
+
+/**
+ * @brief check if the source of line 1 is the same as the destination of line 2
+ * 
+ * @param string splitReturnLine1P1 (string 1 arg 1), string splitReturnLine1P2 (string 1 arg 2), 
+ *        string splitReturnLine2P1 (string 2 arg 1), string splitReturnLine2P2 (string 2 arg 2)
+ */
+bool verifyParamEqPeephole(string splitReturnLine1P1, string splitReturnLine1P2, 
+                              string splitReturnLine2P1, string splitReturnLine2P2){
+
+    return splitReturnLine1P1.length() == 9 && splitReturnLine2P2.length() >= 9 &&
+           splitReturnLine2P1.length() == 3 && splitReturnLine1P2.length() >= 3 &&
+           splitReturnLine1P1[0] == splitReturnLine2P2[0] &&
+           splitReturnLine1P1[1] == splitReturnLine2P2[1] &&
+           splitReturnLine1P1[2] == splitReturnLine2P2[2] &&
+           splitReturnLine1P1[3] == splitReturnLine2P2[3] &&
+           splitReturnLine1P1[4] == splitReturnLine2P2[4] &&
+           splitReturnLine1P1[5] == splitReturnLine2P2[5] &&
+           splitReturnLine1P1[6] == splitReturnLine2P2[6] &&
+           splitReturnLine1P1[7] == splitReturnLine2P2[7] &&
+           splitReturnLine1P1[8] == splitReturnLine2P2[8] &&
+           splitReturnLine2P1[0] == splitReturnLine1P2[0] &&
+           splitReturnLine2P1[1] == splitReturnLine1P2[1] &&
+           splitReturnLine2P1[2] == splitReturnLine1P2[2];
+}
+
+/**
+ * @brief Peephole assembly optimization
+ */
+void peephole()
+{
+    list<string> splitReturn = split(assemblyCmd, "\n");
+    int n = splitReturn.size();
+    
+    // Iterator string [i - 1]
+    list<string>::iterator it1 = splitReturn.begin();
+
+    // Iterator string [i]
+    list<string>::iterator it2 = splitReturn.begin();
+    ++it2;
+    string line1;
+    string line2;
+
+    assemblyCmd = "";
+    assemblyCmd = *it1 + "\n";;
+
+    for(int i = 1; i < n; i++){
+        line1 = *it1;
+        line2 = *it2;
+
+        // Checking if both lines are mov commands
+        if(line1[1] == 'm' && line1[2] == 'o' && line1[3] == 'v' && 
+           line2[1] == 'm' && line2[2] == 'o' && line2[3] == 'v')
+        {   
+            // Removing [\tmov ]
+            if(line1.length() > 5 && line2.length() > 5)
+            {
+                line1 = line1.substr(5, line1.length());
+                line2 = line2.substr(5, line2.length());
+            
+                // Separating mov arguments
+                list<string> splitReturnLine1 = split(line1, ", ");
+                list<string>::iterator it3 = splitReturnLine1.begin();
+                list<string> splitReturnLine2 = split(line2, ", ");
+                list<string>::iterator it4 = splitReturnLine2.begin();
+
+                string splitReturnLine1P1 = *it3;
+                it3++;
+                string splitReturnLine1P2 = *it3;
+
+                string splitReturnLine2P1 = *it4;
+                it4++;
+                string splitReturnLine2P2 = *it4;
+
+                // Checking if the source of line 1 is the same as the destination of line 2
+                if(verifyParamEqPeephole(splitReturnLine1P1, splitReturnLine1P2, splitReturnLine2P1, splitReturnLine2P2))
+                {
+                    // Removing line 2 of the assembly
+                    it1++;
+                    it2++;
+                    i++;
+                }
+            }
+        }
+
+        assemblyCmd += *it2 + "\n";
+        it1++;
+        it2++; 
+    }
+}
+
+/**
  * @brief Initial Syntax Analyzer call
  */
 void SyntaxAnalyzer::parser()
@@ -1492,22 +1576,28 @@ void SyntaxAnalyzer::parser()
     this->token = this->regLex.token;
 
     assembly += "section .data                 ; Sessão de dados\n";
-    assembly += "M:                            ; Rotulo para demarcar o\n";
-    assembly += "                              ; inicio da sessao de dados\n";
+    assembly += "M:                            ; Rotulo para demarcar o inicio da sessao de dados\n";
     assembly += "\tresb 0x10000              ; Reserva de temporarios\n";
-    assembly += "   ; ***Definicoes de variaveis e constantes\n";
+    assembly += "; *** Definicoes de variaveis e constantes ***\n";
 
     S();
+
+    if(isToUsePeephole)
+    {
+        peephole();
+    }
 
     assembly += assemblyDec;
 
     assembly += "section .text                 ; Sessao de codigo\n";
     assembly += "global _start                 ; Ponto inicial do programa\n";
     assembly += "_start:                       ; Inicio do programa\n";
-    assembly += "   ; ***Comandos\n";
+    assembly += "; *** Comandos *** \n";
     assembly += assemblyCmd;
     assembly += "; Halt\n";
     assembly += "mov rax, 60                   ; Chamada de saida\n";
     assembly += "mov rdi, 0                    ; Codigo de saida sem erros\n";
     assembly += "syscall                       ; Chama o kernel\n";
 }
+
+

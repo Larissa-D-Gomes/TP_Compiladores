@@ -13,3 +13,14 @@ While (n<=MAXITER) {
   writeln(percentual,": Ola' ",nome);
   n:=n+1;
 }
+
+/* string s1 := "bomdia";
+writeln(s1[2]);
+
+writeln('a' > 'b');
+int a := 4021521521;
+WRITELN(10.65876, 10.43123);
+
+if (1 < 2){
+  writeln(2 + 3);
+} */

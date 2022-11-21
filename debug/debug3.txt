@@ -1,0 +1,17 @@
+int i; 
+char max;
+char c1 := 0x61, c2 := 0x62, c3 := 0x63;
+
+/*write("Digite um caractere: ");
+readln(c1);
+write("Digite um caractere: ");
+readln(c2);
+write("Digite um caractere: ");
+readln(c3);*/
+
+if ((c1 > c2) && (c1 > c3)){
+    max := c1;
+} else if (c2 > c3){
+    max := c2;
+} else max := c3;
+writeln("O maior caractere e' ", max);
