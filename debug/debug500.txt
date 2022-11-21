@@ -20,11 +20,3 @@ while(true){
 
     writeln("Resultado: ", res);
 }
-
-    /*write("Digite o primeiro numero inteiro: ");*/
-    /*readln(i1);*/
-    /*write("Digite o primeiro numero inteiro: ");*/
-    /*readln(i2);
-    res := i1 + i2;*/
-
-    writeln(10);

@@ -58,9 +58,9 @@ void memoryAlocation(long memSize)
  * @param memSize
  * @return int
  */
-int newTemp(int memSize)
+long newTemp(int memSize)
 {
-    int aux = assemblyTempCount;
+    long aux = assemblyTempCount;
     assemblyTempCount += memSize;
 
     return aux;
@@ -151,14 +151,12 @@ void getCodeWriteStr(long addr)
  */
 void getCodeWriteChar(long addr)
 {
-    assemblyCmd += "\n\t; -- WRITE CHAR --\n\n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Copiando endereço do character para um registrador de índice\n";
     assemblyCmd += "\tmov RDX, 1 \t\t\t ; Quantidade de caracteres imprimíveis \n";
 
     assemblyCmd += "\tmov RAX, 1 \t\t\t ; Chamada para saída\n";
     assemblyCmd += "\tmov RDI, 1 \t\t\t ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
-    assemblyCmd += "\t; -- END WRITE CHAR --\n\n";
 }
 
 /**
@@ -173,8 +171,6 @@ void getCodeWriteInt(long addr)
     // Labels
     string label0 = getNextAssemblyLabel();
     string label1 = getNextAssemblyLabel();
-    
-    assemblyCmd += "\n\t; -- WRITE INT --\n";
 
     assemblyCmd += "\tmov EAX, 0 \t\t\t ; Zera registrador\n";
     assemblyCmd += "\tmov RDI, 0 \t\t\t ; Zera registrador\n";
@@ -221,7 +217,6 @@ void getCodeWriteInt(long addr)
     assemblyCmd += "\tmov RDI, 1 ; saida para tela\n";
     assemblyCmd += "\tsyscall\n";
 
-    assemblyCmd += "\t; -- END WRITE INT --\n";
 }
 
 /**
@@ -231,7 +226,7 @@ void getCodeWriteInt(long addr)
  */
 void getCodeWriteFloat(long addr)
 {
-    // Get new temporary memory position
+    // // Get new temporary memory position
     long actualMemoryPosition = newTemp(ConstType::STRING);
 
     // Labels
@@ -241,7 +236,6 @@ void getCodeWriteFloat(long addr)
     string label3 = getNextAssemblyLabel();
     string label4 = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- WRITE FLOAT -- \n";
     assemblyCmd += "\tmovss XMM0, [ M + " + to_string(addr) + " ] \t\t\t ; Real a ser convertido\n";
     assemblyCmd += "\tmov RSI, M + " + to_string(actualMemoryPosition) + " \t\t\t ; End. temporário\n";
     assemblyCmd += "\tmov RCX, 0 \t\t\t ; Contador pilha\n";
@@ -307,7 +301,6 @@ void getCodeWriteFloat(long addr)
     assemblyCmd += "\tmov RAX, 1 ; Chamada para saída\n";
     assemblyCmd += "\tmov RDI, 1 ; Chamada para tela\n";
     assemblyCmd += "\tsyscall\n";
-    assemblyCmd += "\t; -- END WRITE FLOAT -- \n";
 }
 
 /**
@@ -362,14 +355,12 @@ void getCodeWriteLineBr()
     // Alloc temp memory for buffer (1 byte)
     long buffer = newTemp(ConstType::CHAR);
 
-    assemblyCmd += "\t; -- LINE BREAK -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + "\n";
     assemblyCmd += "\tmov [RSI], byte 10 \t\t\t ; Move caracter quebra de linha para o endereço armazenado em RSI\n";
     assemblyCmd += "\tmov RDX, 1 \t\t\t; Ou buffer.tam\n";
     assemblyCmd += "\tmov RAX, 1 \t\t\t; Chamada para saida\n";
     assemblyCmd += "\tmov RDI, 1 \t\t\t; Saida para tela\n";
     assemblyCmd += "\tsyscall\n";
-    assemblyCmd += "\t; -- END LINE BREAK -- \n";
 }
 
 /**
@@ -536,15 +527,12 @@ long getCodeExpConst(string stringValue, int type, bool hasMinnus)
             } 
 
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move registrador para memoria temporaria\n";
-            assemblyCmd += "\t; -- END CONST INT -- \n";
         }
         else if (type == ConstType::CHAR)
         {
-            cout << to_string(actualMemoryPosition) << endl;
             assemblyCmd += "\n\t; -- CONST CHAR -- \n";
             assemblyCmd += "\tmov AL, " + stringValue + " \t\t\t ; Move Char imediato para registrador\n";
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], AL \t\t\t ; Move registrador para memoria temporaria\n";
-            assemblyCmd += "\t; -- END CONST CHAR -- \n";
         }
         else if (type == ConstType::BOOLEAN)
         {
@@ -560,7 +548,6 @@ long getCodeExpConst(string stringValue, int type, bool hasMinnus)
             assemblyCmd += "\n\t; -- CONST BOOLEAN -- \n";
             assemblyCmd += "\tmov EAX, " + stringValue + "\t\t\t ; Move Boolean imediado para registrador EAX\n";
             assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move valor do registrador para memoria temporaria\n";
-            assemblyCmd += "\t; -- END CONST BOOLEAN -- \n";
         }
 
         // Temporary Memory alloc
@@ -586,7 +573,6 @@ long getCodeNotExp(long addr, int type)
     assemblyCmd += "\tneg EAX \t\t\t ; Nega o valor que esta no registrador\n";
     assemblyCmd += "\tadd EAX, 1 \t\t\t ; Nega o valor que esta no registrador\n";
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Move o valor do registrador para memoria temporaria\n";
-    assemblyCmd += "\t; -- END NOT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(type));
@@ -611,7 +597,6 @@ long getCodeAccessStringPosition(long addrString, long addrIndex)
     assemblyCmd += "\tmov EAX, [EBX] \t\t\t ; Escreve valor de caracter para o registrador AL\n";
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva character em temporario\n";
-    assemblyCmd += "\t; -- END STRING POSITION -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::CHAR));
@@ -642,8 +627,6 @@ long getCodeCasting(long addr, int convType)
 
         assemblyCmd += "\tcvtss2si RAX, XMM0 \t\t\t; Converte int para float\n";
         assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], RAX \t\t\t ; Salva valor convertido para temporario\n";
-        assemblyCmd += "\t; -- END CASTING INT -- \n";
-
         // Temporary Memory alloc
         newTemp(getTypeMemSize(ConstType::INT));
 
@@ -660,7 +643,6 @@ long getCodeCasting(long addr, int convType)
         assemblyCmd += "\tsubss XMM0, XMM0 ; Zera o XMM0\n";
         assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t; Converte float para int\n";
         assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva valor convertido para temporario\n";
-        assemblyCmd += "\t; -- END CASTING FLOAT -- \n";
 
         // Temporary Memory alloc
         newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -689,7 +671,6 @@ long getCodeTimesOperationtForFloat(long addr1, long addr2)
 
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t ; Float1 * Float2\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT * FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -718,8 +699,6 @@ long getCodeTimesOperationtForFloatAndInt(long addr1, long addr2)
     assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int para float\n";
     assemblyCmd += "\tmulss XMM0, XMM1  \t\t\t ; Float * Float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT * INT -- \n";
-
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
 
@@ -744,8 +723,6 @@ long getCodeTimesOperationtForInt(long addr1, long addr2)
 
     assemblyCmd += "\timul EBX \t\t\t ; Int1 * Int2\n";
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT * INT -- \n";
-
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
 
@@ -770,7 +747,6 @@ long getCodeDivOperationtForInt(long addr1, long addr2)
 
     assemblyCmd += "\tidiv EBX \t\t\t ; int1 div int2\n";
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT DIV INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
@@ -796,7 +772,6 @@ long getCodeDivideOperationtForFloat(long addr1, long addr2)
 
     assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t; float1 / float2\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT / FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -824,7 +799,6 @@ long getCodeDivideOperationtForFloatAndInt(long addr1, long addr2)
     assemblyCmd += "\tcvtsi2ss XMM1, RAX \t\t\t ; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float / float(int)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT / INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -852,7 +826,6 @@ long getCodeDivideOperationtForIntAndFloat(long addr1, long addr2)
     assemblyCmd += "\tcvtsi2ss XMM0, RAX \t\t\t ; Expande int para float\n";
     assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float(int) / float\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT / FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -883,7 +856,6 @@ long getCodeDivideOperationtForInt(long addr1, long addr2)
 
     assemblyCmd += "\tdivss XMM0, XMM1 \t\t\t ; float(int1) / float(int2)\n";
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT / INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
@@ -909,8 +881,6 @@ long getCodeModOperationtForInt(long addr1, long addr2)
 
     assemblyCmd += "\tidiv EBX \t\t\t ; int1 mod int2\n";
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EDX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT MOD INT -- \n";
-
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
 
@@ -948,7 +918,6 @@ long getCodePlusMinnusForFloat(long addr1, long addr2, int operation)
     }
 
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT (+|-) FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -989,7 +958,6 @@ long getCodePlusMinnusForFloatAndInt(long addr1, long addr2, int operation)
     }
 
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END FLOAT (+|-) INT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -1029,7 +997,6 @@ long getCodePlusMinnusForIntAndFloat(long addr1, long addr2, int operation)
     }
 
     assemblyCmd += "\tmovss [ M + " + to_string(actualMemoryPosition) + " ], XMM0 \t\t\t ;  Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT (+|-) FLOAT -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::FLOAT));
@@ -1066,8 +1033,6 @@ long getCodePlusMinnusForInt(long addr1, long addr2, int operation)
     }
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END INT (+|-) INT -- \n";
-
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::INT));
 
@@ -1101,8 +1066,6 @@ long getCodeForOR(long addr1, long addr2)
     assemblyCmd += "\tadd EAX, 1 \t\t\t ; !(!EAX AND !EBX) = EAX OR EBX\n";
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END OR -- \n";
-
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
 
@@ -1276,7 +1239,6 @@ long getCodeCmpForCharAndChar(long addr1, long addr2, int operation)
     assemblyCmd += labelEnd + ":\n";
 
     assemblyCmd += "\tmov [ M + " + to_string(actualMemoryPosition) + " ], EAX \t\t\t ; Salva resultado em temporario\n";
-    assemblyCmd += "\t; -- END CHAR CMP CHAR -- \n";
 
     // Temporary Memory alloc
     newTemp(getTypeMemSize(ConstType::BOOLEAN));
@@ -1532,7 +1494,6 @@ void getCodeAtribFloatAndInt(long addr1, long addr2)
  */
 void getCodeAtribStringAndString(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB STRING := STRING -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr1) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
     assemblyCmd += "\tmov RDI, M + " + to_string(addr2) + " \t\t\t ; Copiando endereço da string para um registrador de índice\n";
 
@@ -1552,7 +1513,6 @@ void getCodeAtribStringAndString(long addr1, long addr2)
 
     // End of loop
     assemblyCmd += labeEndLoop + ": ; Fim do loop\n";
-    assemblyCmd += "\t; -- END ATRIB STRING := STRING -- \n";
 }
 
 /**
@@ -1563,10 +1523,8 @@ void getCodeAtribStringAndString(long addr1, long addr2)
  */
 void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB BOOLEAN := BOOLEAN -- \n";
     assemblyCmd += "\tmov EAX, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , EAX \t\t\t ; Salva valor do registrador no endereco do ID\n";
-    assemblyCmd += "\t; -- END ATRIB BOOLEAN := BOOLEAN -- \n";
 }
 
 /**
@@ -1577,10 +1535,8 @@ void getCodeAtribBooleanAndBoolean(long addr1, long addr2)
  */
 void getCodeAtribCharAndChar(long addr1, long addr2)
 {
-    assemblyCmd += "\n\t; -- ATRIB CHAR := CHAR -- \n";
     assemblyCmd += "\tmov AL, [ M + " + to_string(addr2) + " ] \t\t\t ; Recupera valor do identificador da memoria\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr1) + " ] , AL \t\t\t ; Salva valor do registrador no endereco do ID\n";
-    assemblyCmd += "\t; -- END ATRIB CHAR := CHAR -- \n";
 }
 
 // **** READ SECTION ****
@@ -1596,7 +1552,6 @@ void getCodeReadStr(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     // Init assembly code read (input)
-    assemblyCmd += "\n\t; -- READ STR -- \n";
     assemblyCmd += "\tmov RSI, M+" + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
@@ -1619,7 +1574,6 @@ void getCodeReadStr(long addr)
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmov DL, 0 \t\t\t ; Substitui quebra de linha por fim de string\n";
     assemblyCmd += "\tmov [RSI], DL \t\t\t ; Move fim de string para o identificador\n";
-    assemblyCmd += "\t; -- END READ STR -- \n";
 }
 
 /**
@@ -1638,7 +1592,6 @@ void getCodeReadInt(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     // Init assembly code read (input)
-    assemblyCmd += "\n\t; -- READ INT -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
@@ -1680,7 +1633,6 @@ void getCodeReadInt(long addr)
 
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmov [ M + " + to_string(addr) + " ], EAX \t\t\t; Carrega o valor para o indentificador\n";
-    assemblyCmd += "\t; -- END READ INT -- \n";
 }
 
 /**
@@ -1701,7 +1653,6 @@ void getCodeReadFloat(long addr)
     string labelEnd = getNextAssemblyLabel();
 
     // Init assembly code read (input)
-    assemblyCmd += "\n\t; -- READ FLOAT -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(buffer) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 100h \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
@@ -1762,7 +1713,6 @@ void getCodeReadFloat(long addr)
 
     assemblyCmd += labelEnd + ":\n";
     assemblyCmd += "\tmovss [ M + " + to_string(addr) + " ], XMM0 \t\t\t; Carrega o valor para o indentificador\n";
-    assemblyCmd += "\t; -- END READ FLOAT -- \n";
 }
 
 /**
@@ -1779,7 +1729,6 @@ void getCodeReadChar(long addr)
     string cleanBufferLabel = getNextAssemblyLabel();
 
     // Init assembly code read (input)
-    assemblyCmd += "\n\t; -- READ CHAR -- \n";
     assemblyCmd += "\tmov RSI, M + " + to_string(addr) + " \t\t\t ; Salva o endereco do buffer\n";
     assemblyCmd += "\tmov RDX, 1 \t\t\t ; Tamanho do buffer\n";
     assemblyCmd += "\tmov RAX, 0 \t\t\t ; Chamada para leitura\n";
@@ -1796,7 +1745,6 @@ void getCodeReadChar(long addr)
     assemblyCmd += "\tmov AL,[ M + " + to_string(buffer) + " ]\n";
     assemblyCmd += "\tcmp AL, 0xA \t\t\t ; Verifica se e nova linha\n";
     assemblyCmd += "\tjne " + cleanBufferLabel + "\t\t\t ; Le o proximo se nao for nova linha\n\n";
-    assemblyCmd += "\t; -- END READ CHAR -- \n";
 }
 
 /**
@@ -1854,7 +1802,6 @@ string getCodeOpenIf(long addr)
 void getCodeCloseBlockIf(string label)
 {
     assemblyCmd += label + ": \t\t\t ; fecha bloco do if\n";
-    assemblyCmd += "\t; -- END IF -- \n";
 }
 
 /**
@@ -1867,11 +1814,9 @@ string getCodeOpenElse(long addr)
 {
     string labelFalse = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- ELSE -- \n";
     assemblyCmd += "\tmov EAX, [ M   + " + to_string(addr) + " ] \t\t\t ; Recupera valor de booleano da memoria\n";
     assemblyCmd += "\tcmp EAX, 0 \t\t\t ; Comparacao com booleano false\n";
     assemblyCmd += "\tjne " + labelFalse + "\t\t\t ; Se valor nao for falso pular bloco do else\n";
-    assemblyCmd += "\t; -- END ELSE -- \n";
 
     return labelFalse;
 }
@@ -1905,7 +1850,6 @@ void getCodeInitWhile(string &labelFalse, string &labelLoop)
     // Label begin of while
     labelLoop = getNextAssemblyLabel();
 
-    assemblyCmd += "\n\t; -- WHILE -- \n";
     assemblyCmd += labelLoop + ":  \t\t\t ; inicio while \n";
 }
 
@@ -1918,5 +1862,4 @@ void getCodeCloseBlockWhile(string labelFalse, string labelLoop)
 {
     assemblyCmd += "\tjmp " + labelLoop + "\t\t\t ; Realiza o loop do while\n";
     assemblyCmd += labelFalse + ": \t\t\t ; Fim do while \n";
-    assemblyCmd += "\t; -- END WHILE -- \n";
 }

@@ -64,7 +64,7 @@ void memoryAlocation(long memSize);
  * @param memSize 
  * @return int 
  */
-int newTemp(int memSize);
+long newTemp(int memSize);
 
 /**
  * @brief Reset memory temp count
