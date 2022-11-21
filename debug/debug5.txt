@@ -1,0 +1,12 @@
+float b := 3.5,
+    h := 2.0,
+    p;
+
+write("Base: ");
+readln(b);
+write("Altura: ");
+readln(h);
+
+writeln("Calculo do perimetro de um retangulo");
+p := 2*b+2*h;
+writeln("Um retangulo de base ", b," e altura ", h, " tem um perimetro de ",p);

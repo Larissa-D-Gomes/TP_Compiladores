@@ -82,7 +82,7 @@ TransitionReturn stateZeroTransition(string lexeme, char c)
         // Go from state 0 to state 7
         transitionReturn.nextState = 7;
         transitionReturn.lexemeConcat = lexeme + c;
-        isReadingString = false;
+        isReadingString = true;
     }
     // String constants path
     else if (c == '\"')
