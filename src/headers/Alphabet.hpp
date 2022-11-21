@@ -60,7 +60,6 @@ public:
     static const int FALSE = 36;             //  (F | f)(A | a)(L | l)(S |s)(E | e)
     static const int BOOLEAN = 37;           //  (B | b)(O | o)(O | o)(L | l)(E | e)(A | a)(N| n)
     static const int ID = 40;                //  (l | _) (l | d | _) -> l = letra; d = dígito
-    static const int CONSTANT = 41;          //  (('c') | ("(n)*") | (d+) | (d*.d+))
-                                             //  c -> valid and printable char
+    static const int CONSTANT = 41;          //  (('c') | ("(n)*") | (d+) | (d*.d+))                    //  c -> valid and printable char
                                              //  n -> valid char != /n
 };
